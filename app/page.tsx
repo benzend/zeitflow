@@ -1,6 +1,12 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import Logo from './components/Logo';
+import {
+  QueueIcon,
+  ChainIcon,
+  StepIcon,
+  ResultIcon,
+} from './components/FeatureIcons';
 
 export default function Home() {
   return (
@@ -65,22 +71,22 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 w-full">
               {[
                 {
-                  icon: '/file.svg',
+                  icon: QueueIcon,
                   title: 'Queue',
                   desc: 'Run multiple chains sequentially',
                 },
                 {
-                  icon: '/window.svg',
+                  icon: ChainIcon,
                   title: 'Chain',
                   desc: 'Command a customized sequence of prompts',
                 },
                 {
-                  icon: '/next.svg',
+                  icon: StepIcon,
                   title: 'Step',
                   desc: 'Execute multiple prompts',
                 },
                 {
-                  icon: '/vercel.svg',
+                  icon: ResultIcon,
                   title: 'Result',
                   desc: 'Track the results of each prompt',
                 },
@@ -91,13 +97,7 @@ export default function Home() {
                   style={{ animationDelay: `${(index + 5) * 100}ms` }}
                 >
                   <div className="w-20 h-20 bg-[#18181b] rounded-2xl flex items-center justify-center group-hover:bg-[#232323] transition-colors duration-300 shadow-lg group-hover:animate-pulse-glow">
-                    <Image
-                      src={item.icon}
-                      alt={item.title}
-                      width={40}
-                      height={40}
-                      className="text-[#a3e635] group-hover:scale-110 transition-transform duration-300"
-                    />
+                    <item.icon className="text-[#a3e635] group-hover:scale-110 transition-transform duration-300" />
                   </div>
                   <span className="font-semibold text-[#a3e635] text-lg">
                     {item.title}
