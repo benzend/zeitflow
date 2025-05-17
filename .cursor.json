@@ -1,0 +1,35 @@
+{
+  "project": {
+    "name": "Joice",
+    "description": "Joice is a system for managing and executing prompt chains, inspired by the architecture diagram and Figma design. The core entities are Queue, Chain, Step, and Result, which together model a workflow of prompt execution and result tracking.",
+    "design_reference": "https://www.figma.com/design/WGyZiPNKkarvUQ2yp5Jd7X/Joist?node-id=0-1&t=mtcudrto30gTcYYP-1",
+    "architecture": {
+      "Queue": {
+        "description": "A Queue contains multiple Chains, each representing a sequence of Steps to be executed.",
+        "fields": ["chains: Chain[]"]
+      },
+      "Chain": {
+        "description": "A Chain represents a named sequence of Steps, associated with a cycle number.",
+        "fields": ["cycle: number", "name: string", "steps: Step[]"]
+      },
+      "Step": {
+        "description": "A Step represents a single prompt execution within a Chain, tracking its cycle, prompt, and results.",
+        "fields": [
+          "cycle: number",
+          "prompt: string",
+          "queue: Queue",
+          "results: Result[]"
+        ]
+      },
+      "Result": {
+        "description": "A Result captures the output of a Step, including the result string and a reference to the originating Step.",
+        "fields": ["results: string", "step: Step"]
+      }
+    },
+    "notes": [
+      "See Figma for UI/UX design inspiration.",
+      "Architecture diagram (attached) for model relationships.",
+      "Considerations: OpenAI integration, rate limits, token spend/usage tracking."
+    ]
+  }
+}
