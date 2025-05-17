@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import Logo from './components/Logo';
 
 export default function Home() {
   return (
@@ -11,12 +12,7 @@ export default function Home() {
             <div className="flex items-center">
               <Link href="/" className="flex items-center space-x-2 group">
                 <div className="relative w-8 h-8 animate-scale-in">
-                  <Image
-                    src="/globe.svg"
-                    alt="Joice Logo"
-                    fill
-                    className="text-[#a3e635] group-hover:animate-spin-slow transition-all duration-300"
-                  />
+                  <Logo className="text-[#a3e635] group-hover:animate-spin-slow transition-all duration-300" />
                 </div>
                 <span className="text-xl font-bold text-[#a3e635] animate-slide-up-fade delay-100">
                   Joice
@@ -46,10 +42,8 @@ export default function Home() {
         <div className="flex flex-col items-center mt-6 mb-10 w-full max-w-7xl">
           <header className="flex flex-col items-center gap-4">
             <div className="relative w-32 h-32 animate-float animate-scale-in">
-              <Image
-                src="/globe.svg"
-                alt="Joice Logo"
-                fill
+              <Logo
+                size={128}
                 className="text-[#a3e635] animate-spin-slow animate-pulse-glow"
               />
             </div>
