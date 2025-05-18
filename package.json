@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build",
+    "build": "next build && ",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "migrate": "npx drizzle-kit generate && npx drizzle-kit migrate"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.0",
