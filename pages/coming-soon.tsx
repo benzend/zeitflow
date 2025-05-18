@@ -35,6 +35,7 @@ export default function ComingSoon() {
         setStatus({ type: 'error', message: data.message });
       }
     } catch (error) {
+      console.error(error);
       setStatus({
         type: 'error',
         message: 'Something went wrong. Please try again.',
