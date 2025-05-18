@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import Logo from './components/Logo';
 import {
@@ -27,13 +26,13 @@ export default function Home() {
             </div>
             <div className="flex items-center space-x-4">
               <Link
-                href="/signin"
+                href="/coming-soon"
                 className="text-[#d4d4d8] hover:text-[#a3e635] transition-colors duration-200 animate-slide-up-fade delay-200"
               >
                 Sign In
               </Link>
               <Link
-                href="/register"
+                href="/coming-soon"
                 className="bg-[#a3e635] text-[#18181b] px-4 py-2 rounded-full font-medium hover:bg-[#bef264] transition-all duration-200 animate-slide-up-fade delay-300 hover:animate-pulse-glow"
               >
                 Register
@@ -57,8 +56,8 @@ export default function Home() {
               Joice
             </h1>
             <p className="text-xl text-[#d4d4d8] mt-4 max-w-2xl text-center animate-slide-up-fade delay-300">
-              A playful, powerful system for managing and executing AI prompt
-              chains
+              Rethinking the way you work with AI using a unique, powerful
+              system for managing and executing AI prompt chains
             </p>
           </header>
         </div>
@@ -82,13 +81,13 @@ export default function Home() {
                 },
                 {
                   icon: StepIcon,
-                  title: 'Step',
-                  desc: 'Execute multiple prompts',
+                  title: 'Steps',
+                  desc: 'Execute multiple prompts in an execution cycle',
                 },
                 {
                   icon: ResultIcon,
                   title: 'Result',
-                  desc: 'Track the results of each prompt',
+                  desc: 'Compile the results into a single output',
                 },
               ].map((item, index) => (
                 <div
@@ -112,7 +111,7 @@ export default function Home() {
 
           <section className="flex flex-col items-center gap-6 animate-slide-up-fade delay-500">
             <Link
-              href="/register"
+              href="/coming-soon"
               className="bg-[#a3e635] text-[#18181b] px-10 py-5 mb-5 rounded-full font-bold shadow-lg hover:bg-[#bef264] transition-all duration-300 text-xl hover:scale-105 hover:shadow-xl hover:shadow-[#a3e635]/20 hover:animate-pulse-glow"
             >
               Get Started →
