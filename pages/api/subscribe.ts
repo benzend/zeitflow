@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import fs from 'fs';
-import path from 'path';
+import { db } from '@/lib/db';
+import { subscribersTable } from '@/schema';
+import { eq } from 'drizzle-orm';
 
 type ResponseData = {
   success: boolean;
@@ -26,31 +27,21 @@ export default async function handler(
   }
 
   try {
-    const dataDir = path.join(process.cwd(), 'data');
-    const filePath = path.join(dataDir, 'subscribers.json');
-
-    // Create data directory if it doesn't exist
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir);
-    }
-
-    // Read existing subscribers or create new array
-    let subscribers: string[] = [];
-    if (fs.existsSync(filePath)) {
-      const fileContent = fs.readFileSync(filePath, 'utf-8');
-      subscribers = JSON.parse(fileContent);
-    }
-
     // Check if email already exists
-    if (subscribers.includes(email)) {
+    const existingSubscriber = await db
+      .select()
+      .from(subscribersTable)
+      .where(eq(subscribersTable.email, email))
+      .limit(1);
+
+    if (existingSubscriber.length > 0) {
       return res
         .status(400)
         .json({ success: false, message: 'Email already subscribed' });
     }
 
-    // Add new email
-    subscribers.push(email);
-    fs.writeFileSync(filePath, JSON.stringify(subscribers, null, 2));
+    // Add new subscriber
+    await db.insert(subscribersTable).values({ email });
 
     return res
       .status(200)
