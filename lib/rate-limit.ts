@@ -1,6 +1,6 @@
 import { db } from './db';
 import { rateLimitsTable } from '@/schema';
-import { eq, and, lt } from 'drizzle-orm';
+import { eq, lt } from 'drizzle-orm';
 
 interface RateLimitOptions {
   key: string;
@@ -14,7 +14,6 @@ export async function isRateLimited({
   maxRequests,
 }: RateLimitOptions): Promise<boolean> {
   const now = new Date();
-  const windowStart = new Date(now.getTime() - windowMs);
 
   // Clean up expired rate limits
   await db
