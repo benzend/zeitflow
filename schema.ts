@@ -1,4 +1,12 @@
-import { pgTable, serial, text, timestamp, integer } from 'drizzle-orm/pg-core';
+import { pgTable, serial, text, timestamp, integer, varchar } from 'drizzle-orm/pg-core';
+
+export const rateLimitsTable = pgTable('rate_limits', {
+  id: serial('id').primaryKey(),
+  key: varchar('key', { length: 255 }).notNull().unique(),
+  count: integer('count').notNull().default(1),
+  expiresAt: timestamp('expires_at').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
 
 export const subscribersTable = pgTable('subscribers', {
   id: serial('id').primaryKey(),
@@ -41,3 +49,4 @@ export const chainStepsTable = pgTable('chain_steps', {
 });
 
 export type InsertSubscriber = typeof subscribersTable.$inferInsert;
+export type InsertRateLimit = typeof rateLimitsTable.$inferInsert;
