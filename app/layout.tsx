@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Joist",
+  title: "jjoist",
   description: "Rethinking the way you work with AI using a unique, powerful system for managing and executing AI prompt chains",
 };
 

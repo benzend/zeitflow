@@ -1,7 +1,7 @@
 {
   "project": {
-    "name": "Joist",
-    "description": "Joist is a system for managing and executing prompt chains, inspired by the architecture diagram and Figma design. The core entities are Queue, Chain, Step, and Result, which together model a workflow of prompt execution and result tracking.",
+    "name": "jjoist",
+    "description": "Rethinking the way you work with AI using a unique, powerful system for managing and executing AI prompt chains",
     "design_reference": "https://www.figma.com/design/WGyZiPNKkarvUQ2yp5Jd7X/Joist?node-id=0-1&t=mtcudrto30gTcYYP-1",
     "architecture": {
       "Queue": {
