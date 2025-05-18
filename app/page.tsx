@@ -20,7 +20,7 @@ export default function Home() {
                   <Logo className="text-[#a3e635] group-hover:animate-spin-slow transition-all duration-300" />
                 </div>
                 <span className="text-xl font-bold text-[#a3e635] animate-slide-up-fade delay-100">
-                  Joice
+                  Joist
                 </span>
               </Link>
             </div>
@@ -53,7 +53,7 @@ export default function Home() {
               />
             </div>
             <h1 className="text-7xl font-extrabold tracking-tight text-[#a3e635] drop-shadow-lg animate-slide-up-fade delay-200">
-              Joice
+              Joist
             </h1>
             <p className="text-xl text-[#d4d4d8] mt-4 max-w-2xl text-center animate-slide-up-fade delay-300">
               Rethinking the way you work with AI using a unique, powerful
