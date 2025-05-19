@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { db } from '@/lib/db';
-import { chainsTable, SelectChain } from '@/schema';
+import { chainsTable, chainStepsTable, SelectChain, SelectChainStep } from '@/schema';
 import { isRateLimited } from '@/lib/rate-limit';
 import { eq } from 'drizzle-orm';
 
@@ -9,6 +9,7 @@ type ResponseData = {
   message: string;
   chainId?: number;
   chains?: SelectChain[];
+  chainSteps?: SelectChainStep[];
 };
 
 export default async function handler(
@@ -122,16 +123,24 @@ async function handleGet(
           .json({ success: false, message: 'Chain not found' });
       }
 
+      const chainSteps = await db.select()
+        .from(chainStepsTable)
+        .where(eq(chainStepsTable.chainId, chain[0].id));
+
       return res.status(200)
-        .json({ success: true, message: 'Successfully retrieved chain!', chains: chain });
+        .json({ success: true, message: 'Successfully retrieved chain!', chains: chain, chainSteps });
     } else {
       // Get all chains for the user
       const chains = await db.select()
         .from(chainsTable)
         .where(eq(chainsTable.userId, fakeUserId));
 
+      const chainSteps = await db.select()
+        .from(chainStepsTable)
+        .where(eq(chainStepsTable.chainId, chains[0].id));
+
       return res.status(200)
-        .json({ success: true, message: 'Successfully grabbed chains!', chains });
+        .json({ success: true, message: 'Successfully grabbed chains!', chains, chainSteps });
     }
 }
 
