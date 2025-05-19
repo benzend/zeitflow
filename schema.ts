@@ -50,3 +50,5 @@ export const chainStepsTable = pgTable('chain_steps', {
 
 export type InsertSubscriber = typeof subscribersTable.$inferInsert;
 export type InsertRateLimit = typeof rateLimitsTable.$inferInsert;
+export type InsertChain = typeof chainsTable.$inferInsert;
+export type SelectChain = typeof chainsTable.$inferSelect;
