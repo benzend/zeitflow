@@ -28,7 +28,7 @@ export default function Dashboard() {
   const fetchChains = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/queue');
+      const response = await fetch('/api/dashboard');
       const data = await response.json();
       
       if (data.success) {

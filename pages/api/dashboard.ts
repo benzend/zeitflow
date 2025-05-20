@@ -46,7 +46,7 @@ export default async function handler(
   
   // Check rate limit (5 requests per IP address per hour)
   const isLimited = await isRateLimited({
-    key: `queue::${methodAsLower}:${clientIp}`,
+    key: `dashboard::${methodAsLower}:${clientIp}`,
     windowMs,
     maxRequests: 1000
   });

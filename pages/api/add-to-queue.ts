@@ -1,0 +1,92 @@
+import type { NextApiRequest, NextApiResponse } from 'next';
+import { db } from '@/lib/db';
+import { chainQueueStepsTable, chainsTable, chainStepsTable, queuedChainsTable, queuesTable } from '@/schema';
+import { isRateLimited } from '@/lib/rate-limit';
+import { eq } from 'drizzle-orm';
+
+type ResponseData = {
+  success: boolean;
+  message: string;
+  queuedChainId?: number;
+};
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse<ResponseData>
+) {
+  if (req.method !== 'POST') {
+    return res
+      .status(405)
+      .json({ success: false, message: 'Method not allowed' });
+  }
+
+  // Get client IP for rate limiting
+  const ip = req.headers['x-forwarded-for'] ||
+    req.socket.remoteAddress ||
+    'unknown-ip';
+
+  const clientIp = Array.isArray(ip) ? ip[0] : ip;
+
+  // Check rate limit (10 requests per IP address per hour)
+  const isLimited = await isRateLimited({
+    key: `add_to_queue:${clientIp}`,
+    windowMs: 60 * 60 * 1000, // 1 hour in milliseconds
+    maxRequests: 20
+  });
+
+  if (isLimited) {
+    return res
+      .status(429)
+      .json({ success: false, message: 'Too many requests. Please try again later.' });
+  }
+
+  try {
+    const chainId = req.query.id ? parseInt(req.query.id as string, 10) : null;
+
+    if (!chainId) {
+      return res.status(400)
+        .json({ success: false, message: 'Chain ID is required' });
+    }
+
+    // Get a specific chain
+    const chain = await db.select()
+      .from(chainsTable)
+      .where(eq(chainsTable.id, chainId))
+      .limit(1);
+
+    if (chain.length === 0) {
+      return res.status(404)
+        .json({ success: false, message: 'Chain not found' });
+    }
+
+    const queue = await db.select()
+      .from(queuesTable)
+      .where(eq(queuesTable.id, 1))
+      .limit(1);
+
+    const chainSteps = await db.select()
+      .from(chainStepsTable)
+      .where(eq(chainStepsTable.chainId, chain[0].id));
+
+    const queuedChain = await db.insert(queuedChainsTable).values({
+      queueId: queue[0].id,
+      chainId: chain[0].id,
+      status: 'pending',
+    }).returning({ id: queuedChainsTable.id });
+
+    await db.insert(chainQueueStepsTable).values(chainSteps.map(cs => ({
+      queuedChainId: queuedChain[0].id,
+      chainStepId: cs.id,
+      status: 'pending',
+    })));
+
+    return res.status(200)
+      .json({ success: true, message: 'Successfully queued chain!', queuedChainId: queuedChain[0].id });
+
+  } catch (error) {
+    console.error('Chain operation error:', error);
+    return res
+      .status(500)
+      .json({ success: false, message: 'Failed to process request' });
+  }
+}
