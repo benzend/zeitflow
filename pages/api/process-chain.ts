@@ -125,6 +125,7 @@ export default async function handler(
           .set({ status: 'completed' })
           .where(eq(queuedChainStepsTable.id, queuedChainStep.id));
 
+        // Recursively run the next chain step
         await fetch(`/api/process-chain?id=${queuedChain.id}`, {
           method: 'POST',
         });
