@@ -26,6 +26,7 @@ type ChainStep = {
 export default function ChainDetail() {
   const [chain, setChain] = useState<Chain | null>(null);
   const [chainSteps, setChainSteps] = useState<ChainStep[] | null>(null);
+  const [runChain, setRunChain] = useState(false);
   const [addChainStep, setAddChainStep] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -43,7 +44,7 @@ export default function ChainDetail() {
   const fetchChain = async (chainId: string) => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/queue?id=${chainId}`);
+      const response = await fetch(`/api/dashboard?id=${chainId}`);
       const data = await response.json();
 
       if (data.success && data.chains && data.chains.length > 0) {
@@ -159,6 +160,28 @@ export default function ChainDetail() {
       }
     } catch (err) {
       setError('An error occurred while adding the chain step');
+      console.error(err);
+    }
+  };
+
+  const handleRunChain = async () => {
+    if (!chain) {
+      return;
+    }
+    try {
+      const response = await fetch(`/api/add-to-queue?id=${chain.id}`, {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setRunChain(true);
+      } else {
+        setError(data.message || 'Failed to run chain');
+      }
+    } catch (err) {
+      setError('An error occurred while running the chain');
       console.error(err);
     }
   };
@@ -363,6 +386,11 @@ export default function ChainDetail() {
                 </form>
               </div>
             )}
+          </div>
+          <div className="flex justify-end mt-4">
+            <button className='bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition duration-200' onClick={() => handleRunChain()}>
+              {runChain ? 'Running...' : 'Run Chain'}
+            </button>
           </div>
         </main>
       </div>

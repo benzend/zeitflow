@@ -99,6 +99,10 @@ export default async function handler(
         queuedChainId: queuedChain.id,
       })
 
+      await db.update(queuedChainsTable)
+        .set({ status: 'completed' })
+        .where(eq(queuedChainsTable.id, queuedChain.id));
+
       return res.status(200)
         .json({ success: true, message: 'Finished running chain steps' });
     }

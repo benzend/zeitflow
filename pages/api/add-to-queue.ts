@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { db } from '@/lib/db';
-import { chainQueueStepsTable, chainsTable, chainStepsTable, queuedChainsTable, queuesTable } from '@/schema';
+import { queuedChainStepsTable, chainsTable, chainStepsTable, queuedChainsTable, queuesTable, usersTable } from '@/schema';
 import { isRateLimited } from '@/lib/rate-limit';
 import { eq } from 'drizzle-orm';
 
@@ -59,10 +59,26 @@ export default async function handler(
         .json({ success: false, message: 'Chain not found' });
     }
 
-    const queue = await db.select()
-      .from(queuesTable)
-      .where(eq(queuesTable.id, 1))
+    const user = await db.select()
+      .from(usersTable)
+      .where(eq(usersTable.id, chain[0].userId))
       .limit(1);
+
+    if (user.length === 0) {
+      return res.status(404)
+        .json({ success: false, message: 'User not found' });
+    }
+
+    let queue = await db.select()
+      .from(queuesTable)
+      .where(eq(queuesTable.userId, user[0].id))
+      .limit(1);
+
+    if (queue.length === 0) {
+      queue = await db.insert(queuesTable).values({
+        userId: user[0].id,
+      }).returning();
+    }
 
     const chainSteps = await db.select()
       .from(chainStepsTable)
@@ -74,7 +90,7 @@ export default async function handler(
       status: 'pending',
     }).returning({ id: queuedChainsTable.id });
 
-    await db.insert(chainQueueStepsTable).values(chainSteps.map(cs => ({
+    await db.insert(queuedChainStepsTable).values(chainSteps.map(cs => ({
       queuedChainId: queuedChain[0].id,
       chainStepId: cs.id,
       status: 'pending',

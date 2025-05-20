@@ -2,18 +2,11 @@ import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import Navigation from '@/components/Navigation';
-
-type Chain = {
-  id: number;
-  name: string;
-  cycleCount: number;
-  currentCycle: number;
-  createdAt: string;
-  updatedAt: string;
-};
+import { SelectChain, SelectQueuedChain } from '@/schema';
 
 export default function Dashboard() {
-  const [chains, setChains] = useState<Chain[]>([]);
+  const [chains, setChains] = useState<SelectChain[]>([]);
+  const [queuedChains, setQueuedChains] = useState<SelectQueuedChain[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [newChainName, setNewChainName] = useState('');
@@ -33,6 +26,7 @@ export default function Dashboard() {
       
       if (data.success) {
         setChains(data.chains || []);
+        setQueuedChains(data.queuedChains || []);
       } else {
         setError(data.message || 'Failed to fetch chains');
       }
@@ -98,6 +92,28 @@ export default function Dashboard() {
       }
     } catch (err) {
       setError('An error occurred while deleting the chain');
+      console.error(err);
+    }
+  };
+
+  const handleRunChain = async (id: number) => {
+    if (!confirm('Are you sure you want to run this chain?')) {
+      return;
+    }
+    try {
+      const response = await fetch(`/api/process-queued-chain?id=${id}`, {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        fetchChains();
+      } else {
+        setError(data.message || 'Failed to run chain');
+      }
+    } catch (err) {
+      setError('An error occurred while running the chain');
       console.error(err);
     }
   };
@@ -198,6 +214,49 @@ export default function Dashboard() {
             </div>
           )}
         </div>
+
+        <div className="mt-8">
+          <h2 className="text-2xl font-semibold text-[#a3e635] mb-4">Your Queue</h2>
+          {loading ? (
+            <p className="text-gray-600">Loading chains...</p>
+          ) : chains.length === 0 ? (
+            <p className="text-gray-600">No queue found.</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {queuedChains.map((queuedChain) => {
+                const chain = chains.find(c => c.id === queuedChain.chainId);
+                if (!chain) {
+                  return null;
+                }
+                return (
+                <div key={queuedChain.id} className="border-[#a3e635] border-1 rounded-lg shadow p-6 hover:shadow-md transition duration-200">
+                  <h3 className="text-xl text-[#a3e635] font-semibold mb-2">{chain.name}</h3>
+                  <p className="text-gray-600 mb-1">Progress: {chain.currentCycle} / {chain.cycleCount} cycles</p>
+                  <p className="text-gray-600 mb-4">Created: {new Date(queuedChain.createdAt).toLocaleDateString()}</p>
+                  <div className="flex justify-between mt-4">
+                    <button 
+                      onClick={() => handleViewChain(queuedChain.id)}
+                      className="bg-blue-500 text-white py-1 px-3 rounded hover:bg-blue-600 transition duration-200"
+                    >
+                      View
+                    </button>
+                    <button className='bg-blue-500 text-white py-1 px-3 rounded hover:bg-blue-600 transition duration-200' onClick={() => handleRunChain(queuedChain.id)}>
+                      Process
+                    </button>
+                    <button 
+                      onClick={() => handleDeleteChain(queuedChain.id)}
+                      className="bg-red-500 text-white py-1 px-3 rounded hover:bg-red-600 transition duration-200"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+                
+              )})}
+            </div>
+          )}
+        </div>
+
       </main>
     </div>
   );

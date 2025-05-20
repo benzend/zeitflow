@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { db } from '@/lib/db';
-import { chainsTable, chainStepsTable, SelectChain, SelectChainStep } from '@/schema';
+import { chainsTable, chainStepsTable, queuedChainsTable, SelectChain, SelectChainStep, SelectQueuedChain } from '@/schema';
 import { isRateLimited } from '@/lib/rate-limit';
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 
 type ResponseData = {
   success: boolean;
@@ -10,6 +10,7 @@ type ResponseData = {
   chainId?: number;
   chains?: SelectChain[];
   chainSteps?: SelectChainStep[];
+  queuedChains?: SelectQueuedChain[];
 };
 
 export default async function handler(
@@ -139,8 +140,13 @@ async function handleGet(
         .from(chainStepsTable)
         .where(eq(chainStepsTable.chainId, chains[0].id));
 
+
+      const queuedChains = await db.select()
+        .from(queuedChainsTable)
+        .where(inArray(queuedChainsTable.chainId, chains.map(c => c.id)));
+
       return res.status(200)
-        .json({ success: true, message: 'Successfully grabbed chains!', chains, chainSteps });
+        .json({ success: true, message: 'Successfully grabbed chains!', chains, chainSteps, queuedChains });
     }
 }
 
