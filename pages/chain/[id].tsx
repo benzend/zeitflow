@@ -31,7 +31,6 @@ export default function ChainDetail() {
   const [error, setError] = useState('');
   const [editMode, setEditMode] = useState(false);
   const [chainName, setChainName] = useState('');
-  const [chainStepPrompt, setChainStepPrompt] = useState('');
   const router = useRouter();
   const { id } = router.query;
 

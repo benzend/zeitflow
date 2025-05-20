@@ -67,7 +67,7 @@ export const queuedChainsTable = pgTable('queued_chains', {
   updatedAt: timestamp('updated_at').notNull().$onUpdateFn(() => new Date())
 });
 
-export const chainQueueStepsTable = pgTable('queued_chain_steps', {
+export const queuedChainStepsTable = pgTable('queued_chain_steps', {
   id: serial('id').primaryKey(),
   queuedChainId: integer('queued_chain_id').notNull().references(() => queuedChainsTable.id, { onDelete: 'cascade' }),
   chainStepId: integer('chain_step_id').notNull().references(() => chainStepsTable.id, { onDelete: 'cascade' }),
@@ -82,7 +82,6 @@ export const completedChainsTable = pgTable('completed_chains', {
   id: serial('id').primaryKey(),
   queuedChainId: integer('queued_chain_id').notNull().references(() => queuedChainsTable.id, { onDelete: 'cascade' }),
 
-  response: text('response').notNull(),
   error: text('error'),
 
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -91,7 +90,17 @@ export const completedChainsTable = pgTable('completed_chains', {
 
 export const completedChainStepsTable = pgTable('completed_chain_steps', {
   id: serial('id').primaryKey(),
-  queuedChainStepId: integer('queued_chain_step_id').notNull().references(() => chainQueueStepsTable.id, { onDelete: 'cascade' }),
+  queuedChainStepId: integer('queued_chain_step_id').notNull().references(() => queuedChainStepsTable.id, { onDelete: 'cascade' }),
+
+  error: text('error'),
+  
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').notNull().$onUpdateFn(() => new Date())
+});
+
+export const responsesTable = pgTable('responses', {
+  id: serial('id').primaryKey(),
+  completedChainStepId: integer('completed_chain_step_id').notNull().references(() => completedChainStepsTable.id, { onDelete: 'cascade' }),
 
   response: text('response').notNull(),
   error: text('error'),
@@ -107,6 +116,7 @@ export type SelectChain = typeof chainsTable.$inferSelect;
 export type SelectChainStep = typeof chainStepsTable.$inferSelect;
 export type SelectQueue = typeof queuesTable.$inferSelect;
 export type SelectQueuedChain = typeof queuedChainsTable.$inferSelect;
-export type SelectQueuedChainStep = typeof chainQueueStepsTable.$inferSelect;
+export type SelectQueuedChainStep = typeof queuedChainStepsTable.$inferSelect;
 export type SelectCompletedChain = typeof completedChainsTable.$inferSelect;
 export type SelectCompletedChainStep = typeof completedChainStepsTable.$inferSelect;
+export type SelectResponse = typeof responsesTable.$inferSelect;
