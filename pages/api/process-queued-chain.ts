@@ -140,6 +140,15 @@ export default async function handler(
           queuedChainStepId: queuedChainStep.id,
           error: errorMessage
         })
+
+        await db.update(queuedChainStepsTable)
+          .set({ status: 'completed' })
+          .where(eq(queuedChainStepsTable.id, queuedChainStep.id));
+
+        // Recursively run the next chain step
+        await fetch(`/api/process-chain?id=${queuedChain.id}`, {
+          method: 'POST',
+        });
       }
     });
 
@@ -192,6 +201,10 @@ async function chat(prompt: string) {
       ],
     }),
   });
+
+  if (response.status !== 200) {
+    throw new Error(`OpenAI API returned an error: ${response.statusText}`);
+  }
 
   return response.json();
 }
