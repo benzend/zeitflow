@@ -130,7 +130,7 @@ export default async function handler(
           .where(eq(queuedChainStepsTable.id, queuedChainStep.id));
 
         // Recursively run the next chain step
-        await fetch(`/api/process-chain?id=${queuedChain.id}`, {
+        await fetch(`${process.env.HOST}/api/process-queued-chain?id=${queuedChain.id}`, {
           method: 'POST',
         });
       } catch (error) {
@@ -146,7 +146,7 @@ export default async function handler(
           .where(eq(queuedChainStepsTable.id, queuedChainStep.id));
 
         // Recursively run the next chain step
-        await fetch(`/api/process-chain?id=${queuedChain.id}`, {
+        await fetch(`${process.env.HOST}/api/process-queued-chain?id=${queuedChain.id}`, {
           method: 'POST',
         });
       }
@@ -158,6 +158,10 @@ export default async function handler(
         queuedChainStepId: queuedChainSteps[0].id,
         error: `Failed to run chain step: ${error}`
       })
+
+      await db.update(queuedChainStepsTable)
+        .set({ status: 'completed' })
+        .where(eq(queuedChainStepsTable.id, queuedChainSteps[0].id));
 
       // Rethrow the error to be caught by the main catch block
       throw error;
