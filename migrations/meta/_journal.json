@@ -43,6 +43,20 @@
       "when": 1747709530786,
       "tag": "0005_charming_shinko_yamashiro",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1747751624346,
+      "tag": "0006_open_sharon_carter",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1747798799938,
+      "tag": "0007_outgoing_violations",
+      "breakpoints": true
     }
   ]
 }

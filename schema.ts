@@ -28,7 +28,6 @@ export const chainsTable = pgTable('chains', {
   name: text('name'),
 
   cycleCount: integer('cycle_count').notNull(),
-  currentCycle: integer('current_cycle').notNull(),
 
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').notNull().$onUpdateFn(() => new Date()),
@@ -42,7 +41,6 @@ export const chainStepsTable = pgTable('chain_steps', {
   result: text('result'),
 
   cycleCount: integer('cycle_count').notNull(),
-  currentCycle: integer('current_cycle').notNull(),
 
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').notNull().$onUpdateFn(() => new Date())
@@ -61,8 +59,6 @@ export const queuedChainsTable = pgTable('queued_chains', {
   queueId: integer('queue_id').notNull().references(() => queuesTable.id, { onDelete: 'cascade' }),
   chainId: integer('chain_id').notNull().references(() => chainsTable.id, { onDelete: 'cascade' }),
 
-  status: text('status').notNull().default('pending'),
-
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').notNull().$onUpdateFn(() => new Date())
 });
@@ -72,7 +68,21 @@ export const queuedChainStepsTable = pgTable('queued_chain_steps', {
   queuedChainId: integer('queued_chain_id').notNull().references(() => queuedChainsTable.id, { onDelete: 'cascade' }),
   chainStepId: integer('chain_step_id').notNull().references(() => chainStepsTable.id, { onDelete: 'cascade' }),
 
-  status: text('status').notNull().default('pending'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').notNull().$onUpdateFn(() => new Date())
+});
+
+export const processingChainsTable = pgTable('processing_chains', {
+  id: serial('id').primaryKey(),
+  queuedChainId: integer('queued_chain_id').notNull().references(() => queuedChainsTable.id, { onDelete: 'cascade' }),
+
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').notNull().$onUpdateFn(() => new Date())
+});
+
+export const processingChainStepsTable = pgTable('processing_chain_steps', {
+  id: serial('id').primaryKey(),
+  queuedChainStepId: integer('queued_chain_step_id').notNull().references(() => queuedChainStepsTable.id, { onDelete: 'cascade' }),
 
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').notNull().$onUpdateFn(() => new Date())
@@ -80,7 +90,7 @@ export const queuedChainStepsTable = pgTable('queued_chain_steps', {
 
 export const completedChainsTable = pgTable('completed_chains', {
   id: serial('id').primaryKey(),
-  queuedChainId: integer('queued_chain_id').notNull().references(() => queuedChainsTable.id, { onDelete: 'cascade' }),
+  processingChainId: integer('processing_chain_id').notNull().references(() => processingChainsTable.id, { onDelete: 'cascade' }),
 
   error: text('error'),
 
@@ -90,7 +100,7 @@ export const completedChainsTable = pgTable('completed_chains', {
 
 export const completedChainStepsTable = pgTable('completed_chain_steps', {
   id: serial('id').primaryKey(),
-  queuedChainStepId: integer('queued_chain_step_id').notNull().references(() => queuedChainStepsTable.id, { onDelete: 'cascade' }),
+  processingChainStepsId: integer('processing_chain_steps_id').notNull().references(() => processingChainStepsTable.id, { onDelete: 'cascade' }),
 
   error: text('error'),
   

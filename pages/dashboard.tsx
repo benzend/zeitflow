@@ -23,7 +23,7 @@ export default function Dashboard() {
       setLoading(true);
       const response = await fetch('/api/dashboard');
       const data = await response.json();
-      
+
       if (data.success) {
         setChains(data.chains || []);
         setQueuedChains(data.queuedChains || []);
@@ -40,7 +40,7 @@ export default function Dashboard() {
 
   const handleCreateChain = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!newChainName.trim()) {
       setError('Chain name is required');
       return;
@@ -59,7 +59,7 @@ export default function Dashboard() {
       });
 
       const data = await response.json();
-      
+
       if (data.success) {
         setNewChainName('');
         setNewChainCycles(1);
@@ -84,7 +84,7 @@ export default function Dashboard() {
       });
 
       const data = await response.json();
-      
+
       if (data.success) {
         fetchChains();
       } else {
@@ -106,7 +106,7 @@ export default function Dashboard() {
       });
 
       const data = await response.json();
-      
+
       if (data.success) {
         fetchChains();
       } else {
@@ -131,7 +131,7 @@ export default function Dashboard() {
       </Head>
 
       <Navigation />
-      
+
       <main className="container mx-auto px-4 py-8 max-w-6xl min-h-screen">
         <h1 className="text-4xl font-bold mb-8 text-center text-gray-800">Your Chains</h1>
 
@@ -173,14 +173,60 @@ export default function Dashboard() {
                 required
               />
             </div>
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition duration-200"
             >
               Create Chain
             </button>
           </form>
         </div>
+
+        <div className="mt-8">
+          <h2 className="text-2xl font-semibold text-[#a3e635] mb-4">Your Queue</h2>
+          {loading ? (
+            <p className="text-gray-600">Loading chains...</p>
+          ) : chains.length === 0 ? (
+            <p className="text-gray-600">No queue found.</p>
+          ) : (
+            <div className="grid grid-cols-1 gap-6">
+              {queuedChains.map((queuedChain) => {
+                const chain = chains.find(c => c.id === queuedChain.chainId);
+                if (!chain) {
+                  return null;
+                }
+                return (
+                  <div key={queuedChain.id} className="border-[#a3e635] border-1 rounded-lg shadow p-6 hover:shadow-md transition duration-200 flex justify-between">
+                    <div className="flex-1">
+                      <h3 className="text-xl text-[#a3e635] font-semibold mb-2">{chain.name}</h3>
+                      <p className="text-gray-600 mb-1">Progress: {queuedChain.currentCycle} / {chain.cycleCount} cycles</p>
+                      <p className="text-gray-600">Created: {new Date(queuedChain.createdAt).toLocaleDateString()}</p>
+                    </div>
+                    <div className="flex flex-1 justify-end gap-4">
+                      <button
+                        onClick={() => handleViewChain(queuedChain.id)}
+                        className="bg-blue-500 text-white py-1 px-3 rounded hover:bg-blue-600 transition duration-200"
+                      >
+                        View
+                      </button>
+                      <button className='bg-blue-500 text-white py-1 px-3 rounded hover:bg-blue-600 transition duration-200' onClick={() => handleRunChain(queuedChain.id)}>
+                        Process
+                      </button>
+                      <button
+                        onClick={() => handleDeleteChain(queuedChain.id)}
+                        className="bg-red-500 text-white py-1 px-3 rounded hover:bg-red-600 transition duration-200"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+
+                )
+              })}
+            </div>
+          )}
+        </div>
+
 
         <div className="mt-8">
           <h2 className="text-2xl font-semibold text-[#a3e635] mb-4">Your Chains</h2>
@@ -193,16 +239,16 @@ export default function Dashboard() {
               {chains.map((chain) => (
                 <div key={chain.id} className="border-[#a3e635] border-1 rounded-lg shadow p-6 hover:shadow-md transition duration-200">
                   <h3 className="text-xl text-[#a3e635] font-semibold mb-2">{chain.name}</h3>
-                  <p className="text-gray-600 mb-1">Progress: {chain.currentCycle} / {chain.cycleCount} cycles</p>
+                  <p className="text-gray-600 mb-1">Cycles: {chain.cycleCount} cycles</p>
                   <p className="text-gray-600 mb-4">Created: {new Date(chain.createdAt).toLocaleDateString()}</p>
                   <div className="flex justify-between mt-4">
-                    <button 
+                    <button
                       onClick={() => handleViewChain(chain.id)}
                       className="bg-blue-500 text-white py-1 px-3 rounded hover:bg-blue-600 transition duration-200"
                     >
                       View
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleDeleteChain(chain.id)}
                       className="bg-red-500 text-white py-1 px-3 rounded hover:bg-red-600 transition duration-200"
                     >
@@ -215,47 +261,6 @@ export default function Dashboard() {
           )}
         </div>
 
-        <div className="mt-8">
-          <h2 className="text-2xl font-semibold text-[#a3e635] mb-4">Your Queue</h2>
-          {loading ? (
-            <p className="text-gray-600">Loading chains...</p>
-          ) : chains.length === 0 ? (
-            <p className="text-gray-600">No queue found.</p>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {queuedChains.map((queuedChain) => {
-                const chain = chains.find(c => c.id === queuedChain.chainId);
-                if (!chain) {
-                  return null;
-                }
-                return (
-                <div key={queuedChain.id} className="border-[#a3e635] border-1 rounded-lg shadow p-6 hover:shadow-md transition duration-200">
-                  <h3 className="text-xl text-[#a3e635] font-semibold mb-2">{chain.name}</h3>
-                  <p className="text-gray-600 mb-1">Progress: {chain.currentCycle} / {chain.cycleCount} cycles</p>
-                  <p className="text-gray-600 mb-4">Created: {new Date(queuedChain.createdAt).toLocaleDateString()}</p>
-                  <div className="flex justify-between mt-4">
-                    <button 
-                      onClick={() => handleViewChain(queuedChain.id)}
-                      className="bg-blue-500 text-white py-1 px-3 rounded hover:bg-blue-600 transition duration-200"
-                    >
-                      View
-                    </button>
-                    <button className='bg-blue-500 text-white py-1 px-3 rounded hover:bg-blue-600 transition duration-200' onClick={() => handleRunChain(queuedChain.id)}>
-                      Process
-                    </button>
-                    <button 
-                      onClick={() => handleDeleteChain(queuedChain.id)}
-                      className="bg-red-500 text-white py-1 px-3 rounded hover:bg-red-600 transition duration-200"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-                
-              )})}
-            </div>
-          )}
-        </div>
 
       </main>
     </div>
