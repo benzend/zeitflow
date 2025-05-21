@@ -59,6 +59,9 @@ export const queuedChainsTable = pgTable('queued_chains', {
   queueId: integer('queue_id').notNull().references(() => queuesTable.id, { onDelete: 'cascade' }),
   chainId: integer('chain_id').notNull().references(() => chainsTable.id, { onDelete: 'cascade' }),
 
+  status: text('status').notNull().default('pending'),
+  error: text('error'),
+
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').notNull().$onUpdateFn(() => new Date())
 });
@@ -68,53 +71,10 @@ export const queuedChainStepsTable = pgTable('queued_chain_steps', {
   queuedChainId: integer('queued_chain_id').notNull().references(() => queuedChainsTable.id, { onDelete: 'cascade' }),
   chainStepId: integer('chain_step_id').notNull().references(() => chainStepsTable.id, { onDelete: 'cascade' }),
 
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').notNull().$onUpdateFn(() => new Date())
-});
-
-export const processingChainsTable = pgTable('processing_chains', {
-  id: serial('id').primaryKey(),
-  queuedChainId: integer('queued_chain_id').notNull().references(() => queuedChainsTable.id, { onDelete: 'cascade' }),
-
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').notNull().$onUpdateFn(() => new Date())
-});
-
-export const processingChainStepsTable = pgTable('processing_chain_steps', {
-  id: serial('id').primaryKey(),
-  queuedChainStepId: integer('queued_chain_step_id').notNull().references(() => queuedChainStepsTable.id, { onDelete: 'cascade' }),
-
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').notNull().$onUpdateFn(() => new Date())
-});
-
-export const completedChainsTable = pgTable('completed_chains', {
-  id: serial('id').primaryKey(),
-  processingChainId: integer('processing_chain_id').notNull().references(() => processingChainsTable.id, { onDelete: 'cascade' }),
-
+  response: text('response'),
+  status: text('status').notNull().default('pending'),
   error: text('error'),
 
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').notNull().$onUpdateFn(() => new Date())
-});
-
-export const completedChainStepsTable = pgTable('completed_chain_steps', {
-  id: serial('id').primaryKey(),
-  processingChainStepsId: integer('processing_chain_steps_id').notNull().references(() => processingChainStepsTable.id, { onDelete: 'cascade' }),
-
-  error: text('error'),
-  
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').notNull().$onUpdateFn(() => new Date())
-});
-
-export const responsesTable = pgTable('responses', {
-  id: serial('id').primaryKey(),
-  completedChainStepId: integer('completed_chain_step_id').notNull().references(() => completedChainStepsTable.id, { onDelete: 'cascade' }),
-
-  response: text('response').notNull(),
-  error: text('error'),
-  
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').notNull().$onUpdateFn(() => new Date())
 });
@@ -127,6 +87,3 @@ export type SelectChainStep = typeof chainStepsTable.$inferSelect;
 export type SelectQueue = typeof queuesTable.$inferSelect;
 export type SelectQueuedChain = typeof queuedChainsTable.$inferSelect;
 export type SelectQueuedChainStep = typeof queuedChainStepsTable.$inferSelect;
-export type SelectCompletedChain = typeof completedChainsTable.$inferSelect;
-export type SelectCompletedChainStep = typeof completedChainStepsTable.$inferSelect;
-export type SelectResponse = typeof responsesTable.$inferSelect;

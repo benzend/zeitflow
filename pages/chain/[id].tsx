@@ -2,30 +2,11 @@ import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import Navigation from '@/components/Navigation';
-
-type Chain = {
-  id: number;
-  name: string;
-  cycleCount: number;
-  currentCycle: number;
-  createdAt: string;
-  updatedAt: string;
-};
-
-type ChainStep = {
-  id: number;
-  chainId: number;
-  prompt: string;
-  result: string;
-  cycleCount: number;
-  currentCycle: number;
-  createdAt: string;
-  updatedAt: string;
-};
+import { SelectChain, SelectChainStep } from '@/schema';
 
 export default function ChainDetail() {
-  const [chain, setChain] = useState<Chain | null>(null);
-  const [chainSteps, setChainSteps] = useState<ChainStep[] | null>(null);
+  const [chain, setChain] = useState<SelectChain | null>(null);
+  const [chainSteps, setChainSteps] = useState<SelectChainStep[] | null>(null);
   const [runChain, setRunChain] = useState(false);
   const [addChainStep, setAddChainStep] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -132,11 +113,6 @@ export default function ChainDetail() {
       return;
     }
 
-    if (!formData.get('cycleCount')) {
-      setError('Chain step cycle count is required');
-      return;
-    }
-
     try {
       const response = await fetch(`/api/chain-step`, {
         method: 'POST',
@@ -145,7 +121,6 @@ export default function ChainDetail() {
         },
         body: JSON.stringify({
           prompt: formData.get('prompt'),
-          cycleCount: formData.get('cycleCount'),
           chainId: id,
         }),
       });
@@ -314,9 +289,6 @@ export default function ChainDetail() {
               <h1 className="text-3xl font-bold text-[#a3e635] mb-4">{chain.name} - Chain Details</h1>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="border-white border-1 p-4 rounded">
-                  <p className="text-white"><span className="font-semibold">Progress:</span> {chain.currentCycle} / {chain.cycleCount} cycles</p>
-                </div>
-                <div className="border-white border-1 p-4 rounded">
                   <p className="text-white"><span className="font-semibold">Created:</span> {new Date(chain.createdAt).toLocaleString()}</p>
                 </div>
                 <div className="border-white border-1 p-4 rounded">
@@ -335,7 +307,6 @@ export default function ChainDetail() {
             {chainSteps && chainSteps.map((step, index) => (
               <div key={index} className="border-white border-1 p-4 rounded mb-5">
                 <p className="text-white"><span className="font-semibold">Step {index + 1}:</span> {step.prompt}</p>
-                <p className="text-white"><span className="font-semibold">Cycle Count:</span> {step.cycleCount}</p>
               </div>
             ))}
 
@@ -359,13 +330,6 @@ export default function ChainDetail() {
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       required
                     />
-                    <label htmlFor="cycleCount" className="block text-gray-700 font-medium mb-2">
-                      Cycle Count:
-                    </label>
-                    <input
-                      className="w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                      name="cycleCount"
-                      type="number" />
                     <input type="hidden" name="chainId" value={chain.id} />
                   </div>
                   <div className="flex space-x-2">

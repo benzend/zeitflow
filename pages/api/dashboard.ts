@@ -139,7 +139,6 @@ async function handleGet(
       .from(chainStepsTable)
       .where(eq(chainStepsTable.chainId, chains[0].id));
 
-
     const queuedChains = await db.select()
       .from(queuedChainsTable)
       .where(inArray(queuedChainsTable.chainId, chains.map(c => c.id)));
@@ -186,10 +185,6 @@ async function handlePut(
 
   if (req.body.cycle_count !== undefined) {
     updateData.cycleCount = req.body.cycle_count;
-  }
-
-  if (req.body.current_cycle !== undefined) {
-    updateData.currentCycle = req.body.current_cycle;
   }
 
   if (Object.keys(updateData).length === 0) {

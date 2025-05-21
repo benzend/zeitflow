@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { db } from '@/lib/db';
-import { queuedChainStepsTable, chainStepsTable, completedChainsTable, completedChainStepsTable, queuedChainsTable, responsesTable, processingChainsTable, processingChainStepsTable } from '@/schema';
+import { queuedChainStepsTable, chainStepsTable, queuedChainsTable } from '@/schema';
 import { isRateLimited } from '@/lib/rate-limit';
-import { and, eq, inArray, notInArray } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 
 type ResponseData = {
   success: boolean;
@@ -48,47 +48,29 @@ export default async function handler(
     }
 
     // Get a specific chain
-    const queuedChains = await db.select()
+    const queuedChain = await db.select()
       .from(queuedChainsTable)
       .where(eq(queuedChainsTable.id, queuedChainId))
       .limit(1);
 
     // If the chain is not found, return a 404 error
-    if (queuedChains.length === 0) {
+    if (queuedChain.length === 0) {
       return res.status(404)
         .json({ success: false, message: 'Queued chain not found' });
     }
 
-    const queuedChain = queuedChains[0];
-
-    const processingChains = await db.select()
-      .from(processingChainsTable)
-      .where(eq(processingChainsTable.queuedChainId, queuedChain.id))
-      .limit(1);
-
-    // need processing chain to check for completed chain
-    if (processingChains.length > 0) {
-      const completedChains = await db.select()
-        .from(completedChainsTable)
-        .where(eq(completedChainsTable.processingChainId, processingChains[0].id))
-        .limit(1);
-
-      // If the chain has already been completed, return a 400 error
-      if (completedChains.length > 0) {
-        return res.status(400)
-          .json({ success: false, message: 'Chain already completed' });
-      }
-    } else {
-      // If the process hasn't been setup yet, let the system know by creating a processing chain
-      await db.insert(processingChainsTable).values({
-        queuedChainId: queuedChain.id,
-      })
+    // If the chain has already been completed, return a 400 error
+    if (queuedChain[0].status === 'completed') {
+      return res.status(400)
+        .json({ success: false, message: 'Chain already completed' });
     }
 
     const processingChainSteps = await db.select()
-      .from(processingChainStepsTable)
-      .where(eq(processingChainStepsTable.queuedChainStepId, queuedChain.id))
-      .limit(5);
+      .from(queuedChainStepsTable)
+      .where(and(
+        eq(queuedChainStepsTable.queuedChainId, queuedChain[0].id),
+        eq(queuedChainStepsTable.status, 'processing')
+      ))
 
     // If there are already max of 5 running chain steps, return a 400 error
     if (processingChainSteps.length >= 5) {
@@ -102,17 +84,18 @@ export default async function handler(
     const queuedChainStepsNotRunning = await db.select()
       .from(queuedChainStepsTable)
       .where(and(
-        notInArray(queuedChainStepsTable.id, processingChainSteps.map(cs => cs.id)),
-        eq(queuedChainStepsTable.queuedChainId, queuedChain.id),
+        eq(queuedChainStepsTable.status, 'pending'),
+        eq(queuedChainStepsTable.queuedChainId, queuedChain[0].id),
       )).limit(5 - processingChainSteps.length);
 
     console.debug('queued chain steps not running count', queuedChainStepsNotRunning.length);
 
     // If there are no queued chain steps, mark the chain as completed and return a 200 status
     if (queuedChainStepsNotRunning.length === 0) {
-      await db.insert(completedChainsTable).values({
-        processingChainId: processingChains[0].id,
-      })
+      queuedChain[0].status = 'completed';
+      await db.update(queuedChainsTable)
+        .set({ status: 'completed' })
+        .where(eq(queuedChainsTable.id, queuedChain[0].id));
 
       return res.status(200)
         .json({ success: true, message: 'Finished running chain steps' });
@@ -130,46 +113,36 @@ export default async function handler(
       const queuedChainStep = queuedChainStepsNotRunning[index];
 
       // Let the system know that the chain step is running (processing)
-      const processingChainStep = await db.insert(processingChainStepsTable).values({
-        queuedChainStepId: queuedChainStep.id,
-      }).returning({ id: processingChainStepsTable.id });
+      await db.update(queuedChainStepsTable)
+        .set({ status: 'processing' })
+        .where(eq(queuedChainStepsTable.id, queuedChainStep.id));
 
       try {
         const response = await chat(chainStep.prompt);
 
         // Let the system know that the chain step is completed
-        const completedChainSteps = await db.insert(completedChainStepsTable).values({
-          processingChainStepsId: processingChainStep[0].id,
-        }).returning({ id: completedChainStepsTable.id });
+        await db.update(queuedChainStepsTable)
+          .set({ status: 'completed', response: response.choices[0].message.content })
+          .where(eq(queuedChainStepsTable.id, queuedChainStep.id));
 
-        console.debug('completed chain step created', completedChainSteps[0].id);
-
-        await db.insert(responsesTable).values({
-          completedChainStepId: completedChainSteps[0].id,
-          response: response.choices[0].message.content,
-        })
-
-        console.debug('response created', response.choices[0].message.content);
+        console.debug('completed chain step created', queuedChainStep.id);
 
         // Recursively run the next chain step
         console.debug('starting next process');
-        await fetch(`${process.env.HOST}/api/process-queued-chain?id=${queuedChain.id}`, {
+        await fetch(`${process.env.HOST}/api/process-queued-chain?id=${queuedChain[0].id}`, {
           method: 'POST',
         });
       } catch (error) {
         console.error('Chain operation error:', error);
         const errorMessage = error instanceof Error ? error.message : String(error);
 
-        await db.insert(completedChainStepsTable).values({
-          processingChainStepsId: processingChainStep[0].id,
-          error: errorMessage
-        })
-
-        console.debug('completed chain step error', errorMessage);
+        await db.update(queuedChainStepsTable)
+          .set({ status: 'error', error: errorMessage })
+          .where(eq(queuedChainStepsTable.id, queuedChainStep.id));
 
         // Recursively keep the process running
         console.debug('starting next process');
-        await fetch(`${process.env.HOST}/api/process-queued-chain?id=${queuedChain.id}`, {
+        await fetch(`${process.env.HOST}/api/process-queued-chain?id=${queuedChain[0].id}`, {
           method: 'POST',
         });
       }
@@ -179,10 +152,9 @@ export default async function handler(
       console.error('uncaught error in Promise.all', error);
 
       // Stop the chain from running
-      await db.insert(completedChainsTable).values({
-        processingChainId: processingChains[0].id,
-        error: `Failed to run chain step: ${String(error)}`
-      })
+      await db.update(queuedChainsTable)
+        .set({ status: 'error', error: `Failed to run chain step: ${String(error)}` })
+        .where(eq(queuedChainsTable.id, queuedChain[0].id));
 
       // Rethrow the error to be caught by the main catch block
       throw error;

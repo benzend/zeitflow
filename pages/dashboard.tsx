@@ -2,15 +2,14 @@ import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import Navigation from '@/components/Navigation';
-import { SelectChain, SelectQueuedChain } from '@/schema';
+import { SelectChain, SelectQueuedChainWithStatus } from '@/schema';
 
 export default function Dashboard() {
   const [chains, setChains] = useState<SelectChain[]>([]);
-  const [queuedChains, setQueuedChains] = useState<SelectQueuedChain[]>([]);
+  const [queuedChains, setQueuedChains] = useState<SelectQueuedChainWithStatus[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [newChainName, setNewChainName] = useState('');
-  const [newChainCycles, setNewChainCycles] = useState(1);
   const router = useRouter();
 
   // Fetch chains on component mount
@@ -54,7 +53,6 @@ export default function Dashboard() {
         },
         body: JSON.stringify({
           name: newChainName,
-          cycle_count: newChainCycles,
         }),
       });
 
@@ -62,7 +60,6 @@ export default function Dashboard() {
 
       if (data.success) {
         setNewChainName('');
-        setNewChainCycles(1);
         fetchChains();
       } else {
         setError(data.message || 'Failed to create chain');
@@ -158,21 +155,6 @@ export default function Dashboard() {
                 required
               />
             </div>
-            <div className="mb-4">
-              <label htmlFor="chainCycles" className="block text-gray-700 font-medium mb-2">
-                Number of Cycles:
-              </label>
-              <input
-                type="number"
-                id="chainCycles"
-                value={newChainCycles}
-                onChange={(e) => setNewChainCycles(parseInt(e.target.value, 10))}
-                min="1"
-                max="100"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                required
-              />
-            </div>
             <button
               type="submit"
               className="bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition duration-200"
@@ -199,7 +181,7 @@ export default function Dashboard() {
                   <div key={queuedChain.id} className="border-[#a3e635] border-1 rounded-lg shadow p-6 hover:shadow-md transition duration-200 flex justify-between">
                     <div className="flex-1">
                       <h3 className="text-xl text-[#a3e635] font-semibold mb-2">{chain.name}</h3>
-                      <p className="text-gray-600 mb-1">Progress: {queuedChain.currentCycle} / {chain.cycleCount} cycles</p>
+                      <p className="text-gray-600 mb-1 capitalize">{queuedChain.status}</p>
                       <p className="text-gray-600">Created: {new Date(queuedChain.createdAt).toLocaleDateString()}</p>
                     </div>
                     <div className="flex flex-1 justify-end gap-4">
@@ -239,7 +221,6 @@ export default function Dashboard() {
               {chains.map((chain) => (
                 <div key={chain.id} className="border-[#a3e635] border-1 rounded-lg shadow p-6 hover:shadow-md transition duration-200">
                   <h3 className="text-xl text-[#a3e635] font-semibold mb-2">{chain.name}</h3>
-                  <p className="text-gray-600 mb-1">Cycles: {chain.cycleCount} cycles</p>
                   <p className="text-gray-600 mb-4">Created: {new Date(chain.createdAt).toLocaleDateString()}</p>
                   <div className="flex justify-between mt-4">
                     <button
