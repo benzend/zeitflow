@@ -93,6 +93,29 @@ export default function Dashboard() {
     }
   };
 
+  const handleDeleteQueuedChain = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this queued chain?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/queued-chain?id=${id}`, {
+        method: 'DELETE',
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        fetchChains();
+      } else {
+        setError(data.message || 'Failed to delete queued chain');
+      }
+    } catch (err) {
+      setError('An error occurred while deleting the queued chain');
+      console.error(err);
+    }
+  };
+
   const handleRunChain = async (id: number) => {
     if (!confirm('Are you sure you want to run this chain?')) {
       return;
@@ -195,7 +218,7 @@ export default function Dashboard() {
                         Process
                       </button>
                       <button
-                        onClick={() => handleDeleteChain(queuedChain.id)}
+                        onClick={() => handleDeleteQueuedChain(queuedChain.id)}
                         className="bg-red-500 text-white py-1 px-3 rounded hover:bg-red-600 transition duration-200"
                       >
                         Delete

@@ -3,6 +3,9 @@ import { db } from '@/lib/db';
 import { queuedChainStepsTable, chainStepsTable, queuedChainsTable } from '@/schema';
 import { isRateLimited } from '@/lib/rate-limit';
 import { and, eq, inArray } from 'drizzle-orm';
+import { config } from 'dotenv';
+
+config({ path: '.env.local' });
 
 type ResponseData = {
   success: boolean;
@@ -176,7 +179,7 @@ async function chat(prompt: string) {
   const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
     headers: {
-      Authorization: 'Bearer <OPENROUTER_API_KEY>',
+      Authorization: 'Bearer ' + process.env.OPENROUTER_API_KEY,
       'HTTP-Referer': 'https://jjoist.com', // Optional. Site URL for rankings on openrouter.ai.
       'X-Title': 'jjoist', // Optional. Site title for rankings on openrouter.ai.
       'Content-Type': 'application/json',
