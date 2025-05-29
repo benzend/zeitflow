@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from './auth/[...nextauth]';
 import { db } from '@/lib/db';
-import { chainsTable, chainStepsTable, queuedChainsTable, SelectChain, SelectChainStep, SelectQueuedChain } from '@/schema';
+import { chainsTable, chainStepsTable, queuedChainsTable, SelectChain, SelectChainStep, SelectQueuedChain, usersTable } from '@/schema';
 import { isRateLimited } from '@/lib/rate-limit';
 import { eq, inArray } from 'drizzle-orm';
 
@@ -21,6 +23,14 @@ export default async function handler(
     return res
       .status(405)
       .json({ success: false, message: 'Method not allowed' });
+  }
+
+  // Check authentication
+  const session = await getServerSession(req, res, authOptions);
+  if (!session?.user?.id) {
+    return res
+      .status(401)
+      .json({ success: false, message: 'Unauthorized' });
   }
 
   // Get client IP for rate limiting
@@ -58,16 +68,33 @@ export default async function handler(
       .json({ success: false, message: 'Too many requests. Please try again later.' });
   }
 
+  if (!session.user?.email) {
+    return res
+      .status(401)
+      .json({ success: false, message: 'Unauthorized' });
+  }
+
+  const user = await db.select()
+    .from(usersTable)
+    .where(eq(usersTable.email, session.user.email))
+    .limit(1);
+
+  if (user.length === 0) {
+    return res
+      .status(401)
+      .json({ success: false, message: 'Unauthorized' });
+  }
+
   try {
     switch (req.method) {
       case 'POST':
-        return handlePost(req, res);
+        return handlePost(req, res, user[0].id);
       case 'GET':
-        return handleGet(req, res);
+        return handleGet(req, res, user[0].id);
       case 'PUT':
-        return handlePut(req, res);
+        return handlePut(req, res, user[0].id);
       case 'DELETE':
-        return handleDelete(req, res);
+        return handleDelete(req, res, user[0].id);
     }
   } catch (error) {
     console.error('Chain operation error:', error);
@@ -80,8 +107,8 @@ export default async function handler(
 async function handlePost(
   req: NextApiRequest,
   res: NextApiResponse<ResponseData>,
+  userId: string,
 ) {
-  const fakeUserId = 3;
 
   if (!req.body.name) {
     console.error('Missing name param from request body:', req.body);
@@ -92,7 +119,7 @@ async function handlePost(
 
   // Add new subscriber
   const chainCreateResponse = await db.insert(chainsTable).values({
-    userId: fakeUserId,
+    userId: userId,
     name: req.body.name,
     cycleCount: req.body.cycle_count || 1,
   }).returning({ id: chainsTable.id });
@@ -107,8 +134,8 @@ async function handlePost(
 async function handleGet(
   req: NextApiRequest,
   res: NextApiResponse<ResponseData>,
+  userId: string,
 ) {
-  const fakeUserId = 3;
   const chainId = req.query.id ? parseInt(req.query.id as string, 10) : null;
 
   if (chainId) {
@@ -133,7 +160,12 @@ async function handleGet(
     // Get all chains for the user
     const chains = await db.select()
       .from(chainsTable)
-      .where(eq(chainsTable.userId, fakeUserId));
+      .where(eq(chainsTable.userId, userId));
+
+    if (chains.length === 0) {
+      return res.status(200)
+        .json({ success: true, message: 'Successfully grabbed chains!', chains: [], chainSteps: [] });
+    }
 
     const chainSteps = await db.select()
       .from(chainStepsTable)
@@ -151,8 +183,8 @@ async function handleGet(
 async function handlePut(
   req: NextApiRequest,
   res: NextApiResponse<ResponseData>,
+  userId: string,
 ) {
-  const fakeUserId = 3;
   const chainId = req.query.id ? parseInt(req.query.id as string, 10) : null;
 
   if (!chainId) {
@@ -171,7 +203,7 @@ async function handlePut(
       .json({ success: false, message: 'Chain not found' });
   }
 
-  if (existingChain[0].userId !== fakeUserId) {
+  if (existingChain[0].userId !== userId) {
     return res.status(403)
       .json({ success: false, message: 'Not authorized to update this chain' });
   }
@@ -203,8 +235,8 @@ async function handlePut(
 async function handleDelete(
   req: NextApiRequest,
   res: NextApiResponse<ResponseData>,
+  userId: string,
 ) {
-  const fakeUserId = 3;
   const chainId = req.query.id ? parseInt(req.query.id as string, 10) : null;
 
   if (!chainId) {
@@ -223,7 +255,7 @@ async function handleDelete(
       .json({ success: false, message: 'Chain not found' });
   }
 
-  if (existingChain[0].userId !== fakeUserId) {
+  if (existingChain[0].userId !== userId) {
     return res.status(403)
       .json({ success: false, message: 'Not authorized to delete this chain' });
   }

@@ -1,4 +1,4 @@
-import { pgTable, serial, text, timestamp, integer, varchar } from 'drizzle-orm/pg-core';
+import { pgTable, serial, text, timestamp, integer, varchar, primaryKey } from 'drizzle-orm/pg-core';
 
 export const rateLimitsTable = pgTable('rate_limits', {
   id: serial('id').primaryKey(),
@@ -14,16 +14,48 @@ export const subscribersTable = pgTable('subscribers', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+// NextAuth.js required tables
 export const usersTable = pgTable('users', {
-  id: serial('id').primaryKey(),
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  name: text('name'),
   email: text('email').notNull().unique(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').notNull().$onUpdateFn(() => new Date())
+  emailVerified: timestamp('emailVerified', { mode: 'date' }),
+  image: text('image'),
 });
+
+export const accountsTable = pgTable('accounts', {
+  userId: text('user_id').notNull().references(() => usersTable.id, { onDelete: 'cascade' }),
+  type: text('type').notNull(),
+  provider: text('provider').notNull(),
+  providerAccountId: text('providerAccountId').notNull(),
+  refresh_token: text('refresh_token'),
+  access_token: text('access_token'),
+  expires_at: integer('expires_at'),
+  token_type: text('token_type'),
+  scope: text('scope'),
+  id_token: text('id_token'),
+  session_state: text('session_state'),
+}, (account) => ({
+  compoundKey: primaryKey({ columns: [account.provider, account.providerAccountId] })
+}));
+
+export const sessionsTable = pgTable('sessions', {
+  sessionToken: text('sessionToken').primaryKey(),
+  userId: text('user_id').notNull().references(() => usersTable.id, { onDelete: 'cascade' }),
+  expires: timestamp('expires', { mode: 'date' }).notNull(),
+});
+
+export const verificationTokensTable = pgTable('verificationTokens', {
+  identifier: text('identifier').notNull(),
+  token: text('token').notNull(),
+  expires: timestamp('expires', { mode: 'date' }).notNull(),
+}, (vt) => ({
+  compoundKey: primaryKey({ columns: [vt.identifier, vt.token] })
+}));
 
 export const chainsTable = pgTable('chains', {
   id: serial('id').primaryKey(),
-  userId: integer('user_id').notNull().references(() => usersTable.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => usersTable.id, { onDelete: 'cascade' }),
 
   name: text('name'),
 
@@ -48,7 +80,7 @@ export const chainStepsTable = pgTable('chain_steps', {
 
 export const queuesTable = pgTable('queues', {
   id: serial('id').primaryKey(),
-  userId: integer('user_id').notNull().references(() => usersTable.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => usersTable.id, { onDelete: 'cascade' }),
 
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').notNull().$onUpdateFn(() => new Date())
@@ -87,3 +119,6 @@ export type SelectChainStep = typeof chainStepsTable.$inferSelect;
 export type SelectQueue = typeof queuesTable.$inferSelect;
 export type SelectQueuedChain = typeof queuedChainsTable.$inferSelect;
 export type SelectQueuedChainStep = typeof queuedChainStepsTable.$inferSelect;
+
+// Add missing type for dashboard query
+export type SelectQueuedChainWithStatus = SelectQueuedChain;

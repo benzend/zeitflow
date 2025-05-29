@@ -1,4 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from './auth/[...nextauth]';
 import { db } from '@/lib/db';
 import { queuedChainStepsTable, chainsTable, chainStepsTable, queuedChainsTable, queuesTable, usersTable } from '@/schema';
 import { isRateLimited } from '@/lib/rate-limit';
@@ -18,6 +20,25 @@ export default async function handler(
     return res
       .status(405)
       .json({ success: false, message: 'Method not allowed' });
+  }
+
+  // Check authentication
+  const session = await getServerSession(req, res, authOptions);
+  if (!session?.user?.email) {
+    return res
+      .status(401)
+      .json({ success: false, message: 'Unauthorized' });
+  }
+
+  const user = await db.select()
+    .from(usersTable)
+    .where(eq(usersTable.email, session.user.email))
+    .limit(1);
+
+  if (user.length === 0) {
+    return res
+      .status(401)
+      .json({ success: false, message: 'Unauthorized' });
   }
 
   // Get client IP for rate limiting
@@ -59,14 +80,10 @@ export default async function handler(
         .json({ success: false, message: 'Chain not found' });
     }
 
-    const user = await db.select()
-      .from(usersTable)
-      .where(eq(usersTable.id, chain[0].userId))
-      .limit(1);
-
-    if (user.length === 0) {
-      return res.status(404)
-        .json({ success: false, message: 'User not found' });
+    // Verify the chain belongs to the authenticated user
+    if (chain[0].userId !== user[0].id) {
+      return res.status(403)
+        .json({ success: false, message: 'Not authorized to queue this chain' });
     }
 
     let queue = await db.select()

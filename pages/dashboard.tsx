@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
+import { useSession } from 'next-auth/react';
 import Navigation from '@/components/Navigation';
 import { SelectChain, SelectQueuedChainWithStatus } from '@/schema';
 
 export default function Dashboard() {
+  const { data: session, status } = useSession();
   const [chains, setChains] = useState<SelectChain[]>([]);
   const [queuedChains, setQueuedChains] = useState<SelectQueuedChainWithStatus[]>([]);
   const [loading, setLoading] = useState(true);
@@ -12,10 +14,22 @@ export default function Dashboard() {
   const [newChainName, setNewChainName] = useState('');
   const router = useRouter();
 
+  // Redirect to sign-in if not authenticated
+  useEffect(() => {
+    if (status === 'loading') return; // Still loading
+    
+    if (!session) {
+      router.push('/auth/signin');
+      return;
+    }
+  }, [session, status, router]);
+
   // Fetch chains on component mount
   useEffect(() => {
-    fetchChains();
-  }, []);
+    if (session) {
+      fetchChains();
+    }
+  }, [session]);
 
   const fetchChains = async () => {
     try {
@@ -46,7 +60,7 @@ export default function Dashboard() {
     }
 
     try {
-      const response = await fetch('/api/queue', {
+      const response = await fetch('/api/dashboard', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

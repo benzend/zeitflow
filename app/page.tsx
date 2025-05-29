@@ -26,13 +26,13 @@ export default function Home() {
             </div>
             <div className="flex items-center space-x-4">
               <Link
-                href="/coming-soon"
+                href="/signin"
                 className="text-[#d4d4d8] hover:text-[#a3e635] transition-colors duration-200 animate-slide-up-fade delay-200"
               >
                 Sign In
               </Link>
               <Link
-                href="/coming-soon"
+                href="/sign-up"
                 className="bg-[#a3e635] text-[#18181b] px-4 py-2 rounded-full font-medium hover:bg-[#bef264] transition-all duration-200 animate-slide-up-fade delay-300 hover:animate-pulse-glow"
               >
                 Register

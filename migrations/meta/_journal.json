@@ -5,71 +5,15 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1747587366982,
-      "tag": "0000_simple_butterfly",
+      "when": 1748486677995,
+      "tag": "0000_perfect_whistler",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "7",
-      "when": 1747591290942,
-      "tag": "0001_keen_snowbird",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1747592181448,
-      "tag": "0002_greedy_ravenous",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1747706882235,
-      "tag": "0003_remarkable_bushwacker",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1747709484401,
-      "tag": "0004_flippant_the_order",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1747709530786,
-      "tag": "0005_charming_shinko_yamashiro",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1747751624346,
-      "tag": "0006_open_sharon_carter",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1747798799938,
-      "tag": "0007_outgoing_violations",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1747804713113,
-      "tag": "0008_chilly_pandemic",
-      "breakpoints": true
-    },
-    {
-      "idx": 9,
-      "version": "7",
-      "when": 1747806064303,
-      "tag": "0009_faithful_felicia_hardy",
+      "when": 1748487229549,
+      "tag": "0001_nasty_daimon_hellstrom",
       "breakpoints": true
     }
   ]

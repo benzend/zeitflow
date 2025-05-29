@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from './auth/[...nextauth]';
 import { db } from '@/lib/db';
-import { chainStepsTable, SelectChainStep } from '@/schema';
+import { chainStepsTable, chainsTable, SelectChainStep, usersTable } from '@/schema';
 import { isRateLimited } from '@/lib/rate-limit';
 import { eq } from 'drizzle-orm';
 
@@ -19,6 +21,25 @@ export default async function handler(
     return res
       .status(405)
       .json({ success: false, message: 'Method not allowed' });
+  }
+
+  // Check authentication
+  const session = await getServerSession(req, res, authOptions);
+  if (!session?.user?.email) {
+    return res
+      .status(401)
+      .json({ success: false, message: 'Unauthorized' });
+  }
+
+  const user = await db.select()
+    .from(usersTable)
+    .where(eq(usersTable.email, session.user.email))
+    .limit(1);
+
+  if (user.length === 0) {
+    return res
+      .status(401)
+      .json({ success: false, message: 'Unauthorized' });
   }
 
   // Get client IP for rate limiting
@@ -56,11 +77,11 @@ export default async function handler(
   try {
     switch (req.method) {
       case 'POST':
-        return handlePost(req, res);
+        return handlePost(req, res, user[0].id);
       case 'PUT':
-        return handlePut(req, res);
+        return handlePut(req, res, user[0].id);
       case 'DELETE':
-        return handleDelete(req, res);
+        return handleDelete(req, res, user[0].id);
     }
   } catch (error) {
     console.error('Chain operation error:', error);
@@ -73,6 +94,7 @@ export default async function handler(
 async function handlePost(
   req: NextApiRequest,
   res: NextApiResponse<ResponseData>,
+  userId: string,
 ) {
   if (!req.body.prompt) {
     console.error('Missing prompt param from request body:', req.body);
@@ -88,11 +110,26 @@ async function handlePost(
       .json({ success: false, message: 'Failed to create chain step' });
   }
 
+  // Verify the chain belongs to the authenticated user
+  const chain = await db.select()
+    .from(chainsTable)
+    .where(eq(chainsTable.id, req.body.chainId))
+    .limit(1);
+
+  if (chain.length === 0) {
+    return res.status(404)
+      .json({ success: false, message: 'Chain not found' });
+  }
+
+  if (chain[0].userId !== userId) {
+    return res.status(403)
+      .json({ success: false, message: 'Not authorized to add steps to this chain' });
+  }
+
   const chainStepCreateResponse = await db.insert(chainStepsTable).values({
     chainId: req.body.chainId,
     prompt: req.body.prompt,
     cycleCount: req.body.cycleCount || 1,
-    currentCycle: 0,
   }).returning({ id: chainStepsTable.id });
 
   const chainStepId = chainStepCreateResponse[0].id;
@@ -105,6 +142,7 @@ async function handlePost(
 async function handlePut(
   req: NextApiRequest,
   res: NextApiResponse<ResponseData>,
+  userId: string,
 ) {
   const chainStepId = req.query.id ? parseInt(req.query.id as string, 10) : null;
 
@@ -140,10 +178,6 @@ async function handlePut(
     updateData.cycleCount = req.body.cycle_count;
   }
 
-  if (req.body.current_cycle !== undefined) {
-    updateData.currentCycle = req.body.current_cycle;
-  }
-
   if (Object.keys(updateData).length === 0) {
     return res.status(400)
       .json({ success: false, message: 'No valid fields to update' });
@@ -160,6 +194,7 @@ async function handlePut(
 async function handleDelete(
   req: NextApiRequest,
   res: NextApiResponse<ResponseData>,
+  userId: string,
 ) {
   const chainStepId = req.query.id ? parseInt(req.query.id as string, 10) : null;
 
