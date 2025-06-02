@@ -8,6 +8,16 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      colors: {
+        'primary': '#a3e635',
+        'primary-dark': '#7cb322',
+        'primary-light': '#d9f1d6',
+        'secondary': '#f0f9f3',
+        'secondary-dark': '#d9e3e8',
+        'accent': '#4a5568',
+        'background': '#2B2B2B',
+        'foreground': '#434343',
+      },
       animation: {
         'spin-slow': 'spin 20s linear infinite',
         'spin-slow-reverse': 'spinReverse 20s linear infinite',

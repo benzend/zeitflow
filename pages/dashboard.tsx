@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 import Navigation from '@/components/Navigation';
 import { SelectChain, SelectQueuedChainWithStatus } from '@/schema';
+import Link from 'next/link';
 
 export default function Dashboard() {
   const { data: session, status } = useSession();
@@ -159,21 +160,101 @@ export default function Dashboard() {
   return (
     <div>
       <Head>
-        <title>Dashboard - Joice</title>
+        <title>Dashboard - jjoist</title>
         <meta name="description" content="Manage your AI chains" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
       <Navigation />
 
-      <main className="container mx-auto px-4 py-8 max-w-6xl min-h-screen">
-        <h1 className="text-4xl font-bold mb-8 text-center text-gray-800">Your Chains</h1>
+      <main className="container mx-auto px-4 py-10 mt-10 max-w-6xl min-h-screen">
+        <nav className="mb-8">
+          <ul className="flex gap-4">
+            <li>
+              <Link href="/dashboard">
+                <span className="text-primary underline hover:text-primary-light transition duration-200">Dashboard</span>
+              </Link>
+            </li>
+          </ul>
+        </nav>
 
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
             {error}
           </div>
         )}
+
+        <div className="flex gap-4">
+          <section className="w-1/3 bg-foreground rounded-lg">
+            <div className="-mt-4 flex justify-end">
+              <div className="px-4 py-2 bg-foreground rounded-lg">
+                <h2 className="text-sm font-bold text-center text-primary">Prompt Chains</h2>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-4 p-4">
+              {chains.map((chain) => (
+                <Link href={`/chain/${chain.id}`} key={chain.id}>
+                  <div className="flex justify-between items-center border-primary border-1 rounded-lg shadow p-4 hover:shadow-md transition duration-200">
+                    <h3 className="text-md text-primary">{chain.name}</h3>
+                    <div className="flex justify-between">
+                      <button
+                        onClick={() => handleDeleteChain(chain.id)}
+                        className="bg-red-500 text-white py-1 px-3 rounded hover:bg-red-600 transition duration-200"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+
+            </div>
+          </section>
+
+          <section className="w-2/3 bg-foreground rounded-lg">
+            <div className="-mt-4 flex justify-end">
+              <div className="px-4 py-2 bg-foreground rounded-lg">
+                <h2 className="text-sm font-bold text-center text-primary">In Process</h2>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-4 p-4">
+              {queuedChains.map((queuedChain) => {
+                const chain = chains.find(c => c.id === queuedChain.chainId);
+                if (!chain) {
+                  return null;
+                }
+                return (
+                  <div key={queuedChain.id} className="border-[#a3e635] border-1 rounded-lg shadow p-6 hover:shadow-md transition duration-200 flex justify-between">
+                    <div className="flex-1">
+                      <h3 className="text-xl text-[#a3e635] font-semibold">{chain.name}</h3>
+                    </div>
+                    <div className="flex flex-1 justify-end gap-4">
+                      <button
+                        onClick={() => handleViewChain(queuedChain.id)}
+                        className="bg-blue-500 text-white py-1 px-3 rounded hover:bg-blue-600 transition duration-200"
+                      >
+                        View
+                      </button>
+                      <button className='bg-blue-500 text-white py-1 px-3 rounded hover:bg-blue-600 transition duration-200' onClick={() => handleRunChain(queuedChain.id)}>
+                        Process
+                      </button>
+                      <button
+                        onClick={() => handleDeleteQueuedChain(queuedChain.id)}
+                        className="bg-red-500 text-white py-1 px-3 rounded hover:bg-red-600 transition duration-200"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+
+                )
+              })}
+
+            </div>
+          </section>
+        </div>
 
         <div className="p-6 rounded-lg shadow mb-8">
           <h2 className="text-2xl font-semibold text-[#a3e635] mb-4">Create a Chain</h2>
