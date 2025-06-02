@@ -16,6 +16,7 @@
   --color-accent: #4a5568;
   --color-background: #2B2B2B;
   --color-foreground: #434343;
+  --color-foreground-light: #4E4E4E;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }

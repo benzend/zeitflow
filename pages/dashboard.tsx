@@ -165,10 +165,8 @@ export default function Dashboard() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <Navigation />
-
       <main className="container mx-auto px-4 py-10 mt-10 max-w-6xl min-h-screen">
-        <nav className="mb-8">
+        <nav className="mb-20">
           <ul className="flex gap-4">
             <li>
               <Link href="/dashboard">
@@ -195,7 +193,7 @@ export default function Dashboard() {
             <div className="flex flex-col gap-4 p-4">
               {chains.map((chain) => (
                 <Link href={`/chain/${chain.id}`} key={chain.id}>
-                  <div className="flex justify-between items-center border-primary border-1 rounded-lg shadow p-4 hover:shadow-md transition duration-200">
+                  <div className="flex justify-between items-center border-primary border-1 rounded-lg shadow p-4 hover:shadow-md transition duration-200 bg-foreground-light">
                     <h3 className="text-md text-primary">{chain.name}</h3>
                     <div className="flex justify-between">
                       <button
@@ -226,7 +224,7 @@ export default function Dashboard() {
                   return null;
                 }
                 return (
-                  <div key={queuedChain.id} className="border-[#a3e635] border-1 rounded-lg shadow p-6 hover:shadow-md transition duration-200 flex justify-between">
+                  <div key={queuedChain.id} className="border-[#a3e635] border-1 rounded-lg shadow p-6 hover:shadow-md transition duration-200 flex justify-between bg-foreground-light">
                     <div className="flex-1">
                       <h3 className="text-xl text-[#a3e635] font-semibold">{chain.name}</h3>
                     </div>
