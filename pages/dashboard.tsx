@@ -170,6 +170,7 @@ export default function Dashboard() {
       const data = await response.json();
 
       if (data.success) {
+        fetchChains();
       } else {
         setError(data.message || 'Failed to run chain');
       }
