@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
-import Navigation from '@/components/Navigation';
+import { PlayIcon } from '@/components/icons/Play';
 import { SelectChain, SelectQueuedChainWithStatus } from '@/schema';
 import Link from 'next/link';
 
@@ -18,7 +18,7 @@ export default function Dashboard() {
   // Redirect to sign-in if not authenticated
   useEffect(() => {
     if (status === 'loading') return; // Still loading
-    
+
     if (!session) {
       router.push('/auth/signin');
       return;
@@ -157,6 +157,29 @@ export default function Dashboard() {
     router.push(`/chain/${id}`);
   };
 
+  const handleAddChainToQueue = async (chainId: number) => {
+    if (!confirm('Are you sure you want to add this chain to the queue?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/add-to-queue?id=${chainId}`, {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+      } else {
+        setError(data.message || 'Failed to run chain');
+      }
+    } catch (err) {
+      setError('An error occurred while running the chain');
+      console.error(err);
+    }
+  };
+
+
   return (
     <div>
       <Head>
@@ -192,19 +215,25 @@ export default function Dashboard() {
 
             <div className="flex flex-col gap-4 p-4">
               {chains.map((chain) => (
-                <Link href={`/chain/${chain.id}`} key={chain.id}>
-                  <div className="flex justify-between items-center border-primary border-1 rounded-lg shadow p-4 hover:shadow-md transition duration-200 bg-foreground-light">
-                    <h3 className="text-md text-primary">{chain.name}</h3>
-                    <div className="flex justify-between">
-                      <button
-                        onClick={() => handleDeleteChain(chain.id)}
-                        className="bg-red-500 text-white py-1 px-3 rounded hover:bg-red-600 transition duration-200"
-                      >
-                        Delete
-                      </button>
-                    </div>
+                <div className="flex justify-between items-center border-primary border-1 rounded-lg shadow p-4 hover:shadow-md transition duration-200 bg-foreground-light" key={chain.id}>
+                  <Link href={`/chain/${chain.id}`}>
+                    <h3 className="text-md font-bold text-primary">{chain.name}</h3>
+                  </Link>
+                  <div className="flex gap-4 justify-between">
+                    <button
+                      title="Add to Queue"
+                      arial-label="Add to Queue"
+                      className="cursor-pointer"
+                      onClick={() => handleAddChainToQueue(chain.id)}
+                    ><PlayIcon /></button>
+                    <button
+                      onClick={() => handleDeleteChain(chain.id)}
+                      className="bg-red-500 text-white py-1 px-3 rounded hover:bg-red-600 transition duration-200 cursor-pointer"
+                    >
+                      Delete
+                    </button>
                   </div>
-                </Link>
+                </div>
               ))}
 
             </div>
