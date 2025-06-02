@@ -79,9 +79,9 @@ export default async function handler(
       case 'POST':
         return handlePost(req, res, user[0].id);
       case 'PUT':
-        return handlePut(req, res, user[0].id);
+        return handlePut(req, res);
       case 'DELETE':
-        return handleDelete(req, res, user[0].id);
+        return handleDelete(req, res);
     }
   } catch (error) {
     console.error('Chain operation error:', error);
@@ -142,7 +142,6 @@ async function handlePost(
 async function handlePut(
   req: NextApiRequest,
   res: NextApiResponse<ResponseData>,
-  userId: string,
 ) {
   const chainStepId = req.query.id ? parseInt(req.query.id as string, 10) : null;
 
@@ -194,7 +193,6 @@ async function handlePut(
 async function handleDelete(
   req: NextApiRequest,
   res: NextApiResponse<ResponseData>,
-  userId: string,
 ) {
   const chainStepId = req.query.id ? parseInt(req.query.id as string, 10) : null;
 

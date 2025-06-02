@@ -2,8 +2,9 @@ import { getProviders, signIn, getSession } from 'next-auth/react'
 import { GetServerSideProps } from 'next'
 import Head from 'next/head'
 import Navigation from '@/components/Navigation'
+import { Provider } from 'next-auth/providers/index'
 
-export default function SignIn({ providers }: { providers: any }) {
+export default function SignIn({ providers }: { providers: Provider[] }) {
   return (
     <div>
       <Head>
@@ -19,7 +20,7 @@ export default function SignIn({ providers }: { providers: any }) {
           <h1 className="text-3xl font-bold text-center text-gray-800 mb-8">Sign In to Joice</h1>
           
           <div className="space-y-4">
-            {Object.values(providers).map((provider: any) => (
+            {Object.values(providers).map((provider: Provider) => (
               <div key={provider.name}>
                 <button
                   onClick={() => signIn(provider.id, { callbackUrl: '/dashboard' })}

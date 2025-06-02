@@ -22,12 +22,12 @@ export const authOptions: NextAuthOptions = {
     signIn: '/auth/signin',
   },
   callbacks: {
-    session: async ({ session, token }) => {
+    session: async ({ session }) => {
       if (session?.user?.email) {
         // Add user ID to session
         const user = await db.select().from(usersTable).where(eq(usersTable.email, session.user.email)).limit(1);
         if (user.length > 0) {
-          session.user.id = user[0].id;
+          session.user.email = user[0].email;
         }
       }
       return session;
