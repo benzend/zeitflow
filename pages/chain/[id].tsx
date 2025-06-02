@@ -275,7 +275,7 @@ export default function ChainDetail() {
                     type="button"
                     onClick={() => {
                       setEditMode(false);
-                      setChainName(chain.name);
+                      setChainName(chain.name || '');
                     }}
                     className="bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600 transition duration-200"
                   >
