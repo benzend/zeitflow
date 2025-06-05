@@ -9,8 +9,8 @@ export default function Register({ providers }: { providers: Provider[] }) {
   return (
     <div>
       <Head>
-        <title>Register - Joice</title>
-        <meta name="description" content="Create your Joice account" />
+        <title>Register - jjoist</title>
+        <meta name="description" content="Create your jjoist account" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
