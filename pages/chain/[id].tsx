@@ -166,7 +166,7 @@ export default function ChainDetail() {
       <div>
         <Navigation />
         <div className="container mx-auto px-4 py-8 max-w-4xl">
-          <p className="text-center text-gray-600">Loading chain details...</p>
+          <p className="text-center text-primary">Loading chain details...</p>
         </div>
       </div>
     );
@@ -177,12 +177,12 @@ export default function ChainDetail() {
       <div>
         <Navigation />
         <div className="container mx-auto px-4 py-8 max-w-4xl">
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4">
             {error}
           </div>
           <button
             onClick={handleBackToDashboard}
-            className="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600 transition duration-200"
+            className="bg-[#a3e635] text-[#18181b] py-2 px-4 rounded-lg hover:bg-[#bef264] transition duration-200"
           >
             Back to Dashboard
           </button>
@@ -194,13 +194,12 @@ export default function ChainDetail() {
   if (!chain) {
     return (
       <div>
-        <Navigation />
         <div className="container mx-auto px-4 py-8 max-w-4xl">
-          <p className="text-center text-gray-600">Chain not found</p>
+          <p className="text-center text-primary">Chain not found</p>
           <div className="text-center mt-4">
             <button
               onClick={handleBackToDashboard}
-              className="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600 transition duration-200"
+              className="bg-[#a3e635] text-[#18181b] py-2 px-4 rounded-lg hover:bg-[#bef264] transition duration-200"
             >
               Back to Dashboard
             </button>
@@ -217,8 +216,6 @@ export default function ChainDetail() {
         <meta name="description" content={`Details for chain ${chain.name}`} />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-
-      <Navigation />
 
       <div className="container mx-auto px-4 pb-8 pt-20 max-w-4xl">
         <main className="min-h-screen py-8">
@@ -248,111 +245,162 @@ export default function ChainDetail() {
           </div>
 
           {editMode ? (
-            <div className="bg-white rounded-lg shadow p-6 mb-8">
-              <h2 className="text-2xl font-semibold mb-4">Edit Chain</h2>
+            <div className="bg-foreground rounded-lg shadow-lg p-6 mb-8">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-bold text-primary">Edit Chain</h2>
+                <button
+                  onClick={() => {
+                    setEditMode(false);
+                    setChainName(chain.name || '');
+                  }}
+                  className="text-gray-400 hover:text-gray-600 transition duration-200"
+                >
+                  ✕
+                </button>
+              </div>
               <form onSubmit={handleUpdateChain}>
-                <div className="mb-4">
-                  <label htmlFor="chainName" className="block text-gray-700 font-medium mb-2">
-                    Chain Name:
+                <div className="mb-6">
+                  <label
+                    htmlFor="chainName"
+                    className="block text-sm font-medium text-primary mb-2"
+                  >
+                    Chain Name
                   </label>
                   <input
                     type="text"
                     id="chainName"
                     value={chainName}
                     onChange={(e) => setChainName(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full p-3 bg-foreground-light border border-primary/20 rounded-lg focus:outline-none focus:border-primary transition duration-200 text-primary"
                     required
                   />
                 </div>
-                <div className="flex space-x-2">
-                  <button
-                    type="submit"
-                    className="bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition duration-200"
-                  >
-                    Save
-                  </button>
+                <div className="flex justify-end gap-4">
                   <button
                     type="button"
                     onClick={() => {
                       setEditMode(false);
                       setChainName(chain.name || '');
                     }}
-                    className="bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600 transition duration-200"
+                    className="px-4 py-2 text-primary hover:text-primary-light transition duration-200"
                   >
                     Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-light transition duration-200"
+                  >
+                    Save Changes
                   </button>
                 </div>
               </form>
             </div>
           ) : (
             <div className="rounded-lg mb-8">
-              <h1 className="text-3xl font-bold text-[#a3e635] mb-4">{chain.name} - Chain Details</h1>
+              <h1 className="text-3xl font-bold text-[#a3e635] mb-4">
+                {chain.name}
+              </h1>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="border-white border-1 p-4 rounded">
-                  <p className="text-white"><span className="font-semibold">Created:</span> {new Date(chain.createdAt).toLocaleString()}</p>
+                <div className="bg-foreground border border-primary/20 p-4 rounded-lg">
+                  <p className="text-primary">
+                    <span className="font-semibold">Created:</span>{' '}
+                    {new Date(chain.createdAt).toLocaleString()}
+                  </p>
                 </div>
-                <div className="border-white border-1 p-4 rounded">
-                  <p className="text-white"><span className="font-semibold">Last Updated:</span> {new Date(chain.updatedAt).toLocaleString()}</p>
+                <div className="bg-foreground border border-primary/20 p-4 rounded-lg">
+                  <p className="text-primary">
+                    <span className="font-semibold">Last Updated:</span>{' '}
+                    {new Date(chain.updatedAt).toLocaleString()}
+                  </p>
                 </div>
-                <div className="border-white border-1 p-4 rounded">
-                  <p className="text-white"><span className="font-semibold">Chain ID:</span> {chain.id}</p>
+                <div className="bg-foreground border border-primary/20 p-4 rounded-lg">
+                  <p className="text-primary">
+                    <span className="font-semibold">Chain ID:</span> {chain.id}
+                  </p>
                 </div>
               </div>
             </div>
           )}
 
-          <div className="border-white border-1 rounded-lg shadow p-6">
-            <h2 className="text-2xl text-white font-semibold mb-4">Chain Steps</h2>
+          <div className="bg-foreground border border-primary/20 rounded-lg shadow-lg p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-primary">Chain Steps</h2>
+              {!addChainStep && (
+                <button
+                  className="bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-light transition duration-200"
+                  onClick={() => setAddChainStep(true)}
+                >
+                  Add Chain Step
+                </button>
+              )}
+            </div>
 
-            {chainSteps && chainSteps.map((step, index) => (
-              <div key={index} className="border-white border-1 p-4 rounded mb-5">
-                <p className="text-white"><span className="font-semibold">Step {index + 1}:</span> {step.prompt}</p>
-              </div>
-            ))}
-
-            {!addChainStep && (
-              <button className='bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition duration-200' onClick={() => setAddChainStep(true)}>
-                Add Chain Step
-              </button>
-            )
-            }
+            {chainSteps &&
+              chainSteps.map((step, index) => (
+                <div
+                  key={index}
+                  className="bg-foreground-light border border-primary/20 p-4 rounded-lg mb-4"
+                >
+                  <p className="text-primary">
+                    <span className="font-semibold">Step {index + 1}:</span>{' '}
+                    {step.prompt}
+                  </p>
+                </div>
+              ))}
 
             {addChainStep && (
-              <div className="border-[#a3e635] border-1 rounded-lg shadow p-6">
+              <div className="bg-foreground-light border border-primary/20 rounded-lg p-6 mt-4">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-lg font-bold text-primary">
+                    Add New Step
+                  </h3>
+                  <button
+                    onClick={() => setAddChainStep(false)}
+                    className="text-gray-400 hover:text-gray-600 transition duration-200"
+                  >
+                    ✕
+                  </button>
+                </div>
                 <form onSubmit={handleAddChainStep}>
-                  <div className="mb-4">
-                    <label htmlFor="prompt" className="block text-gray-700 font-medium mb-2">
-                      Prompt:
+                  <div className="mb-6">
+                    <label
+                      htmlFor="chainStepPrompt"
+                      className="block text-sm font-medium text-primary mb-2"
+                    >
+                      Prompt
                     </label>
                     <textarea
                       id="chainStepPrompt"
                       name="prompt"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full p-3 bg-foreground border border-primary/20 rounded-lg focus:outline-none focus:border-primary transition duration-200 text-primary min-h-[100px]"
                       required
                     />
                     <input type="hidden" name="chainId" value={chain.id} />
                   </div>
-                  <div className="flex space-x-2">
-                    <button
-                      type="submit"
-                      className="bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition duration-200"
-                    >
-                      Save
-                    </button>
+                  <div className="flex justify-end gap-4">
                     <button
                       type="button"
                       onClick={() => setAddChainStep(false)}
-                      className="bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600 transition duration-200"
+                      className="px-4 py-2 text-primary hover:text-primary-light transition duration-200"
                     >
                       Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-light transition duration-200"
+                    >
+                      Add Step
                     </button>
                   </div>
                 </form>
               </div>
             )}
           </div>
-          <div className="flex justify-end mt-4">
-            <button className='bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition duration-200' onClick={() => handleRunChain()}>
+          <div className="flex justify-end mt-6">
+            <button
+              className="bg-[#a3e635] text-[#18181b] py-2 px-4 rounded-lg hover:bg-[#bef264] transition duration-200"
+              onClick={() => handleRunChain()}
+            >
               {runChain ? 'Running...' : 'Run Chain'}
             </button>
           </div>

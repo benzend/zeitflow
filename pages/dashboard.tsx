@@ -254,7 +254,7 @@ export default function Dashboard() {
             </div>
             <div className="flex justify-center items-center absolute bottom-4 right-4">
               <button
-                className="bg-primary text-white py-2 px-4 rounded hover:bg-primary-light transition duration-200 cursor-pointer"
+                className="bg-primary text-[#18181b] py-2 px-4 rounded-lg hover:bg-primary-light transition duration-200 cursor-pointer"
                 onClick={() => setShowAddChainModal(true)}
               >
                 Add New Chain
@@ -290,12 +290,12 @@ export default function Dashboard() {
                     <div className="flex flex-1 justify-end gap-4">
                       <button
                         onClick={() => handleViewChain(queuedChain.id)}
-                        className="bg-blue-500 text-white py-1 px-3 rounded hover:bg-blue-600 transition duration-200"
+                        className="bg-primary text-[#18181b] py-1 px-3 rounded-lg hover:bg-primary-light transition duration-200"
                       >
                         View
                       </button>
                       <button
-                        className="bg-blue-500 text-white py-1 px-3 rounded hover:bg-blue-600 transition duration-200"
+                        className="bg-primary text-[#18181b] py-1 px-3 rounded-lg hover:bg-primary-light transition duration-200"
                         onClick={() => handleRunChain(queuedChain.id)}
                       >
                         Process
@@ -354,7 +354,7 @@ export default function Dashboard() {
                 </button>
                 <button
                   type="submit"
-                  className="bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-light transition duration-200"
+                  className="bg-primary text-[#18181b] py-2 px-4 rounded-lg hover:bg-primary-light transition duration-200"
                 >
                   Add Chain
                 </button>
