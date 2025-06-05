@@ -190,7 +190,7 @@ export default function ChainDetail() {
     return (
       <div>
         <Head>
-          <title>Loading Chain - Joice</title>
+          <title>Loading Chain - jjoist</title>
           <meta name="description" content="Loading chain details" />
           <link rel="icon" href="/favicon.ico" />
         </Head>
@@ -266,7 +266,7 @@ export default function ChainDetail() {
   return (
     <div>
       <Head>
-        <title>{chain.name} - Joice</title>
+        <title>{chain.name} - jjoist</title>
         <meta name="description" content={`Details for chain ${chain.name}`} />
         <link rel="icon" href="/favicon.ico" />
       </Head>

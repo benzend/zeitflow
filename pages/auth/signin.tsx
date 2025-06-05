@@ -9,8 +9,8 @@ export default function SignIn({ providers }: { providers: Provider[] }) {
   return (
     <div>
       <Head>
-        <title>Sign In - Joice</title>
-        <meta name="description" content="Sign in to your Joice account" />
+        <title>Sign In - jjoist</title>
+        <meta name="description" content="Sign in to your jjoist account" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
@@ -22,7 +22,7 @@ export default function SignIn({ providers }: { providers: Provider[] }) {
             <div className="-mt-4 mb-8">
               <div className="px-4 py-2 bg-foreground rounded-lg">
                 <h1 className="text-xl font-bold text-center text-primary">
-                  Sign In to Joice
+                  Sign In to jjoist
                 </h1>
               </div>
             </div>

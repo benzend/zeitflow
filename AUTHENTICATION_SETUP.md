@@ -13,13 +13,15 @@ This guide walks you through setting up Google OAuth authentication for your Joi
 5. Choose **Web application**
 6. Set the following:
 
-   **Name**: `Joice App Authentication`
-   
+   **Name**: `jjoist App Authentication`
+
    **Authorized JavaScript origins**:
+
    - `http://localhost:3000` (for local development)
    - `https://your-app-name.vercel.app` (for production)
-   
+
    **Authorized redirect URIs**:
+
    - `http://localhost:3000/api/auth/callback/google` (for local development)
    - `https://your-app-name.vercel.app/api/auth/callback/google` (for production)
 
@@ -29,6 +31,7 @@ This guide walks you through setting up Google OAuth authentication for your Joi
 ## 2. Environment Variables
 
 ### Local Development (.env.local):
+
 ```bash
 DATABASE_URL=your_postgresql_connection_string
 OPENROUTER_API_KEY=your_openrouter_api_key
@@ -42,7 +45,9 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret
 ```
 
 ### Vercel Deployment:
+
 Add these environment variables in your Vercel dashboard:
+
 - `DATABASE_URL`
 - `OPENROUTER_API_KEY`
 - `HOST` (set to your Vercel app URL)
@@ -54,6 +59,7 @@ Add these environment variables in your Vercel dashboard:
 ## 3. Generate NEXTAUTH_SECRET
 
 You can generate a secure secret using:
+
 ```bash
 openssl rand -base64 32
 ```
