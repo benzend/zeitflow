@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { useSession } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 import { PlayIcon } from '@/components/icons/Play';
 import { SelectChain, SelectQueuedChainWithStatus } from '@/schema';
 import Link from 'next/link';
@@ -215,7 +215,7 @@ export default function Dashboard() {
       </Head>
 
       <main className="container mx-auto px-4 py-10 mt-10 max-w-6xl min-h-[90vh]">
-        <nav className="mb-20">
+        <nav className="mb-20 flex justify-between items-center">
           <ul className="flex gap-4">
             <li>
               <Link href="/dashboard">
@@ -225,6 +225,15 @@ export default function Dashboard() {
               </Link>
             </li>
           </ul>
+
+          <div className="flex gap-4">
+            <button
+              onClick={() => signOut({ callbackUrl: '/auth/signin' })}
+              className="bg-primary text-[#18181b] py-2 px-4 rounded-lg hover:bg-primary-light transition duration-200 cursor-pointer"
+            >
+              Sign Out
+            </button>
+          </div>
         </nav>
 
         {error && (
