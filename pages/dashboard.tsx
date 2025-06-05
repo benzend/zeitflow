@@ -317,13 +317,21 @@ export default function Dashboard() {
 
       {showAddChainModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-8 rounded-lg">
-            <h2 className="text-2xl font-bold mb-4">Add New Chain</h2>
+          <div className="bg-foreground p-8 rounded-lg shadow-lg max-w-md w-full">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-primary">Add New Chain</h2>
+              <button
+                onClick={() => setShowAddChainModal(false)}
+                className="text-gray-400 hover:text-gray-600 transition duration-200"
+              >
+                ✕
+              </button>
+            </div>
             <form onSubmit={handleCreateChain}>
-              <div className="mb-4">
+              <div className="mb-6">
                 <label
                   htmlFor="chainName"
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-medium text-primary mb-2"
                 >
                   Chain Name
                 </label>
@@ -332,15 +340,25 @@ export default function Dashboard() {
                   id="chainName"
                   value={newChainName}
                   onChange={(e) => setNewChainName(e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded"
+                  className="w-full p-3 bg-foreground-light border border-primary/20 rounded-lg focus:outline-none focus:border-primary transition duration-200 text-primary"
+                  placeholder="Enter chain name..."
                 />
               </div>
-              <button
-                type="submit"
-                className="bg-primary text-white py-2 px-4 rounded hover:bg-primary-light transition duration-200"
-              >
-                Add Chain
-              </button>
+              <div className="flex justify-end gap-4">
+                <button
+                  type="button"
+                  onClick={() => setShowAddChainModal(false)}
+                  className="px-4 py-2 text-primary hover:text-primary-light transition duration-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-light transition duration-200"
+                >
+                  Add Chain
+                </button>
+              </div>
             </form>
           </div>
         </div>
