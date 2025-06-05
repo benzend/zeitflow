@@ -4,6 +4,31 @@ import { useRouter } from 'next/router';
 import Navigation from '@/components/Navigation';
 import { SelectChain, SelectChainStep } from '@/schema';
 
+// Add skeleton components
+const ChainInfoSkeleton = () => (
+  <div className="rounded-lg mb-8 animate-pulse">
+    <div className="h-10 w-64 bg-[#a3e635]/20 rounded mb-4"></div>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="bg-foreground border border-primary/20 p-4 rounded-lg">
+        <div className="h-6 w-32 bg-primary/20 rounded"></div>
+      </div>
+      <div className="bg-foreground border border-primary/20 p-4 rounded-lg">
+        <div className="h-6 w-40 bg-primary/20 rounded"></div>
+      </div>
+      <div className="bg-foreground border border-primary/20 p-4 rounded-lg">
+        <div className="h-6 w-24 bg-primary/20 rounded"></div>
+      </div>
+    </div>
+  </div>
+);
+
+const ChainStepSkeleton = () => (
+  <div className="bg-foreground-light border border-primary/20 p-4 rounded-lg mb-4 animate-pulse">
+    <div className="h-6 w-16 bg-primary/20 rounded mb-2"></div>
+    <div className="h-6 w-full bg-primary/20 rounded"></div>
+  </div>
+);
+
 export default function ChainDetail() {
   const [chain, setChain] = useState<SelectChain | null>(null);
   const [chainSteps, setChainSteps] = useState<SelectChainStep[] | null>(null);
@@ -164,8 +189,39 @@ export default function ChainDetail() {
   if (loading) {
     return (
       <div>
-        <div className="container mx-auto px-4 py-8 max-w-4xl">
-          <p className="text-center text-primary">Loading chain details...</p>
+        <Head>
+          <title>Loading Chain - Joice</title>
+          <meta name="description" content="Loading chain details" />
+          <link rel="icon" href="/favicon.ico" />
+        </Head>
+
+        <div className="container mx-auto px-4 pb-8 pt-20 max-w-4xl">
+          <main className="min-h-[80vh] py-8">
+            <div className="flex justify-between items-center mb-8">
+              <div className="h-10 w-32 bg-[#a3e635]/20 rounded"></div>
+              <div className="flex space-x-2">
+                <div className="h-10 w-20 bg-blue-500/20 rounded"></div>
+                <div className="h-10 w-20 bg-red-500/20 rounded"></div>
+              </div>
+            </div>
+
+            <ChainInfoSkeleton />
+
+            <div className="bg-foreground border border-primary/20 rounded-lg shadow-lg p-6">
+              <div className="flex justify-between items-center mb-6">
+                <div className="h-7 w-32 bg-primary/20 rounded"></div>
+                <div className="h-10 w-32 bg-primary/20 rounded"></div>
+              </div>
+
+              <ChainStepSkeleton />
+              <ChainStepSkeleton />
+              <ChainStepSkeleton />
+
+              <div className="flex justify-end mt-6">
+                <div className="h-10 w-32 bg-[#a3e635]/20 rounded"></div>
+              </div>
+            </div>
+          </main>
         </div>
       </div>
     );
