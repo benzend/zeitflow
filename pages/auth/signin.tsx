@@ -1,8 +1,8 @@
-import { getProviders, signIn, getSession } from 'next-auth/react'
-import { GetServerSideProps } from 'next'
-import Head from 'next/head'
-import Navigation from '@/components/Navigation'
-import { Provider } from 'next-auth/providers/index'
+import { getProviders, signIn, getSession } from 'next-auth/react';
+import { GetServerSideProps } from 'next';
+import Head from 'next/head';
+import Navigation from '@/components/Navigation';
+import { Provider } from 'next-auth/providers/index';
 
 export default function SignIn({ providers }: { providers: Provider[] }) {
   return (
@@ -15,36 +15,47 @@ export default function SignIn({ providers }: { providers: Provider[] }) {
 
       <Navigation />
 
-      <main className="container mx-auto px-4 py-8 max-w-md min-h-screen flex items-center justify-center">
-        <div className="bg-white rounded-lg shadow-lg p-8 w-full">
-          <h1 className="text-3xl font-bold text-center text-gray-800 mb-8">Sign In to Joice</h1>
-          
-          <div className="space-y-4">
-            {Object.values(providers).map((provider: Provider) => (
-              <div key={provider.name}>
-                <button
-                  onClick={() => signIn(provider.id, { callbackUrl: '/dashboard' })}
-                  className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition duration-200 font-medium"
-                >
-                  Sign in with {provider.name}
-                </button>
+      <main className="container mx-auto px-4 py-10 mt-60 max-w-6xl">
+        <div className="flex justify-center">
+          <div className="bg-foreground rounded-lg shadow-lg p-8 w-full max-w-md">
+            <div className="-mt-4 mb-8">
+              <div className="px-4 py-2 bg-foreground rounded-lg">
+                <h1 className="text-xl font-bold text-center text-primary">
+                  Sign In to Joice
+                </h1>
               </div>
-            ))}
-          </div>
+            </div>
 
-          <div className="mt-8 text-center">
-            <p className="text-gray-600 text-sm">
-              By signing in, you agree to our terms of service and privacy policy.
-            </p>
+            <div className="space-y-4">
+              {Object.values(providers).map((provider: Provider) => (
+                <div key={provider.name}>
+                  <button
+                    onClick={() =>
+                      signIn(provider.id, { callbackUrl: '/dashboard' })
+                    }
+                    className="w-full bg-primary text-[#18181b] py-3 px-4 rounded-lg hover:bg-primary-light transition duration-200 font-medium cursor-pointer"
+                  >
+                    Sign in with {provider.name}
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-8 text-center">
+              <p className="text-primary/60 text-sm">
+                By signing in, you agree to our terms of service and privacy
+                policy.
+              </p>
+            </div>
           </div>
         </div>
       </main>
     </div>
-  )
+  );
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  const session = await getSession(context)
+  const session = await getSession(context);
 
   if (session) {
     return {
@@ -52,14 +63,14 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         destination: '/dashboard',
         permanent: false,
       },
-    }
+    };
   }
 
-  const providers = await getProviders()
+  const providers = await getProviders();
 
   return {
     props: {
       providers: providers ?? [],
     },
-  }
-}
+  };
+};
