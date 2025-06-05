@@ -164,7 +164,6 @@ export default function ChainDetail() {
   if (loading) {
     return (
       <div>
-        <Navigation />
         <div className="container mx-auto px-4 py-8 max-w-4xl">
           <p className="text-center text-primary">Loading chain details...</p>
         </div>
@@ -175,7 +174,6 @@ export default function ChainDetail() {
   if (error) {
     return (
       <div>
-        <Navigation />
         <div className="container mx-auto px-4 py-8 max-w-4xl">
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4">
             {error}
@@ -218,7 +216,7 @@ export default function ChainDetail() {
       </Head>
 
       <div className="container mx-auto px-4 pb-8 pt-20 max-w-4xl">
-        <main className="min-h-screen py-8">
+        <main className="min-h-[80vh] py-8">
           <div className="flex justify-between items-center mb-8">
             <button
               onClick={handleBackToDashboard}
@@ -327,7 +325,7 @@ export default function ChainDetail() {
               <h2 className="text-xl font-bold text-primary">Chain Steps</h2>
               {!addChainStep && (
                 <button
-                  className="bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-light transition duration-200"
+                  className="bg-primary text-[#18181b] py-2 px-4 rounded-lg hover:bg-primary-light transition duration-200"
                   onClick={() => setAddChainStep(true)}
                 >
                   Add Chain Step
@@ -387,7 +385,7 @@ export default function ChainDetail() {
                     </button>
                     <button
                       type="submit"
-                      className="bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-light transition duration-200"
+                      className="bg-primary text-[#18181b] py-2 px-4 rounded-lg hover:bg-primary-light transition duration-200"
                     >
                       Add Step
                     </button>
