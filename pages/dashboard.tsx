@@ -316,7 +316,7 @@ export default function Dashboard() {
       </main>
 
       {showAddChainModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center">
           <div className="bg-foreground p-8 rounded-lg shadow-lg max-w-md w-full">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-primary">Add New Chain</h2>
