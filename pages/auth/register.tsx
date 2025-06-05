@@ -5,12 +5,12 @@ import Navigation from '@/components/Navigation';
 import { Provider } from 'next-auth/providers/index';
 import Link from 'next/link';
 
-export default function SignIn({ providers }: { providers: Provider[] }) {
+export default function Register({ providers }: { providers: Provider[] }) {
   return (
     <div>
       <Head>
-        <title>Sign In - Joice</title>
-        <meta name="description" content="Sign in to your Joice account" />
+        <title>Register - Joice</title>
+        <meta name="description" content="Create your Joice account" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
@@ -22,7 +22,7 @@ export default function SignIn({ providers }: { providers: Provider[] }) {
             <div className="-mt-4 mb-8">
               <div className="px-4 py-2 bg-foreground rounded-lg">
                 <h1 className="text-xl font-bold text-center text-primary">
-                  Sign In to Joice
+                  Create Account
                 </h1>
               </div>
             </div>
@@ -36,7 +36,7 @@ export default function SignIn({ providers }: { providers: Provider[] }) {
                     }
                     className="w-full bg-primary text-[#18181b] py-3 px-4 rounded-lg hover:bg-primary-light transition duration-200 font-medium cursor-pointer"
                   >
-                    Sign in with {provider.name}
+                    Sign up with {provider.name}
                   </button>
                 </div>
               ))}
@@ -44,16 +44,16 @@ export default function SignIn({ providers }: { providers: Provider[] }) {
 
             <div className="mt-8 text-center">
               <p className="text-primary/60 text-sm">
-                By signing in, you agree to our terms of service and privacy
-                policy.
+                By creating an account, you agree to our terms of service and
+                privacy policy.
               </p>
               <p className="mt-2 text-primary/60 text-sm">
-                Don't have an account?{' '}
+                Already have an account?{' '}
                 <Link
-                  href="/auth/register"
+                  href="/auth/signin"
                   className="text-primary hover:text-primary-light transition duration-200"
                 >
-                  Create one
+                  Sign in
                 </Link>
               </p>
             </div>
