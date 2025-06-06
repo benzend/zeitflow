@@ -18,7 +18,7 @@ const ChainSkeleton = () => (
 );
 
 const QueuedChainSkeleton = () => (
-  <div className="border-[#a3e635] border-1 rounded-lg shadow p-6 bg-foreground-light animate-pulse">
+  <div className="border-[#a3e635] border-1 rounded-lg shadow p-6 bg-foreground-light animate-pulse relative">
     <div className="flex justify-between items-center">
       <div className="h-7 w-40 bg-[#a3e635]/20 rounded"></div>
       <div className="flex gap-4">
@@ -303,66 +303,133 @@ export default function Dashboard() {
             </div>
           </section>
 
-          <section className="w-2/3 bg-foreground rounded-lg h-[calc(100vh-180px)]">
-            <div className="-mt-4 flex justify-end">
-              <div className="px-4 py-2 bg-foreground rounded-lg">
-                <h2 className="text-sm font-bold text-center text-primary">
-                  In Process
-                </h2>
+          <section className="w-2/3 h-[calc(100vh-180px)]">
+            {/* In Process Chains */}
+            <div className="bg-foreground rounded-lg h-1/2 mb-8 relative">
+              <div className="flex justify-end">
+                <div className="px-4 py-2 bg-foreground rounded-lg -mt-4">
+                  <h2 className="text-sm font-bold text-center text-primary">
+                    In Process
+                  </h2>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-4 p-4">
+                {loading ? (
+                  <>
+                    <QueuedChainSkeleton />
+                    <QueuedChainSkeleton />
+                    <QueuedChainSkeleton />
+                  </>
+                ) : (
+                  queuedChains.map((queuedChain) => {
+                    const chain = chains.find(
+                      (c) => c.id === queuedChain.chainId
+                    );
+                    if (!chain) {
+                      return null;
+                    }
+                    return (
+                      <div
+                        key={queuedChain.id}
+                        className="border-[#a3e635] border-1 rounded-lg shadow p-6 hover:shadow-md transition duration-200 flex justify-between bg-foreground-light"
+                      >
+                        <div className="flex-1">
+                          <h3 className="text-xl text-[#a3e635] font-semibold">
+                            {chain.name}
+                          </h3>
+                        </div>
+                        <div className="flex flex-1 justify-end gap-4">
+                          <button
+                            onClick={() => handleViewChain(queuedChain.id)}
+                            className="bg-primary text-[#18181b] py-1 px-3 rounded-lg hover:bg-primary-light transition duration-200"
+                          >
+                            View
+                          </button>
+                          <button
+                            className="bg-primary text-[#18181b] py-1 px-3 rounded-lg hover:bg-primary-light transition duration-200"
+                            onClick={() => handleRunChain(queuedChain.id)}
+                          >
+                            Process
+                          </button>
+                          <button
+                            onClick={() =>
+                              handleDeleteQueuedChain(queuedChain.id)
+                            }
+                            className="bg-red-500 text-white py-1 px-3 rounded hover:bg-red-600 transition duration-200"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
               </div>
             </div>
 
-            <div className="flex flex-col gap-4 p-4">
-              {loading ? (
-                <>
-                  <QueuedChainSkeleton />
-                  <QueuedChainSkeleton />
-                  <QueuedChainSkeleton />
-                </>
-              ) : (
-                queuedChains.map((queuedChain) => {
-                  const chain = chains.find(
-                    (c) => c.id === queuedChain.chainId
-                  );
-                  if (!chain) {
-                    return null;
-                  }
-                  return (
-                    <div
-                      key={queuedChain.id}
-                      className="border-[#a3e635] border-1 rounded-lg shadow p-6 hover:shadow-md transition duration-200 flex justify-between bg-foreground-light"
-                    >
-                      <div className="flex-1">
-                        <h3 className="text-xl text-[#a3e635] font-semibold">
-                          {chain.name}
-                        </h3>
+            {/* Completed Chains */}
+            <div className="bg-foreground rounded-lg h-[calc(50%-32px)] relative">
+              <div className="flex justify-end">
+                <div className="px-4 py-2 bg-foreground rounded-lg -mt-4">
+                  <h2 className="text-sm font-bold text-center text-primary">
+                    Completed
+                  </h2>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-4 p-4">
+                {loading ? (
+                  <>
+                    <QueuedChainSkeleton />
+                    <QueuedChainSkeleton />
+                    <QueuedChainSkeleton />
+                  </>
+                ) : (
+                  queuedChains.map((queuedChain) => {
+                    const chain = chains.find(
+                      (c) => c.id === queuedChain.chainId
+                    );
+                    if (!chain) {
+                      return null;
+                    }
+                    return (
+                      <div
+                        key={queuedChain.id}
+                        className="border-[#a3e635] border-1 rounded-lg shadow p-6 hover:shadow-md transition duration-200 flex justify-between bg-foreground-light"
+                      >
+                        <div className="flex-1">
+                          <h3 className="text-xl text-[#a3e635] font-semibold">
+                            {chain.name}
+                          </h3>
+                        </div>
+                        <div className="flex flex-1 justify-end gap-4">
+                          <button
+                            onClick={() => handleViewChain(queuedChain.id)}
+                            className="bg-primary text-[#18181b] py-1 px-3 rounded-lg hover:bg-primary-light transition duration-200"
+                          >
+                            View
+                          </button>
+                          <button
+                            className="bg-primary text-[#18181b] py-1 px-3 rounded-lg hover:bg-primary-light transition duration-200"
+                            onClick={() => handleRunChain(queuedChain.id)}
+                          >
+                            Process
+                          </button>
+                          <button
+                            onClick={() =>
+                              handleDeleteQueuedChain(queuedChain.id)
+                            }
+                            className="bg-red-500 text-white py-1 px-3 rounded hover:bg-red-600 transition duration-200"
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex flex-1 justify-end gap-4">
-                        <button
-                          onClick={() => handleViewChain(queuedChain.id)}
-                          className="bg-primary text-[#18181b] py-1 px-3 rounded-lg hover:bg-primary-light transition duration-200"
-                        >
-                          View
-                        </button>
-                        <button
-                          className="bg-primary text-[#18181b] py-1 px-3 rounded-lg hover:bg-primary-light transition duration-200"
-                          onClick={() => handleRunChain(queuedChain.id)}
-                        >
-                          Process
-                        </button>
-                        <button
-                          onClick={() =>
-                            handleDeleteQueuedChain(queuedChain.id)
-                          }
-                          className="bg-red-500 text-white py-1 px-3 rounded hover:bg-red-600 transition duration-200"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
+                    );
+                  })
+                )}
+              </div>
             </div>
           </section>
         </div>
