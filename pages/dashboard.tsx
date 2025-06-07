@@ -272,7 +272,7 @@ export default function Dashboard() {
                       key={chain.id}
                     >
                       <Link href={`/chain/${chain.id}`}>
-                        <h3 className="text-md font-bold text-primary">
+                        <h3 className="text-md font-bold text-primary hover:underline line-clamp-1">
                           {chain.name}
                         </h3>
                       </Link>
@@ -397,6 +397,7 @@ export default function Dashboard() {
                 ) : (
                   queuedChains
                     .filter((qc) => qc.status === 'completed' || qc.status === 'error')
+                    .toSorted((a, b) => (new Date(b.createdAt)).getTime() - (new Date(a.createdAt)).getTime())
                     .map((queuedChain) => {
                       const chain = chains.find(
                         (c) => c.id === queuedChain.chainId
