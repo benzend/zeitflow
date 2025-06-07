@@ -2,6 +2,25 @@ import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { SelectChain, SelectChainStep } from '@/schema';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import {
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 // Add skeleton components
 const ChainInfoSkeleton = () => (
@@ -28,6 +47,122 @@ const ChainStepSkeleton = () => (
   </div>
 );
 
+interface SortableStepProps {
+  step: SelectChainStep;
+  index: number;
+  editingStepId: number | null;
+  editStepPrompt: string;
+  onEditStep: (step: SelectChainStep) => void;
+  onCancelEditStep: () => void;
+  onUpdateStep: (stepId: number) => void;
+  onDeleteStep: (stepId: number) => void;
+  setEditStepPrompt: (prompt: string) => void;
+}
+
+const SortableStep = ({
+  step,
+  index,
+  editingStepId,
+  editStepPrompt,
+  onEditStep,
+  onCancelEditStep,
+  onUpdateStep,
+  onDeleteStep,
+  setEditStepPrompt,
+}: SortableStepProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: step.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="bg-foreground-light border border-primary/20 p-4 rounded-lg mb-4"
+    >
+      {editingStepId === step.id ? (
+        <div>
+          <div className="flex justify-between items-center mb-4">
+            <h4 className="font-semibold text-primary">Edit Step {index + 1}</h4>
+            <button
+              onClick={onCancelEditStep}
+              className="text-gray-400 hover:text-gray-600 transition duration-200"
+            >
+              ✕
+            </button>
+          </div>
+          <textarea
+            value={editStepPrompt}
+            onChange={(e) => setEditStepPrompt(e.target.value)}
+            className="w-full p-3 bg-foreground border border-primary/20 rounded-lg focus:outline-none focus:border-primary transition duration-200 text-primary min-h-[100px] mb-4"
+            placeholder="Enter step prompt..."
+          />
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={onCancelEditStep}
+              className="px-3 py-1 text-primary hover:text-primary-light transition duration-200"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => onUpdateStep(step.id)}
+              className="bg-primary text-[#18181b] py-1 px-3 rounded hover:bg-primary-light transition duration-200"
+            >
+              Save
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div>
+          <div className="flex justify-between items-start mb-2">
+            <div className="flex items-center gap-2">
+              <div
+                {...attributes}
+                {...listeners}
+                className="cursor-grab active:cursor-grabbing p-1 text-gray-400 hover:text-gray-600"
+                title="Drag to reorder"
+              >
+                ⋮⋮
+              </div>
+              <span className="font-semibold text-primary">Step {index + 1}:</span>
+            </div>
+            <div className="flex gap-2 ml-4">
+              <button
+                onClick={() => onEditStep(step)}
+                className="text-blue-500 hover:text-blue-600 transition duration-200 text-sm"
+                title="Edit step"
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => onDeleteStep(step.id)}
+                className="text-red-500 hover:text-red-600 transition duration-200 text-sm"
+                title="Delete step"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+          <p className="text-primary whitespace-pre-wrap">
+            {step.prompt}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default function ChainDetail() {
   const [chain, setChain] = useState<SelectChain | null>(null);
   const [chainSteps, setChainSteps] = useState<SelectChainStep[] | null>(null);
@@ -41,6 +176,13 @@ export default function ChainDetail() {
   const [editStepPrompt, setEditStepPrompt] = useState('');
   const router = useRouter();
   const { id } = router.query;
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   useEffect(() => {
     if (id) {
@@ -258,6 +400,42 @@ export default function ChainDetail() {
     }
   };
 
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || !chainSteps) {
+      return;
+    }
+
+    if (active.id !== over.id) {
+      const oldIndex = chainSteps.findIndex((step) => step.id === active.id);
+      const newIndex = chainSteps.findIndex((step) => step.id === over.id);
+
+      const newChainSteps = arrayMove(chainSteps, oldIndex, newIndex);
+      setChainSteps(newChainSteps);
+
+      try {
+        await Promise.all(
+          newChainSteps.map((step, index) =>
+            fetch(`/api/chain-step?id=${step.id}`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                position: index,
+              }),
+            })
+          )
+        );
+      } catch (err) {
+        setError('An error occurred while reordering steps');
+        console.error(err);
+        fetchChain(id as string);
+      }
+    }
+  };
+
   if (loading) {
     return (
       <div>
@@ -461,72 +639,33 @@ export default function ChainDetail() {
               )}
             </div>
 
-            {chainSteps &&
-              chainSteps.map((step, index) => (
-                <div
-                  key={step.id}
-                  className="bg-foreground-light border border-primary/20 p-4 rounded-lg mb-4"
+            {chainSteps && (
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext
+                  items={chainSteps.map((step) => step.id)}
+                  strategy={verticalListSortingStrategy}
                 >
-                  {editingStepId === step.id ? (
-                    <div>
-                      <div className="flex justify-between items-center mb-4">
-                        <h4 className="font-semibold text-primary">Edit Step {index + 1}</h4>
-                        <button
-                          onClick={handleCancelEditStep}
-                          className="text-gray-400 hover:text-gray-600 transition duration-200"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                      <textarea
-                        value={editStepPrompt}
-                        onChange={(e) => setEditStepPrompt(e.target.value)}
-                        className="w-full p-3 bg-foreground border border-primary/20 rounded-lg focus:outline-none focus:border-primary transition duration-200 text-primary min-h-[100px] mb-4"
-                        placeholder="Enter step prompt..."
-                      />
-                      <div className="flex justify-end gap-2">
-                        <button
-                          onClick={handleCancelEditStep}
-                          className="px-3 py-1 text-primary hover:text-primary-light transition duration-200"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          onClick={() => handleUpdateStep(step.id)}
-                          className="bg-primary text-[#18181b] py-1 px-3 rounded hover:bg-primary-light transition duration-200"
-                        >
-                          Save
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div>
-                      <div className="flex justify-between items-start mb-2">
-                        <span className="font-semibold text-primary">Step {index + 1}:</span>
-                        <div className="flex gap-2 ml-4">
-                          <button
-                            onClick={() => handleEditStep(step)}
-                            className="text-blue-500 hover:text-blue-600 transition duration-200 text-sm"
-                            title="Edit step"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDeleteStep(step.id)}
-                            className="text-red-500 hover:text-red-600 transition duration-200 text-sm"
-                            title="Delete step"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </div>
-                      <p className="text-primary whitespace-pre-wrap">
-                        {step.prompt}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              ))}
+                  {chainSteps.map((step, index) => (
+                    <SortableStep
+                      key={step.id}
+                      step={step}
+                      index={index}
+                      editingStepId={editingStepId}
+                      editStepPrompt={editStepPrompt}
+                      onEditStep={handleEditStep}
+                      onCancelEditStep={handleCancelEditStep}
+                      onUpdateStep={handleUpdateStep}
+                      onDeleteStep={handleDeleteStep}
+                      setEditStepPrompt={setEditStepPrompt}
+                    />
+                  ))}
+                </SortableContext>
+              </DndContext>
+            )}
 
             {addChainStep && (
               <div className="bg-foreground-light border border-primary/20 rounded-lg p-6 mt-4">

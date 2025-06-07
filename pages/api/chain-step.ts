@@ -168,9 +168,9 @@ async function handlePut(
       .json({ success: false, message: 'Chain Step ID is required' });
   }
 
-  if (!req.body.prompt && !req.body.cycleCount && req.body.cycle_count === undefined) {
+  if (!req.body.prompt && !req.body.cycleCount && req.body.cycle_count === undefined && req.body.position === undefined) {
     return res.status(400)
-      .json({ success: false, message: 'At least one field (prompt or cycleCount) must be provided for update' });
+      .json({ success: false, message: 'At least one field (prompt, cycleCount, or position) must be provided for update' });
   }
 
   // Verify the chain exists and belongs to the user
@@ -193,6 +193,10 @@ async function handlePut(
 
   if (req.body.cycle_count !== undefined) {
     updateData.cycleCount = req.body.cycle_count;
+  }
+
+  if (req.body.position !== undefined) {
+    updateData.position = req.body.position;
   }
 
   if (Object.keys(updateData).length === 0) {

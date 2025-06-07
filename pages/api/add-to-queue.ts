@@ -122,6 +122,7 @@ export default async function handler(
     const queuedChain = await db
       .insert(queuedChainsTable)
       .values({
+        name: chain[0].name,
         queueId: queue[0].id,
         chainId: chain[0].id,
         status: 'pending',

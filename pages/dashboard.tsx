@@ -411,7 +411,7 @@ export default function Dashboard() {
                         >
                           <div className="flex-1">
                             <h3 className="text-xl text-[#a3e635] font-semibold">
-                              {chain.name}
+                              {queuedChain.name}
                             </h3>
                             <div className="text-sm text-gray-400 mt-1">
                               Status: {queuedChain.status}
