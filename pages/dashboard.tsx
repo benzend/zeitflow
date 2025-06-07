@@ -60,9 +60,20 @@ export default function Dashboard() {
     }
   }, [session]);
 
-  const fetchChains = async () => {
+  // Auto-refresh when watching is enabled
+  useEffect(() => {
+    if (!session) return;
+
+    const interval = setInterval(() => {
+      fetchChains({ silent: true }); // Silent refresh to avoid loading state
+    }, 3000); // Refresh every 3 seconds
+
+    return () => clearInterval(interval);
+  }, [session]);
+
+  const fetchChains = async (opts = { silent: false }) => {
     try {
-      setLoading(true);
+      if (!opts.silent) setLoading(true);
       const response = await fetch('/api/dashboard');
       const data = await response.json();
 
@@ -76,7 +87,7 @@ export default function Dashboard() {
       setError('An error occurred while fetching chains');
       console.error(err);
     } finally {
-      setLoading(false);
+      if (!opts.silent) setLoading(false);
     }
   };
 
