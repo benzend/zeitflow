@@ -318,7 +318,7 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              <div className="flex flex-col gap-4 p-4">
+              <div className="flex flex-col gap-4 p-4 overflow-y-auto h-[calc(100%-32px)]">
                 {loading ? (
                   <>
                     <QueuedChainSkeleton />
@@ -387,7 +387,7 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              <div className="flex flex-col gap-4 p-4 overflow-y-auto">
+              <div className="flex flex-col gap-4 p-4 overflow-y-auto h-[calc(100%-32px)]">
                 {loading ? (
                   <>
                     <QueuedChainSkeleton />
