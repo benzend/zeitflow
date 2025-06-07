@@ -152,7 +152,8 @@ async function handleGet(
 
     const chainSteps = await db.select()
       .from(chainStepsTable)
-      .where(eq(chainStepsTable.chainId, chain[0].id));
+      .where(eq(chainStepsTable.chainId, chain[0].id))
+      .orderBy(chainStepsTable.position);
 
     return res.status(200)
       .json({ success: true, message: 'Successfully retrieved chain!', chains: chain, chainSteps });

@@ -414,6 +414,8 @@ export default function ChainDetail() {
       const newChainSteps = arrayMove(chainSteps, oldIndex, newIndex);
       setChainSteps(newChainSteps);
 
+      console.log('new chain steps', newChainSteps);
+
       try {
         await Promise.all(
           newChainSteps.map((step, index) =>
