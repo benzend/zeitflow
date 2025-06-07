@@ -55,7 +55,7 @@ export default async function handler(
   const isLimited = await isRateLimited({
     key: `add_to_queue:${clientIp}`,
     windowMs: 60 * 60 * 1000, // 1 hour in milliseconds
-    maxRequests: 20,
+    maxRequests: 50,
   });
 
   if (isLimited) {
