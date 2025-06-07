@@ -162,4 +162,4 @@ export type InsertSubscriptionPlan = typeof subscriptionPlansTable.$inferInsert;
 export type SelectSubscriptionPlan = typeof subscriptionPlansTable.$inferSelect;
 
 // Add missing type for dashboard query
-export type SelectQueuedChainWithStatus = SelectQueuedChain;
+export type SelectQueuedChainWithStatus = SelectQueuedChain & { steps?: SelectQueuedChainStep[] };

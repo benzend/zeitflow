@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from './auth/[...nextauth]';
 import { db } from '@/lib/db';
-import { chainsTable, chainStepsTable, queuedChainsTable, SelectChain, SelectChainStep, SelectQueuedChain, usersTable } from '@/schema';
+import { chainsTable, chainStepsTable, queuedChainsTable, queuedChainStepsTable, SelectChain, SelectChainStep, SelectQueuedChain, SelectQueuedChainStep, usersTable } from '@/schema';
 import { isRateLimited } from '@/lib/rate-limit';
 import { eq, inArray } from 'drizzle-orm';
 
@@ -12,7 +12,7 @@ type ResponseData = {
   chainId?: number;
   chains?: SelectChain[];
   chainSteps?: SelectChainStep[];
-  queuedChains?: SelectQueuedChain[];
+  queuedChains?: (SelectQueuedChain & { steps?: SelectQueuedChainStep[] })[];
 };
 
 export default async function handler(
@@ -176,8 +176,21 @@ async function handleGet(
       .from(queuedChainsTable)
       .where(inArray(queuedChainsTable.chainId, chains.map(c => c.id)));
 
+    // Get queued chain steps for progress tracking
+    const queuedChainSteps = queuedChains.length > 0 
+      ? await db.select()
+          .from(queuedChainStepsTable)
+          .where(inArray(queuedChainStepsTable.queuedChainId, queuedChains.map(qc => qc.id)))
+      : [];
+
+    // Group steps by queued chain ID
+    const queuedChainsWithSteps = queuedChains.map(qc => ({
+      ...qc,
+      steps: queuedChainSteps.filter(step => step.queuedChainId === qc.id)
+    }));
+
     return res.status(200)
-      .json({ success: true, message: 'Successfully grabbed chains!', chains, chainSteps, queuedChains });
+      .json({ success: true, message: 'Successfully grabbed chains!', chains, chainSteps, queuedChains: queuedChainsWithSteps });
   }
 }
 
