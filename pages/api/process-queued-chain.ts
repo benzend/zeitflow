@@ -2,11 +2,10 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { db } from '@/lib/db';
 import {
   queuedChainStepsTable,
-  chainStepsTable,
   queuedChainsTable,
 } from '@/schema';
 import { isRateLimited } from '@/lib/rate-limit';
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { config } from 'dotenv';
 
 config({ path: '.env.local' });
@@ -36,7 +35,7 @@ export default async function handler(
   const isLimited = await isRateLimited({
     key: `process_chain:${clientIp}`,
     windowMs: 60 * 60 * 1000, // 1 hour in milliseconds
-    maxRequests: 20,
+    maxRequests: 100,
   });
 
   if (isLimited) {
@@ -88,7 +87,7 @@ export default async function handler(
           eq(queuedChainStepsTable.queuedChainId, queuedChain[0].id),
           eq(queuedChainStepsTable.status, 'processing')
         )
-      );
+      ).orderBy(queuedChainStepsTable.position);
 
     // If there are already max of 5 running chain steps, return a 400 error
     if (processingChainSteps.length >= 5) {
@@ -112,15 +111,12 @@ export default async function handler(
           eq(queuedChainStepsTable.queuedChainId, queuedChain[0].id)
         )
       )
-      .limit(5 - processingChainSteps.length);
-
-    console.debug(
-      'queued chain steps not running count',
-      queuedChainStepsNotRunning.length
-    );
+      .orderBy(queuedChainStepsTable.position)
+      .limit(1);
 
     // If there are no queued chain steps, mark the chain as completed and return a 200 status
     if (queuedChainStepsNotRunning.length === 0) {
+      console.debug('no queued chain steps found');
       queuedChain[0].status = 'completed';
       await db
         .update(queuedChainsTable)
@@ -132,87 +128,88 @@ export default async function handler(
         .json({ success: true, message: 'Finished running chain steps' });
     }
 
-    // Pull from the source of truth for the chain steps to pull out prompt and cycle data
-    const chainSteps = await db
-      .select()
-      .from(chainStepsTable)
-      .where(
-        inArray(
-          chainStepsTable.id,
-          queuedChainStepsNotRunning.map((cs) => cs.chainStepId)
+    const queuedChainStep = queuedChainStepsNotRunning[0];
+
+    console.debug('chain step position', queuedChainStep.position);
+
+    // Let the system know that the chain step is running (processing)
+    await db
+      .update(queuedChainStepsTable)
+      .set({ status: 'processing' })
+      .where(eq(queuedChainStepsTable.id, queuedChainStep.id));
+
+    try {
+      let previousQueuedChainStep = null;
+
+      if (queuedChainStep.position !== 0) {
+        console.debug('finding previous step');
+        console.debug('position', queuedChainStep.position);
+
+        const prev = await db
+          .select()
+          .from(queuedChainStepsTable)
+          .where(and(eq(queuedChainStepsTable.queuedChainId, queuedChainStep.queuedChainId), eq(queuedChainStepsTable.status, 'completed')))
+          .limit(1);
+
+        if (prev.length > 0) {
+          previousQueuedChainStep = prev[0];
+        } else {
+          throw new Error('Previous queued chain step not found');
+        }
+      }
+
+      let previousResponse = null;
+      if (previousQueuedChainStep) {
+        console.debug('found previous step', previousQueuedChainStep.id);
+        previousResponse = previousQueuedChainStep.response;
+      } else {
+        console.debug('no previous step found');
+      }
+
+      const response = await chat(
+        mergePrevResponseWithPrompt(
+          previousResponse, queuedChainStep.prompt
         )
       );
 
-    console.debug('chain steps count', chainSteps.length);
-
-    // Run the chain steps in parallel
-    const promises = chainSteps.map(async (chainStep, index) => {
-      const queuedChainStep = queuedChainStepsNotRunning[index];
-
-      // Let the system know that the chain step is running (processing)
+      // Let the system know that the chain step is completed
       await db
         .update(queuedChainStepsTable)
-        .set({ status: 'processing' })
+        .set({
+          status: 'completed',
+          response: response.choices[0].message.content,
+        })
         .where(eq(queuedChainStepsTable.id, queuedChainStep.id));
 
-      try {
-        const response = await chat(chainStep.prompt);
+      console.debug('completed chain step created', queuedChainStep.id);
 
-        // Let the system know that the chain step is completed
-        await db
-          .update(queuedChainStepsTable)
-          .set({
-            status: 'completed',
-            response: response.choices[0].message.content,
-          })
-          .where(eq(queuedChainStepsTable.id, queuedChainStep.id));
+      // Recursively run the next chain step
+      console.debug('starting next process');
+      fetch(
+        `${process.env.HOST}/api/process-queued-chain?id=${queuedChain[0].id}`,
+        {
+          method: 'POST',
+        }
+      );
+    } catch (error) {
+      console.error('Chain operation error:', error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
 
-        console.debug('completed chain step created', queuedChainStep.id);
-
-        // Recursively run the next chain step
-        console.debug('starting next process');
-        await fetch(
-          `${process.env.HOST}/api/process-queued-chain?id=${queuedChain[0].id}`,
-          {
-            method: 'POST',
-          }
-        );
-      } catch (error) {
-        console.error('Chain operation error:', error);
-        const errorMessage =
-          error instanceof Error ? error.message : String(error);
-
-        await db
-          .update(queuedChainStepsTable)
-          .set({ status: 'error', error: errorMessage })
-          .where(eq(queuedChainStepsTable.id, queuedChainStep.id));
-
-        // Recursively keep the process running
-        console.debug('starting next process');
-        await fetch(
-          `${process.env.HOST}/api/process-queued-chain?id=${queuedChain[0].id}`,
-          {
-            method: 'POST',
-          }
-        );
-      }
-    });
-
-    await Promise.all(promises).catch(async (error) => {
-      console.error('uncaught error in Promise.all', error);
-
-      // Stop the chain from running
       await db
-        .update(queuedChainsTable)
-        .set({
-          status: 'error',
-          error: `Failed to run chain step: ${String(error)}`,
-        })
-        .where(eq(queuedChainsTable.id, queuedChain[0].id));
+        .update(queuedChainStepsTable)
+        .set({ status: 'error', error: errorMessage })
+        .where(eq(queuedChainStepsTable.id, queuedChainStep.id));
 
-      // Rethrow the error to be caught by the main catch block
-      throw error;
-    });
+      // Recursively keep the process running
+      console.debug('starting next process');
+      await fetch(
+        `${process.env.HOST}/api/process-queued-chain?id=${queuedChain[0].id}`,
+        {
+          method: 'POST',
+        }
+      );
+    }
 
     console.debug('finished running chain steps');
     return res
@@ -254,4 +251,14 @@ async function chat(prompt: string) {
   }
 
   return response.json();
+}
+
+function mergePrevResponseWithPrompt(previousResponse: string | null, prompt: string) {
+  if (!previousResponse) {
+    return prompt;
+  }
+
+  return prompt +
+    '\n\n' +
+    previousResponse;
 }

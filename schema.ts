@@ -71,6 +71,7 @@ export const chainStepsTable = pgTable('chain_steps', {
 
   prompt: text('prompt').notNull(),
   result: text('result'),
+  position: integer('position').notNull(),
 
   cycleCount: integer('cycle_count').notNull(),
 
@@ -90,6 +91,9 @@ export const queuedChainsTable = pgTable('queued_chains', {
   id: serial('id').primaryKey(),
   queueId: integer('queue_id').notNull().references(() => queuesTable.id, { onDelete: 'cascade' }),
   chainId: integer('chain_id').notNull().references(() => chainsTable.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => usersTable.id, { onDelete: 'cascade' }),
+
+  name: text('name'),
 
   status: text('status').notNull().default('pending'),
   error: text('error'),
@@ -102,6 +106,10 @@ export const queuedChainStepsTable = pgTable('queued_chain_steps', {
   id: serial('id').primaryKey(),
   queuedChainId: integer('queued_chain_id').notNull().references(() => queuedChainsTable.id, { onDelete: 'cascade' }),
   chainStepId: integer('chain_step_id').notNull().references(() => chainStepsTable.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => usersTable.id, { onDelete: 'cascade' }),
+
+  prompt: text('prompt').notNull(),
+  position: integer('position').notNull(),
 
   response: text('response'),
   status: text('status').notNull().default('pending'),

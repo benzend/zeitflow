@@ -1,0 +1,1 @@
+ALTER TABLE "queued_chains" DROP COLUMN "position";

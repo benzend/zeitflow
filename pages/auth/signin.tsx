@@ -48,7 +48,7 @@ export default function SignIn({ providers }: { providers: Provider[] }) {
                 policy.
               </p>
               <p className="mt-2 text-primary/60 text-sm">
-                Don't have an account?{' '}
+                Don&apos;t have an account?{' '}
                 <Link
                   href="/auth/register"
                   className="text-primary hover:text-primary-light transition duration-200"

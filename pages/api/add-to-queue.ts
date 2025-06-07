@@ -125,14 +125,18 @@ export default async function handler(
         queueId: queue[0].id,
         chainId: chain[0].id,
         status: 'pending',
+        userId: user[0].id,
       })
       .returning({ id: queuedChainsTable.id });
 
     await db.insert(queuedChainStepsTable).values(
       chainSteps.map((cs) => ({
+        prompt: cs.prompt,
+        position: cs.position,
         queuedChainId: queuedChain[0].id,
         chainStepId: cs.id,
         status: 'pending',
+        userId: user[0].id,
       }))
     );
 

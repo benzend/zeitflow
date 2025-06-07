@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import Navigation from '@/components/Navigation';
 import { SelectChain, SelectChainStep } from '@/schema';
 
 // Add skeleton components
@@ -38,6 +37,8 @@ export default function ChainDetail() {
   const [error, setError] = useState('');
   const [editMode, setEditMode] = useState(false);
   const [chainName, setChainName] = useState('');
+  const [editingStepId, setEditingStepId] = useState<number | null>(null);
+  const [editStepPrompt, setEditStepPrompt] = useState('');
   const router = useRouter();
   const { id } = router.query;
 
@@ -77,7 +78,7 @@ export default function ChainDetail() {
     }
 
     try {
-      const response = await fetch(`/api/queue?id=${id}`, {
+      const response = await fetch(`/api/dashboard?id=${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -107,7 +108,7 @@ export default function ChainDetail() {
     }
 
     try {
-      const response = await fetch(`/api/queue?id=${id}`, {
+      const response = await fetch(`/api/dashboard?id=${id}`, {
         method: 'DELETE',
       });
 
@@ -138,6 +139,11 @@ export default function ChainDetail() {
       return;
     }
 
+    if (!formData.get('position')) {
+      setError('Chain step position is required');
+      return;
+    }
+
     try {
       const response = await fetch(`/api/chain-step`, {
         method: 'POST',
@@ -147,6 +153,7 @@ export default function ChainDetail() {
         body: JSON.stringify({
           prompt: formData.get('prompt'),
           chainId: id,
+          position: formData.get('position'),
         }),
       });
 
@@ -182,6 +189,71 @@ export default function ChainDetail() {
       }
     } catch (err) {
       setError('An error occurred while running the chain');
+      console.error(err);
+    }
+  };
+
+  const handleEditStep = (step: SelectChainStep) => {
+    setEditingStepId(step.id);
+    setEditStepPrompt(step.prompt);
+  };
+
+  const handleCancelEditStep = () => {
+    setEditingStepId(null);
+    setEditStepPrompt('');
+  };
+
+  const handleUpdateStep = async (stepId: number) => {
+    if (!editStepPrompt.trim()) {
+      setError('Step prompt is required');
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/chain-step?id=${stepId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: editStepPrompt,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setEditingStepId(null);
+        setEditStepPrompt('');
+        fetchChain(id as string);
+      } else {
+        setError(data.message || 'Failed to update step');
+      }
+    } catch (err) {
+      setError('An error occurred while updating the step');
+      console.error(err);
+    }
+  };
+
+  const handleDeleteStep = async (stepId: number) => {
+    if (!confirm('Are you sure you want to delete this step?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/chain-step?id=${stepId}`, {
+        method: 'DELETE',
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        fetchChain(id as string);
+      } else {
+        setError(data.message || 'Failed to delete step');
+      }
+    } catch (err) {
+      setError('An error occurred while deleting the step');
       console.error(err);
     }
   };
@@ -392,13 +464,67 @@ export default function ChainDetail() {
             {chainSteps &&
               chainSteps.map((step, index) => (
                 <div
-                  key={index}
+                  key={step.id}
                   className="bg-foreground-light border border-primary/20 p-4 rounded-lg mb-4"
                 >
-                  <p className="text-primary">
-                    <span className="font-semibold">Step {index + 1}:</span>{' '}
-                    {step.prompt}
-                  </p>
+                  {editingStepId === step.id ? (
+                    <div>
+                      <div className="flex justify-between items-center mb-4">
+                        <h4 className="font-semibold text-primary">Edit Step {index + 1}</h4>
+                        <button
+                          onClick={handleCancelEditStep}
+                          className="text-gray-400 hover:text-gray-600 transition duration-200"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                      <textarea
+                        value={editStepPrompt}
+                        onChange={(e) => setEditStepPrompt(e.target.value)}
+                        className="w-full p-3 bg-foreground border border-primary/20 rounded-lg focus:outline-none focus:border-primary transition duration-200 text-primary min-h-[100px] mb-4"
+                        placeholder="Enter step prompt..."
+                      />
+                      <div className="flex justify-end gap-2">
+                        <button
+                          onClick={handleCancelEditStep}
+                          className="px-3 py-1 text-primary hover:text-primary-light transition duration-200"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={() => handleUpdateStep(step.id)}
+                          className="bg-primary text-[#18181b] py-1 px-3 rounded hover:bg-primary-light transition duration-200"
+                        >
+                          Save
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="font-semibold text-primary">Step {index + 1}:</span>
+                        <div className="flex gap-2 ml-4">
+                          <button
+                            onClick={() => handleEditStep(step)}
+                            className="text-blue-500 hover:text-blue-600 transition duration-200 text-sm"
+                            title="Edit step"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteStep(step.id)}
+                            className="text-red-500 hover:text-red-600 transition duration-200 text-sm"
+                            title="Delete step"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                      <p className="text-primary whitespace-pre-wrap">
+                        {step.prompt}
+                      </p>
+                    </div>
+                  )}
                 </div>
               ))}
 
@@ -446,6 +572,7 @@ export default function ChainDetail() {
                       Add Step
                     </button>
                   </div>
+                  <input type="hidden" name="position" value={chainSteps?.length || 0} />
                 </form>
               </div>
             )}

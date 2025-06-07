@@ -110,6 +110,13 @@ async function handlePost(
       .json({ success: false, message: 'Failed to create chain step' });
   }
 
+  if (!req.body.position) {
+    console.error('Missing position param from request body:', req.body);
+    return res
+      .status(500)
+      .json({ success: false, message: 'Failed to create chain step' });
+  }
+
   // Verify the chain belongs to the authenticated user
   const chain = await db.select()
     .from(chainsTable)
@@ -126,10 +133,21 @@ async function handlePost(
       .json({ success: false, message: 'Not authorized to add steps to this chain' });
   }
 
+  const chainSteps = await db.select()
+    .from(chainStepsTable)
+    .where(eq(chainStepsTable.chainId, req.body.chainId))
+    .orderBy(chainStepsTable.position);
+
+  if (chainSteps.some((cs) => cs.position === req.body.position)) {
+    return res.status(400)
+      .json({ success: false, message: 'Position already taken' });
+  }
+
   const chainStepCreateResponse = await db.insert(chainStepsTable).values({
     chainId: req.body.chainId,
     prompt: req.body.prompt,
     cycleCount: req.body.cycleCount || 1,
+    position: req.body.position || 0,
   }).returning({ id: chainStepsTable.id });
 
   const chainStepId = chainStepCreateResponse[0].id;
@@ -150,9 +168,9 @@ async function handlePut(
       .json({ success: false, message: 'Chain Step ID is required' });
   }
 
-  if (!req.body.prompt || !req.body.cycleCount) {
+  if (!req.body.prompt && !req.body.cycleCount && req.body.cycle_count === undefined) {
     return res.status(400)
-      .json({ success: false, message: 'Need to update something, no paramaters provided' });
+      .json({ success: false, message: 'At least one field (prompt or cycleCount) must be provided for update' });
   }
 
   // Verify the chain exists and belongs to the user
