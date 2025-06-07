@@ -10,7 +10,7 @@ import {
   queuesTable,
   usersTable,
 } from '@/schema';
-import { isRateLimited } from '@/lib/rate-limit';
+import { isRateLimitedWithSubscription } from '@/lib/rate-limit';
 import { eq } from 'drizzle-orm';
 
 type ResponseData = {
@@ -45,25 +45,21 @@ export default async function handler(
     return res.status(401).json({ success: false, message: 'Unauthorized' });
   }
 
-  // Get client IP for rate limiting
-  const ip =
-    req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown-ip';
+  // Note: No longer using IP-based rate limiting, using user email instead
 
-  const clientIp = Array.isArray(ip) ? ip[0] : ip;
+  // Check rate limit based on user subscription
+  const rateLimitResult = await isRateLimitedWithSubscription(
+    session.user.email,
+    `add_to_queue:${session.user.email}`,
+    60 * 60 * 1000 // 1 hour
+  );
 
-  // Check rate limit (10 requests per IP address per hour)
-  const isLimited = await isRateLimited({
-    key: `add_to_queue:${clientIp}`,
-    windowMs: 60 * 60 * 1000, // 1 hour in milliseconds
-    maxRequests: 50,
-  });
-
-  if (isLimited) {
+  if (rateLimitResult.isLimited) {
     return res
       .status(429)
       .json({
         success: false,
-        message: 'Too many requests. Please try again later.',
+        message: `Rate limit exceeded. You are on the ${rateLimitResult.tier} plan with ${rateLimitResult.limit} requests per hour. Upgrade your subscription for higher limits.`,
       });
   }
 

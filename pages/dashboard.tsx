@@ -5,6 +5,7 @@ import { signOut, useSession } from 'next-auth/react';
 import { PlayIcon } from '@/components/icons/Play';
 import { SelectChain, SelectQueuedChainWithStatus } from '@/schema';
 import Link from 'next/link';
+import SubscriptionCard from '@/components/SubscriptionCard';
 
 // Add loading skeleton components
 const ChainSkeleton = () => (
@@ -246,8 +247,13 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* Subscription Card */}
+        <div className="mb-6">
+          <SubscriptionCard onSubscriptionChange={fetchChains} />
+        </div>
+
         <div className="flex gap-4">
-          <section className="w-1/3 bg-foreground rounded-lg h-[calc(100vh-180px)] relative">
+          <section className="w-1/3 bg-foreground rounded-lg h-[calc(100vh-240px)] relative">
             {/* Tab Header */}
             <div className="-mt-4 flex justify-end">
               <div className="px-4 py-2 bg-foreground rounded-lg">
@@ -307,7 +313,7 @@ export default function Dashboard() {
             </div>
           </section>
 
-          <section className="w-2/3 h-[calc(100vh-180px)]">
+          <section className="w-2/3 h-[calc(100vh-240px)]">
             {/* In Process Chains */}
             <div className="bg-foreground rounded-lg h-1/2 mb-8 relative">
               <div className="flex justify-end">

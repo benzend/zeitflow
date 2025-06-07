@@ -86,3 +86,9 @@ The application uses Drizzle ORM with PostgreSQL (Neon serverless). Key tables:
 - AI processing is recursive - each completed step triggers the next batch
 - Error handling preserves chain execution flow (errors don't stop the queue)
 - Concurrent processing limit prevents API overload
+
+### Stripe Subscription Details
+
+- Subscription management integrated into the platform
+- Tracks user subscription status and features
+- Handles recurring billing and plan upgrades/downgrades

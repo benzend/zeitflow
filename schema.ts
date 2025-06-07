@@ -14,6 +14,33 @@ export const subscribersTable = pgTable('subscribers', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+// Stripe subscription tables
+export const subscriptionsTable = pgTable('subscriptions', {
+  id: text('id').primaryKey(), // Stripe subscription ID
+  userId: text('user_id').notNull().references(() => usersTable.id, { onDelete: 'cascade' }),
+  customerId: text('customer_id').notNull(), // Stripe customer ID
+  priceId: text('price_id').notNull(), // Stripe price ID
+  status: text('status').notNull(), // active, canceled, past_due, etc.
+  currentPeriodStart: timestamp('current_period_start').notNull(),
+  currentPeriodEnd: timestamp('current_period_end').notNull(),
+  cancelAtPeriodEnd: integer('cancel_at_period_end').default(0).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').notNull().$onUpdateFn(() => new Date()),
+});
+
+export const subscriptionPlansTable = pgTable('subscription_plans', {
+  id: text('id').primaryKey(), // Stripe price ID
+  name: text('name').notNull(),
+  description: text('description'),
+  amount: integer('amount').notNull(), // in cents
+  currency: text('currency').notNull().default('usd'),
+  interval: text('interval').notNull(), // month, year
+  queueLimit: integer('queue_limit').notNull().default(20), // requests per hour
+  features: text('features'), // JSON string of features
+  isActive: integer('is_active').default(1).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
 // NextAuth.js required tables
 export const usersTable = pgTable('users', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
@@ -127,6 +154,12 @@ export type SelectChainStep = typeof chainStepsTable.$inferSelect;
 export type SelectQueue = typeof queuesTable.$inferSelect;
 export type SelectQueuedChain = typeof queuedChainsTable.$inferSelect;
 export type SelectQueuedChainStep = typeof queuedChainStepsTable.$inferSelect;
+
+// Subscription types
+export type InsertSubscription = typeof subscriptionsTable.$inferInsert;
+export type SelectSubscription = typeof subscriptionsTable.$inferSelect;
+export type InsertSubscriptionPlan = typeof subscriptionPlansTable.$inferInsert;
+export type SelectSubscriptionPlan = typeof subscriptionPlansTable.$inferSelect;
 
 // Add missing type for dashboard query
 export type SelectQueuedChainWithStatus = SelectQueuedChain;
