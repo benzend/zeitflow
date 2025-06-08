@@ -1,17 +1,28 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { stripe } from '@/lib/stripe';
 import { db } from '@/lib/db';
-import { subscriptionsTable } from '@/schema';
+import { subscriptionsTable, usersTable } from '@/schema';
 import { eq } from 'drizzle-orm';
 import Stripe from 'stripe';
 
 export const config = {
   api: {
-    bodyParser: {
-      sizeLimit: '1mb',
-    },
+    bodyParser: false,
   },
 };
+
+function getRawBody(req: NextApiRequest): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    req.on('data', (chunk) => {
+      chunks.push(chunk);
+    });
+    req.on('end', () => {
+      resolve(Buffer.concat(chunks));
+    });
+    req.on('error', reject);
+  });
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -28,7 +39,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+    const rawBody = await getRawBody(req);
+    event = stripe.webhooks.constructEvent(rawBody, sig, endpointSecret);
   } catch (err) {
     console.log(`Webhook signature verification failed.`, (err as Error).message);
     return res.status(400).json({ error: 'Invalid signature' });
@@ -74,29 +86,98 @@ async function handleSubscriptionChange(subscription: Stripe.Subscription) {
 
   if (!priceId) return;
 
-  // Find user by customer ID
+  // Find existing subscription by subscription ID or customer ID
   const existingSubscription = await db
     .select()
     .from(subscriptionsTable)
-    .where(eq(subscriptionsTable.customerId, customerId))
+    .where(eq(subscriptionsTable.id, subscription.id))
     .limit(1);
 
+  const existingByCustomer = existingSubscription.length === 0 
+    ? await db
+        .select()
+        .from(subscriptionsTable)
+        .where(eq(subscriptionsTable.customerId, customerId))
+        .limit(1)
+    : [];
+
   if (existingSubscription.length > 0) {
-    // Update existing subscription
+    // Update existing subscription by ID
     await db
       .update(subscriptionsTable)
       .set({
         status: subscription.status,
         priceId,
-        currentPeriodStart: new Date(subscription.current_period_start * 1000),
-        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+        currentPeriodStart: subscription.current_period_start ? new Date(subscription.current_period_start * 1000) : new Date(),
+        currentPeriodEnd: subscription.current_period_end ? new Date(subscription.current_period_end * 1000) : new Date(),
         cancelAtPeriodEnd: subscription.cancel_at_period_end ? 1 : 0,
         updatedAt: new Date(),
       })
       .where(eq(subscriptionsTable.id, subscription.id));
+  } else if (existingByCustomer.length > 0) {
+    // Update existing subscription by customer ID
+    await db
+      .update(subscriptionsTable)
+      .set({
+        id: subscription.id,
+        status: subscription.status,
+        priceId,
+        currentPeriodStart: subscription.current_period_start ? new Date(subscription.current_period_start * 1000) : new Date(),
+        currentPeriodEnd: subscription.current_period_end ? new Date(subscription.current_period_end * 1000) : new Date(),
+        cancelAtPeriodEnd: subscription.cancel_at_period_end ? 1 : 0,
+        updatedAt: new Date(),
+      })
+      .where(eq(subscriptionsTable.customerId, customerId));
   } else {
-    // This should not happen if properly created through our API
-    console.error('Subscription not found for update:', subscription.id);
+    // Try to find user by customer ID and create subscription
+    const customer = await stripe.customers.retrieve(customerId);
+    if (customer && !customer.deleted && customer.email) {
+      // Find user by email
+      const user = await db
+        .select()
+        .from(usersTable)
+        .where(eq(usersTable.email, customer.email))
+        .limit(1);
+
+      if (user.length > 0) {
+        // Create new subscription record with conflict handling
+        try {
+          await db.insert(subscriptionsTable).values({
+            id: subscription.id,
+            userId: user[0].id,
+            customerId,
+            status: subscription.status,
+            priceId,
+            currentPeriodStart: subscription.current_period_start ? new Date(subscription.current_period_start * 1000) : new Date(),
+            currentPeriodEnd: subscription.current_period_end ? new Date(subscription.current_period_end * 1000) : new Date(),
+            cancelAtPeriodEnd: subscription.cancel_at_period_end ? 1 : 0,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          });
+        } catch (error: any) {
+          if (error.code === '23505') {
+            // Subscription already exists, update it instead
+            await db
+              .update(subscriptionsTable)
+              .set({
+                status: subscription.status,
+                priceId,
+                currentPeriodStart: subscription.current_period_start ? new Date(subscription.current_period_start * 1000) : new Date(),
+                currentPeriodEnd: subscription.current_period_end ? new Date(subscription.current_period_end * 1000) : new Date(),
+                cancelAtPeriodEnd: subscription.cancel_at_period_end ? 1 : 0,
+                updatedAt: new Date(),
+              })
+              .where(eq(subscriptionsTable.id, subscription.id));
+          } else {
+            throw error;
+          }
+        }
+      } else {
+        console.log('User not found for customer email:', customer.email);
+      }
+    } else {
+      console.log('Customer not found or deleted:', customerId);
+    }
   }
 }
 

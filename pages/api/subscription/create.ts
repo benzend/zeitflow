@@ -42,8 +42,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .where(eq(subscriptionsTable.userId, userId))
       .limit(1);
 
+    // If user has an active subscription, redirect to customer portal
     if (existingSubscription.length > 0 && existingSubscription[0].status === 'active') {
-      return res.status(400).json({ error: 'User already has an active subscription' });
+      try {
+        const portalSession = await stripe.billingPortal.sessions.create({
+          customer: existingSubscription[0].customerId,
+          return_url: `${process.env.HOST || 'http://localhost:3000'}/dashboard`,
+          flow_data: {
+            type: 'subscription_update_confirm',
+            subscription_update_confirm: {
+              subscription: existingSubscription[0].id,
+              items: [{
+                id: (await stripe.subscriptions.retrieve(existingSubscription[0].id)).items.data[0].id,
+                price: priceId,
+              }],
+            },
+          },
+        });
+        
+        return res.json({ url: portalSession.url });
+      } catch (error) {
+        console.error('Failed to create portal session:', error);
+        return res.status(500).json({ error: 'Failed to create portal session' });
+      }
     }
 
     // Create or retrieve Stripe customer
