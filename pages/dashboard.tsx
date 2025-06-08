@@ -387,12 +387,14 @@ export default function Dashboard() {
                               >
                                 View
                               </button>
-                              <button
-                                className="bg-primary text-[#18181b] py-1 px-3 rounded-lg hover:bg-primary-light transition duration-200"
-                                onClick={() => handleRunChain(queuedChain.id)}
-                              >
-                                Process
-                              </button>
+                              {queuedChain.status === 'pending' && (
+                                <button
+                                  className="bg-primary text-[#18181b] py-1 px-3 rounded-lg hover:bg-primary-light transition duration-200"
+                                  onClick={() => handleRunChain(queuedChain.id)}
+                                >
+                                  Process
+                                </button>
+                              )}
                               <button
                                 onClick={() =>
                                   handleDeleteQueuedChain(queuedChain.id)
