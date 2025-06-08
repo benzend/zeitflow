@@ -5,7 +5,7 @@ import {
   queuedChainsTable,
 } from '@/schema';
 import { isRateLimited } from '@/lib/rate-limit';
-import { and, eq } from 'drizzle-orm';
+import { and, asc, eq } from 'drizzle-orm';
 import { config } from 'dotenv';
 
 config({ path: '.env.local' });
@@ -122,6 +122,28 @@ export default async function handler(
         .update(queuedChainsTable)
         .set({ status: 'completed' })
         .where(eq(queuedChainsTable.id, queuedChain[0].id));
+
+
+      // Since this queued chain is completed, we can check if there are any queued chains that are next in line
+      const queuedChains = await db
+        .select()
+        .from(queuedChainsTable)
+        .where(eq(queuedChainsTable.status, 'pending'))
+        // we should check the oldest queued chain first
+        .orderBy(asc(queuedChainsTable.createdAt))
+        .limit(1);
+
+      if (queuedChains.length > 0) {
+        console.debug('found next queued chain', queuedChains[0].id);
+        fetch(
+          `${process.env.HOST}/api/process-queued-chain?id=${queuedChains[0].id}`,
+          {
+            method: 'POST',
+          }
+        );
+      } else {
+        console.debug('no next queued chain found');
+      }
 
       return res
         .status(200)
