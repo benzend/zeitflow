@@ -1,0 +1,286 @@
+import type { NextApiRequest, NextApiResponse } from 'next';
+import { db } from '@/lib/db';
+import {
+  queuedChainStepsTable,
+  queuedChainsTable,
+} from '@/schema';
+import { isRateLimited } from '@/lib/rate-limit';
+import { and, asc, eq } from 'drizzle-orm';
+import { config } from 'dotenv';
+
+config({ path: '.env.local' });
+
+type ResponseData = {
+  success: boolean;
+  message: string;
+};
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse<ResponseData>
+) {
+  if (req.method !== 'POST') {
+    return res
+      .status(405)
+      .json({ success: false, message: 'Method not allowed' });
+  }
+
+  // Get client IP for rate limiting
+  const ip =
+    req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown-ip';
+
+  const clientIp = Array.isArray(ip) ? ip[0] : ip;
+
+  // Check rate limit (20 requests per IP address per hour)
+  const isLimited = await isRateLimited({
+    key: `process_chain:${clientIp}`,
+    windowMs: 60 * 60 * 1000, // 1 hour in milliseconds
+    maxRequests: 100,
+  });
+
+  if (isLimited) {
+    return res
+      .status(429)
+      .json({
+        success: false,
+        message: 'Too many requests. Please try again later.',
+      });
+  }
+
+  try {
+    const queuedChainId = req.query.id
+      ? parseInt(req.query.id as string, 10)
+      : null;
+
+    if (!queuedChainId) {
+      return res
+        .status(400)
+        .json({ success: false, message: 'Queued chain ID is required' });
+    }
+
+    // Get a specific chain
+    const queuedChain = await db
+      .select()
+      .from(queuedChainsTable)
+      .where(eq(queuedChainsTable.id, queuedChainId))
+      .limit(1);
+
+    // If the chain is not found, return a 404 error
+    if (queuedChain.length === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: 'Queued chain not found' });
+    }
+
+    // If the chain has already been completed, return a 400 error
+    if (queuedChain[0].status === 'completed') {
+      return res
+        .status(400)
+        .json({ success: false, message: 'Chain already completed' });
+    }
+
+    const processingChainSteps = await db
+      .select()
+      .from(queuedChainStepsTable)
+      .where(
+        and(
+          eq(queuedChainStepsTable.queuedChainId, queuedChain[0].id),
+          eq(queuedChainStepsTable.status, 'processing')
+        )
+      ).orderBy(queuedChainStepsTable.position);
+
+    // If there are already max of 5 running chain steps, return a 400 error
+    if (processingChainSteps.length >= 5) {
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: 'Chain already running at max capacity',
+        });
+    }
+
+    console.debug('processing chain steps count', processingChainSteps.length);
+
+    // check for the non running queued chain steps to run next
+    const queuedChainStepsNotRunning = await db
+      .select()
+      .from(queuedChainStepsTable)
+      .where(
+        and(
+          eq(queuedChainStepsTable.status, 'pending'),
+          eq(queuedChainStepsTable.queuedChainId, queuedChain[0].id)
+        )
+      )
+      .orderBy(queuedChainStepsTable.position)
+      .limit(1);
+
+    // If there are no queued chain steps, mark the chain as completed and return a 200 status
+    if (queuedChainStepsNotRunning.length === 0) {
+      console.debug('no queued chain steps found');
+      queuedChain[0].status = 'completed';
+      await db
+        .update(queuedChainsTable)
+        .set({ status: 'completed' })
+        .where(eq(queuedChainsTable.id, queuedChain[0].id));
+
+
+      // Since this queued chain is completed, we can check if there are any queued chains that are next in line
+      const queuedChains = await db
+        .select()
+        .from(queuedChainsTable)
+        .where(eq(queuedChainsTable.status, 'pending'))
+        // we should check the oldest queued chain first
+        .orderBy(asc(queuedChainsTable.createdAt))
+        .limit(1);
+
+      if (queuedChains.length > 0) {
+        console.debug('found next queued chain', queuedChains[0].id);
+        fetch(
+          `${process.env.HOST}/api/process-queued-chain?id=${queuedChains[0].id}`,
+          {
+            method: 'POST',
+          }
+        );
+      } else {
+        console.debug('no next queued chain found');
+      }
+
+      return res
+        .status(200)
+        .json({ success: true, message: 'Finished running chain steps' });
+    }
+
+    const queuedChainStep = queuedChainStepsNotRunning[0];
+
+    console.debug('chain step position', queuedChainStep.position);
+
+    // Let the system know that the chain step is running (processing)
+    await db
+      .update(queuedChainStepsTable)
+      .set({ status: 'processing' })
+      .where(eq(queuedChainStepsTable.id, queuedChainStep.id));
+
+    try {
+      let previousQueuedChainStep = null;
+
+      if (queuedChainStep.position !== 0) {
+        console.debug('finding previous step');
+        console.debug('position', queuedChainStep.position);
+
+        const prev = await db
+          .select()
+          .from(queuedChainStepsTable)
+          .where(and(eq(queuedChainStepsTable.queuedChainId, queuedChainStep.queuedChainId), eq(queuedChainStepsTable.status, 'completed')))
+          .limit(1);
+
+        if (prev.length > 0) {
+          previousQueuedChainStep = prev[0];
+        } else {
+          throw new Error('Previous queued chain step not found');
+        }
+      }
+
+      let previousResponse = null;
+      if (previousQueuedChainStep) {
+        console.debug('found previous step', previousQueuedChainStep.id);
+        previousResponse = previousQueuedChainStep.response;
+      } else {
+        console.debug('no previous step found');
+      }
+
+      const response = await chat(
+        mergePrevResponseWithPrompt(
+          previousResponse, queuedChainStep.prompt
+        )
+      );
+
+      // Let the system know that the chain step is completed
+      await db
+        .update(queuedChainStepsTable)
+        .set({
+          status: 'completed',
+          response: response.choices[0].message.content,
+        })
+        .where(eq(queuedChainStepsTable.id, queuedChainStep.id));
+
+      console.debug('completed chain step created', queuedChainStep.id);
+
+      // Recursively run the next chain step
+      console.debug('starting next process');
+      fetch(
+        `${process.env.HOST}/api/process-queued-chain?id=${queuedChain[0].id}`,
+        {
+          method: 'POST',
+        }
+      );
+    } catch (error) {
+      console.error('Chain operation error:', error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+
+      await db
+        .update(queuedChainStepsTable)
+        .set({ status: 'error', error: errorMessage })
+        .where(eq(queuedChainStepsTable.id, queuedChainStep.id));
+
+      // Recursively keep the process running
+      console.debug('starting next process');
+      await fetch(
+        `${process.env.HOST}/api/process-queued-chain?id=${queuedChain[0].id}`,
+        {
+          method: 'POST',
+        }
+      );
+    }
+
+    console.debug('finished running chain steps');
+    return res
+      .status(200)
+      .json({ success: true, message: 'Successfully ran chain steps!' });
+  } catch (error) {
+    console.error('Chain operation error:', error);
+    return res
+      .status(500)
+      .json({ success: false, message: 'Failed to process request' });
+  }
+}
+
+async function chat(prompt: string) {
+  const response = await fetch(
+    'https://openrouter.ai/api/v1/chat/completions',
+    {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + process.env.OPENROUTER_API_KEY,
+        'HTTP-Referer': 'https://jjoist.com', // Optional. Site URL for rankings on openrouter.ai.
+        'X-Title': 'jjoist', // Optional. Site title for rankings on openrouter.ai.
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'openai/gpt-4o',
+        messages: [
+          {
+            role: 'user',
+            content: prompt,
+          },
+        ],
+      }),
+    }
+  );
+
+  if (response.status !== 200) {
+    throw new Error(`OpenAI API returned an error: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+function mergePrevResponseWithPrompt(previousResponse: string | null, prompt: string) {
+  if (!previousResponse) {
+    return prompt;
+  }
+
+  return prompt +
+    '\n\n' +
+    previousResponse;
+}

@@ -5,22 +5,50 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1747587366982,
-      "tag": "0000_simple_butterfly",
+      "when": 1748486677995,
+      "tag": "0000_perfect_whistler",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "7",
-      "when": 1747591290942,
-      "tag": "0001_keen_snowbird",
+      "when": 1748487229549,
+      "tag": "0001_nasty_daimon_hellstrom",
       "breakpoints": true
     },
     {
       "idx": 2,
       "version": "7",
-      "when": 1747592181448,
-      "tag": "0002_greedy_ravenous",
+      "when": 1749266821532,
+      "tag": "0002_slippery_multiple_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1749267064710,
+      "tag": "0003_wandering_major_mapleleaf",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1749267995286,
+      "tag": "0004_natural_nightmare",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1749268020075,
+      "tag": "0005_wise_rocket_raccoon",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1749308068959,
+      "tag": "0006_blue_spyke",
       "breakpoints": true
     }
   ]

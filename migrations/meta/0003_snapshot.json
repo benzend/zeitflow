@@ -1,6 +1,6 @@
 {
-  "id": "95b2d363-d265-45b7-a765-436814d73390",
-  "prevId": "37875fb1-2c2f-40f7-8810-863cbe2c9919",
+  "id": "bc37d6f0-ea6a-4e2c-b25a-764acdabe374",
+  "prevId": "3ecd9bcf-5769-4d66-a8b1-7380a4865b3e",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -133,6 +133,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "position": {
+          "name": "position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
         "cycle_count": {
           "name": "cycle_count",
           "type": "integer",
@@ -261,6 +267,24 @@
           "primaryKey": false,
           "notNull": true
         },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "prompt": {
+          "name": "prompt",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "position": {
+          "name": "position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
         "response": {
           "name": "response",
           "type": "text",
@@ -321,6 +345,19 @@
           ],
           "onDelete": "cascade",
           "onUpdate": "no action"
+        },
+        "queued_chain_steps_user_id_users_id_fk": {
+          "name": "queued_chain_steps_user_id_users_id_fk",
+          "tableFrom": "queued_chain_steps",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -350,6 +387,18 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "status": {
           "name": "status",
@@ -399,6 +448,19 @@
           "tableTo": "chains",
           "columnsFrom": [
             "chain_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "queued_chains_user_id_users_id_fk": {
+          "name": "queued_chains_user_id_users_id_fk",
+          "tableFrom": "queued_chains",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
           ],
           "columnsTo": [
             "id"

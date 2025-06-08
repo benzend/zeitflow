@@ -1,0 +1,1 @@
+ALTER TABLE "queued_chains" ADD COLUMN "position" integer NOT NULL;

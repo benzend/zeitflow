@@ -1,0 +1,1 @@
+ALTER TABLE "chain_steps" ADD COLUMN "position" integer NOT NULL;
