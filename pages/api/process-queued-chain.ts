@@ -99,8 +99,6 @@ export default async function handler(
         });
     }
 
-    console.debug('processing chain steps count', processingChainSteps.length);
-
     // check for the non running queued chain steps to run next
     const queuedChainStepsNotRunning = await db
       .select()
@@ -114,9 +112,9 @@ export default async function handler(
       .orderBy(queuedChainStepsTable.position)
       .limit(1);
 
+
     // If there are no queued chain steps, mark the chain as completed and return a 200 status
     if (queuedChainStepsNotRunning.length === 0) {
-      console.debug('no queued chain steps found');
       queuedChain[0].status = 'completed';
       await db
         .update(queuedChainsTable)
@@ -150,9 +148,15 @@ export default async function handler(
         .json({ success: true, message: 'Finished running chain steps' });
     }
 
-    const queuedChainStep = queuedChainStepsNotRunning[0];
+    if (queuedChain[0].status !== 'processing') {
+      queuedChain[0].status = 'processing';
+      await db
+        .update(queuedChainsTable)
+        .set({ status: 'processing' })
+        .where(eq(queuedChainsTable.id, queuedChain[0].id));
+    }
 
-    console.debug('chain step position', queuedChainStep.position);
+    const queuedChainStep = queuedChainStepsNotRunning[0];
 
     // Let the system know that the chain step is running (processing)
     await db

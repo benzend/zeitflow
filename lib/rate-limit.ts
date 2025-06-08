@@ -74,7 +74,8 @@ export async function isRateLimited({
 export async function isRateLimitedWithSubscription(
   userEmail: string,
   key: string,
-  windowMs: number = 3600000 // 1 hour default
+  windowMs: number = 3600000, // 1 hour default
+  dontUpdateLimit: boolean = false
 ): Promise<{ isLimited: boolean; tier: string; limit: number; remaining: number }> {
   // Get user and their subscription
   const user = await db
@@ -177,17 +178,19 @@ export async function isRateLimitedWithSubscription(
   }
 
   // Increment the request count
-  await db
-    .update(rateLimitsTable)
-    .set({
-      count: limit.count + 1,
-    })
-    .where(eq(rateLimitsTable.key, key));
+  if (!dontUpdateLimit) {
+    await db
+      .update(rateLimitsTable)
+      .set({
+        count: limit.count + 1,
+      })
+      .where(eq(rateLimitsTable.key, key));
+  }
 
   return { 
     isLimited: false, 
     tier, 
     limit: maxRequests, 
-    remaining: maxRequests - limit.count - 1 
+    remaining: dontUpdateLimit ? maxRequests - limit.count : maxRequests - limit.count - 1 
   };
 }

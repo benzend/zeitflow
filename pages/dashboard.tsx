@@ -58,6 +58,11 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [newChainName, setNewChainName] = useState('');
+  const [usage, setUsage] = useState<{
+    callsUsed: number;
+    callsLimit: number;
+    tier: string;
+  } | null>(null);
   const router = useRouter();
   const [showAddChainModal, setShowAddChainModal] = useState(false);
 
@@ -98,6 +103,7 @@ export default function Dashboard() {
       if (data.success) {
         setChains(data.chains || []);
         setQueuedChains(data.queuedChains || []);
+        setUsage(data.usage || null);
       } else {
         setError(data.message || 'Failed to fetch chains');
       }
@@ -260,7 +266,14 @@ export default function Dashboard() {
             </li>
           </ul>
 
-          <div className="flex gap-4">
+          <div className="flex gap-4 items-center">
+            {usage && (
+              <div className="text-sm text-primary">
+                <span className="font-medium">{usage.callsUsed}/{usage.callsLimit}</span>
+                <span className="text-gray-400 ml-1">calls used</span>
+                <div className="text-xs text-gray-500">{usage.tier} plan</div>
+              </div>
+            )}
             <SubscriptionModal onSubscriptionChange={fetchChains} />
             <button
               onClick={() => signOut({ callbackUrl: '/auth/signin' })}
