@@ -95,7 +95,7 @@ export async function isRateLimitedWithSubscription(
     .limit(1);
 
   // Determine rate limit based on subscription
-  let maxRequests = SUBSCRIPTION_PLANS.FREE.queueLimit;
+  let maxRequests: number = SUBSCRIPTION_PLANS.FREE.queueLimit;
   let tier = 'FREE';
 
   if (subscription.length > 0 && subscription[0].status === 'active') {

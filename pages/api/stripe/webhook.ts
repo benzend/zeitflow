@@ -108,8 +108,8 @@ async function handleSubscriptionChange(subscription: Stripe.Subscription) {
       .set({
         status: subscription.status,
         priceId,
-        currentPeriodStart: subscription.current_period_start ? new Date(subscription.current_period_start * 1000) : new Date(),
-        currentPeriodEnd: subscription.current_period_end ? new Date(subscription.current_period_end * 1000) : new Date(),
+        currentPeriodStart: subscription.start_date ? new Date(subscription.start_date) : new Date(),
+        currentPeriodEnd: subscription.days_until_due ? new Date(subscription.start_date + (subscription.days_until_due * 86400000)) : new Date(),
         cancelAtPeriodEnd: subscription.cancel_at_period_end ? 1 : 0,
         updatedAt: new Date(),
       })
@@ -122,8 +122,8 @@ async function handleSubscriptionChange(subscription: Stripe.Subscription) {
         id: subscription.id,
         status: subscription.status,
         priceId,
-        currentPeriodStart: subscription.current_period_start ? new Date(subscription.current_period_start * 1000) : new Date(),
-        currentPeriodEnd: subscription.current_period_end ? new Date(subscription.current_period_end * 1000) : new Date(),
+        currentPeriodStart: subscription.start_date ? new Date(subscription.start_date) : new Date(),
+        currentPeriodEnd: subscription.days_until_due ? new Date(subscription.start_date + (subscription.days_until_due * 86400000)) : new Date(),
         cancelAtPeriodEnd: subscription.cancel_at_period_end ? 1 : 0,
         updatedAt: new Date(),
       })
@@ -148,22 +148,26 @@ async function handleSubscriptionChange(subscription: Stripe.Subscription) {
             customerId,
             status: subscription.status,
             priceId,
-            currentPeriodStart: subscription.current_period_start ? new Date(subscription.current_period_start * 1000) : new Date(),
-            currentPeriodEnd: subscription.current_period_end ? new Date(subscription.current_period_end * 1000) : new Date(),
+        currentPeriodStart: subscription.start_date ? new Date(subscription.start_date) : new Date(),
+        currentPeriodEnd: subscription.days_until_due ? new Date(subscription.start_date + (subscription.days_until_due * 86400000)) : new Date(),
             cancelAtPeriodEnd: subscription.cancel_at_period_end ? 1 : 0,
             createdAt: new Date(),
             updatedAt: new Date(),
           });
-        } catch (error: any) {
-          if (error.code === '23505') {
+        } catch (error) {
+          let code = '';
+          if ((error as { code: string })?.code) {
+            code = (error as { code: string })?.code;
+          }
+          if (code === '23505') {
             // Subscription already exists, update it instead
             await db
               .update(subscriptionsTable)
               .set({
                 status: subscription.status,
                 priceId,
-                currentPeriodStart: subscription.current_period_start ? new Date(subscription.current_period_start * 1000) : new Date(),
-                currentPeriodEnd: subscription.current_period_end ? new Date(subscription.current_period_end * 1000) : new Date(),
+        currentPeriodStart: subscription.start_date ? new Date(subscription.start_date) : new Date(),
+        currentPeriodEnd: subscription.days_until_due ? new Date(subscription.start_date + (subscription.days_until_due * 86400000)) : new Date(),
                 cancelAtPeriodEnd: subscription.cancel_at_period_end ? 1 : 0,
                 updatedAt: new Date(),
               })
@@ -192,20 +196,20 @@ async function handleSubscriptionCancellation(subscription: Stripe.Subscription)
 }
 
 async function handlePaymentSuccess(invoice: Stripe.Invoice) {
-  if (invoice.subscription) {
-    const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
+  if ('subscription' in invoice && invoice.subscription && typeof invoice.subscription === 'string') {
+    const subscription = await stripe.subscriptions.retrieve(invoice.subscription);
     await handleSubscriptionChange(subscription);
   }
 }
 
 async function handlePaymentFailure(invoice: Stripe.Invoice) {
-  if (invoice.subscription) {
+  if ('subscription' in invoice && invoice.subscription && typeof invoice.subscription === 'string') {
     await db
       .update(subscriptionsTable)
       .set({
         status: 'past_due',
         updatedAt: new Date(),
       })
-      .where(eq(subscriptionsTable.id, invoice.subscription as string));
+      .where(eq(subscriptionsTable.id, invoice.subscription));
   }
 }
