@@ -82,10 +82,10 @@ export default function Home() {
 
           <section className="flex flex-col items-center gap-6 animate-slide-up-fade delay-500">
             <Link
-              href="/coming-soon"
+              href="/auth/register"
               className="bg-[#a3e635] text-[#18181b] px-10 py-5 mb-5 rounded-full font-bold shadow-lg hover:bg-[#bef264] transition-all duration-300 text-xl hover:scale-105 hover:shadow-xl hover:shadow-[#a3e635]/20 hover:animate-pulse-glow"
             >
-              Get Started →
+              Get Started with a free account →
             </Link>
           </section>
         </main>

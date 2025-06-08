@@ -44,8 +44,8 @@ export default function Register({ providers }: { providers: Provider[] }) {
 
             <div className="mt-8 text-center">
               <p className="text-primary/60 text-sm">
-                By creating an account, you agree to our terms of service and
-                privacy policy.
+                By creating an account, you agree to our <Link href="/terms" className="underline text-primary">terms of service</Link> and{' '}
+                <Link href="/privacy" className="underline text-primary">privacy policy</Link>.
               </p>
               <p className="mt-2 text-primary/60 text-sm">
                 Already have an account?{' '}
