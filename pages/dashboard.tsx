@@ -35,13 +35,15 @@ const ProgressBar = ({ completed, total }: { completed: number; total: number })
   const percentage = total > 0 ? (completed / total) * 100 : 0;
   
   return (
-    <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-      <div 
-        className="bg-[#a3e635] h-2 rounded-full transition-all duration-300" 
-        style={{ width: `${percentage}%` }}
-      ></div>
+    <div className="w-full rounded-full">
       <div className="text-xs text-gray-400 mt-1">
         {completed}/{total} steps completed ({Math.round(percentage)}%)
+      </div>
+      <div className="w-full bg-gray-200 rounded-full h-1">
+        <div 
+          className="bg-[#a3e635] h-1 transition-all duration-300" 
+          style={{ width: `${percentage}%` }}
+        ></div>
       </div>
     </div>
   );
@@ -367,9 +369,9 @@ export default function Dashboard() {
                       return (
                         <div
                           key={queuedChain.id}
-                          className="border-[#a3e635] border-1 rounded-lg shadow p-6 hover:shadow-md transition duration-200 bg-foreground-light"
+                          className="border-[#a3e635] border-1 rounded-lg shadow hover:shadow-md transition duration-200 bg-foreground-light overflow-hidden"
                         >
-                          <div className="flex justify-between items-start mb-4">
+                          <div className="flex justify-between items-start mb-4 p-6">
                             <div className="flex-1">
                               <h3 className="text-xl text-[#a3e635] font-semibold">
                                 {chain.name}
@@ -445,9 +447,9 @@ export default function Dashboard() {
                       return (
                         <div
                           key={queuedChain.id}
-                          className="border-[#a3e635] border-1 rounded-lg shadow p-6 hover:shadow-md transition duration-200 bg-foreground-light"
+                          className="border-[#a3e635] border-1 rounded-lg shadow hover:shadow-md transition duration-200 bg-foreground-light"
                         >
-                          <div className="flex justify-between items-start mb-4">
+                          <div className="flex justify-between items-start mb-4 p-6">
                             <div className="flex-1">
                               <h3 className="text-xl text-[#a3e635] font-semibold">
                                 {queuedChain.name}
