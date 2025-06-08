@@ -154,7 +154,7 @@ export default function Dashboard() {
       const data = await response.json();
 
       if (data.success) {
-        fetchChains();
+        fetchChains({ silent: true });
       } else {
         setError(data.message || 'Failed to delete chain');
       }
@@ -177,7 +177,7 @@ export default function Dashboard() {
       const data = await response.json();
 
       if (data.success) {
-        fetchChains();
+        fetchChains({ silent: true });
       } else {
         setError(data.message || 'Failed to delete queued chain');
       }
@@ -199,7 +199,7 @@ export default function Dashboard() {
       const data = await response.json();
 
       if (data.success) {
-        fetchChains();
+        fetchChains({ silent: true });
       } else {
         setError(data.message || 'Failed to run chain');
       }
@@ -230,7 +230,7 @@ export default function Dashboard() {
       const data = await response.json();
 
       if (data.success) {
-        fetchChains();
+        fetchChains({ silent: true });
       } else {
         setError(data.message || 'Failed to run chain');
       }
