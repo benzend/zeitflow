@@ -48,6 +48,7 @@ export const usersTable = pgTable('users', {
   email: text('email').notNull().unique(),
   emailVerified: timestamp('emailVerified', { mode: 'date' }),
   image: text('image'),
+  password: text('password'), // For email/password authentication
 });
 
 export const accountsTable = pgTable('accounts', {
