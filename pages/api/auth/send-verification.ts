@@ -4,6 +4,7 @@ import { db } from '@/lib/db'
 import { usersTable, verificationTokensTable } from '@/schema'
 import { eq } from 'drizzle-orm'
 import crypto from 'crypto'
+import { isRateLimited } from '@/lib/rate-limit'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -16,6 +17,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (!email) {
     return res.status(400).json({ message: 'Email is required' })
+  }
+
+  // Rate limiting: 5 verification emails per hour per email
+  const rateLimitKey = `send-verification:${email}`
+  const isLimited = await isRateLimited({
+    key: rateLimitKey,
+    windowMs: 60 * 60 * 1000, // 1 hour
+    maxRequests: 5,
+  })
+
+  if (isLimited) {
+    return res.status(429).json({ 
+      message: 'Too many verification emails sent. Please wait before requesting another.' 
+    })
   }
 
   try {
