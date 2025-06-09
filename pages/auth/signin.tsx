@@ -195,8 +195,8 @@ export default function SignIn({ providers }: { providers: Provider[] }) {
 
             <div className="mt-8 text-center">
               <p className="text-primary/60 text-sm">
-                By signing in, you agree to our terms of service and privacy
-                policy.
+                By signing in, you agree to our <Link href="/terms" className="underline text-primary">terms of service</Link> and{' '}
+                <Link href="/privacy" className="underline text-primary">privacy policy</Link>.
               </p>
               <p className="mt-2 text-primary/60 text-sm">
                 Don&apos;t have an account?{' '}
