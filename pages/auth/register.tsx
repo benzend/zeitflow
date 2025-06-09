@@ -163,9 +163,9 @@ export default function Register({ providers }: { providers: Provider[] }) {
             )}
 
             {requiresVerification && (
-              <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                <h3 className="text-green-800 font-medium mb-2">Check your email!</h3>
-                <p className="text-green-700 text-sm mb-4">
+              <div className="mb-6 p-4 bg-background border border-gray-600 rounded-lg">
+                <h3 className="text-primary font-medium mb-2">Check your email!</h3>
+                <p className="text-primary/80 text-sm mb-4">
                   We&apos;ve sent a verification link to <strong>{email}</strong>. 
                   Please click the link in the email to activate your account.
                 </p>
@@ -174,7 +174,7 @@ export default function Register({ providers }: { providers: Provider[] }) {
                     <p className="text-red-500 text-sm">{error}</p>
                   )}
                   {success && (
-                    <p className="text-green-600 text-sm">{success}</p>
+                    <p className="text-primary text-sm">{success}</p>
                   )}
                   <button
                     onClick={handleResendVerification}
