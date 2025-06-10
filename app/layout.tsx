@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Footer } from "@/components/Footer";
 import { GoogleAnalytics } from '@next/third-parties/google'
+import { VemetricScript } from '@vemetric/react';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -45,6 +46,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
       >
+        <VemetricScript token={process.env.NEXT_PUBLIC_VEMETRIC_TOKEN!} />
         <div className="flex-1">
           {children}
         </div>
