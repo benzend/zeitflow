@@ -21,6 +21,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { Tooltip } from 'react-tippy';
 
 // Add skeleton components
 const ChainInfoSkeleton = () => (
@@ -719,12 +720,23 @@ export default function ChainDetail() {
             )}
           </div>
           <div className="flex justify-end mt-6">
-            <button
-              className="bg-[#a3e635] text-[#18181b] py-2 px-4 rounded-lg hover:bg-[#bef264] transition duration-200"
-              onClick={() => handleRunChain()}
-            >
-              {runChain ? 'Running...' : 'Run Chain'}
-            </button>
+            {chainSteps?.length === 0 ? (
+              <Tooltip title="Chain must have at least one step" trigger="mouseenter" placement="bottom">
+                <button
+                  className="bg-[#a3e635] text-[#18181b] py-2 px-4 rounded-lg hover:bg-[#bef264] transition duration-200 opacity-50 cursor-not-allowed"
+                  disabled
+                >
+                  {runChain ? 'Running...' : 'Run Chain'}
+                </button>
+              </Tooltip>
+            ) : (
+              <button
+                className="bg-[#a3e635] text-[#18181b] py-2 px-4 rounded-lg hover:bg-[#bef264] transition duration-200"
+                onClick={() => handleRunChain()}
+              >
+                {runChain ? 'Running...' : 'Run Chain'}
+              </button>
+            )}
           </div>
         </main>
       </div>

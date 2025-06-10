@@ -168,6 +168,19 @@ async function handleGet(
       .from(chainsTable)
       .where(eq(chainsTable.userId, userId));
 
+    // Get chain step counts for all chains
+    const chainStepCounts = chains.length > 0
+      ? await db.select()
+          .from(chainStepsTable)
+          .where(inArray(chainStepsTable.chainId, chains.map(c => c.id)))
+      : [];
+
+    // Add step count to each chain
+    const chainsWithStepCounts = chains.map(chain => ({
+      ...chain,
+      stepCount: chainStepCounts.filter(step => step.chainId === chain.id).length
+    }));
+
     // Get usage data
     const user = await db.select()
       .from(usersTable)
@@ -192,10 +205,6 @@ async function handleGet(
         .json({ success: true, message: 'Successfully grabbed chains!', chains: [], chainSteps: [], usage });
     }
 
-    const chainSteps = await db.select()
-      .from(chainStepsTable)
-      .where(eq(chainStepsTable.chainId, chains[0].id));
-
     const queuedChains = await db.select()
       .from(queuedChainsTable)
       .where(inArray(queuedChainsTable.chainId, chains.map(c => c.id)));
@@ -214,7 +223,7 @@ async function handleGet(
     }));
 
     return res.status(200)
-      .json({ success: true, message: 'Successfully grabbed chains!', chains, chainSteps, queuedChains: queuedChainsWithSteps, usage });
+      .json({ success: true, message: 'Successfully grabbed chains!', chains: chainsWithStepCounts, queuedChains: queuedChainsWithSteps, usage });
   }
 }
 

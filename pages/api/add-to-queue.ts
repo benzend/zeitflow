@@ -115,6 +115,12 @@ export default async function handler(
       .from(chainStepsTable)
       .where(eq(chainStepsTable.chainId, chain[0].id));
 
+    if (chainSteps.length === 0) {
+      return res
+        .status(400)
+        .json({ success: false, message: 'Cannot queue chain with no steps' });
+    }
+
     const queuedChain = await db
       .insert(queuedChainsTable)
       .values({

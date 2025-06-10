@@ -5,6 +5,8 @@ import { signOut, useSession } from 'next-auth/react';
 import { PlayIcon } from '@/components/icons/Play';
 import { SelectChain, SelectQueuedChainWithStatus } from '@/schema';
 import Link from 'next/link';
+
+type ChainWithStepCount = SelectChain & { stepCount: number };
 import SubscriptionModal from '@/components/SubscriptionCard';
 
 // Add loading skeleton components
@@ -51,7 +53,7 @@ const ProgressBar = ({ completed, total }: { completed: number; total: number })
 
 export default function Dashboard() {
   const { data: session, status } = useSession();
-  const [chains, setChains] = useState<SelectChain[]>([]);
+  const [chains, setChains] = useState<ChainWithStepCount[]>([]);
   const [queuedChains, setQueuedChains] = useState<
     SelectQueuedChainWithStatus[]
   >([]);
@@ -321,14 +323,16 @@ export default function Dashboard() {
                         </h3>
                       </Link>
                       <div className="flex gap-4 justify-between">
-                        <button
-                          title="Add to Queue"
-                          arial-label="Add to Queue"
-                          className="cursor-pointer"
-                          onClick={() => handleAddChainToQueue(chain.id)}
-                        >
-                          <PlayIcon />
-                        </button>
+                        {chain.stepCount > 0 && (
+                          <button
+                            title="Add to Queue"
+                            arial-label="Add to Queue"
+                            className="cursor-pointer"
+                            onClick={() => handleAddChainToQueue(chain.id)}
+                          >
+                            <PlayIcon />
+                          </button>
+                        )}
                         <button
                           onClick={() => handleDeleteChain(chain.id)}
                           className="bg-red-500 text-white py-1 px-3 rounded hover:bg-red-600 transition duration-200 cursor-pointer"

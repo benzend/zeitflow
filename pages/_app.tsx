@@ -2,6 +2,7 @@ import '../app/globals.css';
 import type { AppProps } from 'next/app';
 import { SessionProvider } from 'next-auth/react';
 import { VemetricScript } from '@vemetric/react';
+import 'react-tippy/dist/tippy.css';
 
 export default function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
   return (
