@@ -372,12 +372,12 @@ export default function Dashboard() {
                         name={chain.name || ''}
                         actions={
                           <>
-                            <button
-                              onClick={() => handleViewChain(chain.id)}
+                            <Link
+                              href={`/results/${queuedChain.id}`}
                               className="bg-primary text-[#18181b] py-1 px-2 rounded hover:bg-primary-light cursor-pointer transition duration-200 text-sm"
                             >
                               View Results
-                            </button>
+                            </Link>
                           </>
                         }
                         stepsCount={queuedChain.steps?.length || 0}
