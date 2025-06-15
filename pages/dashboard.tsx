@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { signOut, useSession } from 'next-auth/react';
-import { PlayIcon } from '@/components/icons/Play';
 import { SelectChain, SelectQueuedChainWithStatus } from '@/schema';
 import Link from 'next/link';
 
@@ -152,80 +151,8 @@ export default function Dashboard() {
     }
   };
 
-  const handleDeleteChain = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this chain?')) {
-      return;
-    }
-
-    try {
-      const response = await fetch(`/api/queue?id=${id}`, {
-        method: 'DELETE',
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        fetchChains({ silent: true });
-      } else {
-        setError(data.message || 'Failed to delete chain');
-      }
-    } catch (err) {
-      setError('An error occurred while deleting the chain');
-      console.error(err);
-    }
-  };
-
-  const handleDeleteQueuedChain = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this queued chain?')) {
-      return;
-    }
-
-    try {
-      const response = await fetch(`/api/queued-chain?id=${id}`, {
-        method: 'DELETE',
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        fetchChains({ silent: true });
-      } else {
-        setError(data.message || 'Failed to delete queued chain');
-      }
-    } catch (err) {
-      setError('An error occurred while deleting the queued chain');
-      console.error(err);
-    }
-  };
-
-  const handleRunChain = async (id: number) => {
-    if (!confirm('Are you sure you want to run this chain?')) {
-      return;
-    }
-    try {
-      const response = await fetch(`/api/process-queued-chain?id=${id}`, {
-        method: 'POST',
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        fetchChains({ silent: true });
-      } else {
-        setError(data.message || 'Failed to run chain');
-      }
-    } catch (err) {
-      setError('An error occurred while running the chain');
-      console.error(err);
-    }
-  };
-
   const handleViewChain = (id: number) => {
     router.push(`/chain/${id}`);
-  };
-
-  const handleViewResults = (queuedChainId: number) => {
-    router.push(`/results/${queuedChainId}`);
   };
 
   const handleAddChainToQueue = async (chainId: number) => {
