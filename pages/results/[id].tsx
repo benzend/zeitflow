@@ -61,7 +61,7 @@ const CopyButton = ({ text }: { text: string }) => {
   return (
     <button
       onClick={handleCopy}
-      className="flex items-center gap-1 px-2 py-1 text-xs rounded bg-primary/10 hover:bg-primary/20 text-primary transition-colors duration-200"
+      className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-lg bg-primary/10 hover:bg-primary/20 text-primary transition-colors duration-200"
       title="Copy to clipboard"
     >
       {copied ? (
@@ -81,6 +81,95 @@ const CopyButton = ({ text }: { text: string }) => {
         </>
       )}
     </button>
+  );
+};
+
+const getStatusBadge = (status: string) => {
+  const baseClasses = "px-2.5 py-1 rounded-lg text-xs font-medium";
+  switch (status) {
+    case 'completed':
+      return `${baseClasses} bg-green-400/10 text-green-400`;
+    case 'processing':
+      return `${baseClasses} bg-yellow-400/10 text-yellow-400`;
+    case 'error':
+      return `${baseClasses} bg-red-400/10 text-red-400`;
+    case 'pending':
+      return `${baseClasses} bg-gray-400/10 text-gray-400`;
+    default:
+      return `${baseClasses} bg-gray-400/20 text-gray-400`;
+  }
+};
+
+const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleString();
+};
+
+const StepCard = ({ step }: { step: QueuedChainStepWithDetails }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  return (
+    <div className="border border-primary/20 rounded-lg bg-foreground-light hover:shadow-md transition duration-200">
+      <div className="p-6">
+        <div className="flex justify-between items-start mb-4">
+          <div className="flex items-center gap-4">
+            <h3 className="text-xl font-semibold text-primary">
+              Step {step.position + 1}
+            </h3>
+            <span className={getStatusBadge(step.status)}>
+              {step.status}
+            </span>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="text-xs text-gray-400">
+              Cycle: {step.cycleCount} | Updated: {formatDate(step.updatedAt)}
+            </div>
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="p-1 hover:bg-primary/10 rounded transition-colors duration-200"
+              title={isExpanded ? "Collapse" : "Expand"}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className={`h-5 w-5 text-primary transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div className="bg-foreground p-4 rounded border text-primary/90 mb-4">
+          {step.prompt}
+        </div>
+
+        {isExpanded && (
+          <div className="space-y-4 border-t border-primary/20 pt-4">
+            {step.response && (
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <h4 className="text-sm font-medium text-primary">Response:</h4>
+                  <CopyButton text={step.response} />
+                </div>
+                <div className="bg-foreground p-4 rounded border text-primary/90 whitespace-pre-wrap">
+                  {step.response}
+                </div>
+              </div>
+            )}
+
+            {step.error && (
+              <div>
+                <h4 className="text-sm font-medium text-red-400 mb-2">Error:</h4>
+                <div className="bg-red-500/20 border border-red-500 text-red-400 p-4 rounded">
+                  {step.error}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 
@@ -167,26 +256,6 @@ export default function Results() {
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session, id]);
-
-  const getStatusBadge = (status: string) => {
-    const baseClasses = "px-3 py-1 rounded-full text-sm font-medium";
-    switch (status) {
-      case 'completed':
-        return `${baseClasses} bg-green-400/20 text-green-400`;
-      case 'processing':
-        return `${baseClasses} bg-yellow-400/20 text-yellow-400`;
-      case 'error':
-        return `${baseClasses} bg-red-400/20 text-red-400`;
-      case 'pending':
-        return `${baseClasses} bg-gray-400/20 text-gray-400`;
-      default:
-        return `${baseClasses} bg-gray-400/20 text-gray-400`;
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString();
-  };
 
   if (loading || status === 'loading') {
     return (
@@ -292,59 +361,14 @@ export default function Results() {
           </div>
         )}
 
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-4">
           {queuedChainSteps.length === 0 ? (
             <div className="text-center py-12 text-gray-400">
               No steps found for this chain execution.
             </div>
           ) : (
             queuedChainSteps.map((step) => (
-              <div
-                key={step.id}
-                className="border border-primary/20 rounded-lg p-6 bg-foreground-light hover:shadow-md transition duration-200"
-              >
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-xl font-semibold text-primary">
-                    Step {step.position + 1}
-                  </h3>
-                  <span className={getStatusBadge(step.status)}>
-                    {step.status}
-                  </span>
-                </div>
-
-                <div className="mb-4">
-                  <h4 className="text-sm font-medium text-primary mb-2">Prompt:</h4>
-                  <div className="bg-foreground p-4 rounded border text-primary/90">
-                    {step.prompt}
-                  </div>
-                </div>
-
-                {step.response && (
-                  <div className="mb-4">
-                    <div className="flex justify-between items-center mb-2">
-                      <h4 className="text-sm font-medium text-primary">Response:</h4>
-                      <CopyButton text={step.response} />
-                    </div>
-                    <div className="bg-foreground p-4 rounded border text-primary/90 whitespace-pre-wrap">
-                      {step.response}
-                    </div>
-                  </div>
-                )}
-
-                {step.error && (
-                  <div className="mb-4">
-                    <h4 className="text-sm font-medium text-red-400 mb-2">Error:</h4>
-                    <div className="bg-red-500/20 border border-red-500 text-red-400 p-4 rounded">
-                      {step.error}
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex justify-between text-xs text-gray-400 mt-4">
-                  <span>Cycle: {step.cycleCount}</span>
-                  <span>Updated: {formatDate(step.updatedAt)}</span>
-                </div>
-              </div>
+              <StepCard key={step.id} step={step} />
             ))
           )}
         </div>
