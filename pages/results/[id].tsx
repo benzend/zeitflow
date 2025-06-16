@@ -54,6 +54,7 @@ export default function Results() {
   const [queuedChainSteps, setQueuedChainSteps] = useState<QueuedChainStepWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
 
   // Redirect to sign-in if not authenticated
   useEffect(() => {
@@ -65,17 +66,50 @@ export default function Results() {
     }
   }, [session, status, router]);
 
+  // Set up polling when chain is processing
+  useEffect(() => {
+    if (queuedChain?.status === 'processing') {
+      // Clear any existing interval
+      if (pollingInterval) {
+        clearInterval(pollingInterval);
+      }
+      
+      // Set up new polling interval (every 3 seconds)
+      const interval = setInterval(() => fetchResults({ silent: true }), 3000);
+      setPollingInterval(interval);
+
+      // Cleanup on unmount or when status changes
+      return () => {
+        if (interval) {
+          clearInterval(interval);
+        }
+      };
+    } else if (pollingInterval) {
+      // Clear interval if chain is not processing
+      clearInterval(pollingInterval);
+      setPollingInterval(null);
+    }
+  }, [queuedChain?.status]);
+
   // Fetch results on component mount
   useEffect(() => {
     if (session && id) {
       fetchResults();
     }
+    // Cleanup polling on unmount
+    return () => {
+      if (pollingInterval) {
+        clearInterval(pollingInterval);
+      }
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session, id]);
 
-  const fetchResults = async () => {
+  const fetchResults = async ({ silent = false }: { silent?: boolean } = {}) => {
     try {
-      setLoading(true);
+      if (!silent) {
+        setLoading(true);
+      }
       const response = await fetch(`/api/results?id=${id}`);
       const data = await response.json();
 
@@ -89,7 +123,9 @@ export default function Results() {
       setError('An error occurred while fetching results');
       console.error(err);
     } finally {
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
     }
   };
 

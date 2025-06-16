@@ -351,12 +351,12 @@ export default function Dashboard() {
                         name={chain.name || ''}
                         actions={
                           <>
-                            <button
-                              onClick={() => handleViewChain(chain.id)}
+                            <Link
+                              href={`/results/${queuedChain.id}`}
                               className="border-primary border-1 text-primary py-1 px-2 rounded hover:border-primary-light hover:text-primary-light cursor-pointer transition duration-200 text-sm"
                             >
                               View
-                            </button>
+                            </Link>
                             {queuedChain.status === 'processing' && (
                               <button
                                 className="bg-red-500 text-white py-1 px-2 rounded hover:bg-red-600 cursor-pointer transition duration-200 text-sm"
