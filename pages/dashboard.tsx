@@ -267,11 +267,20 @@ export default function Dashboard() {
         {/* Kanban Board Layout */}
         <div className="flex gap-6 w-full">
           {/* Prompt Chains Column */}
-          <section className="flex-1 flex flex-col bg-foreground rounded-lg p-4 min-h-[70vh]">
-            <h2 className="text-lg font-bold text-primary mb-4 text-center">
-              Prompt Chains
-            </h2>
-            <div className="flex flex-col gap-4 flex-1 overflow-y-auto">
+          <section className="flex-1 flex flex-col bg-foreground rounded-lg p-4 h-[70vh]">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-bold text-primary">
+                Prompt Chains
+              </h2>
+              <button
+                className="text-primary p-2 rounded-lg cursor-pointer"
+                onClick={() => setShowAddChainModal(true)}
+              >
+                +
+              </button>
+            </div>
+            <div className="overflow-y-auto">
+              <div className="flex flex-col gap-4 flex-1">
               {loading ? (
                 <>
                   <ChainSkeleton />
@@ -305,23 +314,17 @@ export default function Dashboard() {
                   />
                 ))
               )}
-            </div>
-            <div className="flex justify-center items-center mt-4">
-              <button
-                className="bg-primary text-[#18181b] py-2 px-4 rounded-lg hover:bg-primary-light transition duration-200 cursor-pointer"
-                onClick={() => setShowAddChainModal(true)}
-              >
-                Add New Chain
-              </button>
+              </div>
             </div>
           </section>
 
           {/* In Progress Column */}
-          <section className="flex-1 flex flex-col bg-foreground rounded-lg p-4 min-h-[70vh]">
-            <h2 className="text-lg font-bold text-primary mb-4 text-center">
+          <section className="flex-1 flex flex-col bg-foreground rounded-lg p-4 h-[70vh]">
+            <h2 className="text-lg font-bold text-primary py-2 mb-4">
               In Progress
             </h2>
-            <div className="flex flex-col gap-4 flex-1 overflow-y-auto">
+            <div className="overflow-y-auto">
+              <div className="flex flex-col gap-4 flex-1">
               {loading ? (
                 <>
                   <QueuedChainSkeleton />
@@ -384,15 +387,17 @@ export default function Dashboard() {
                     );
                   })
               )}
+              </div>
             </div>
           </section>
 
           {/* Completed Column */}
-          <section className="flex-1 flex flex-col bg-foreground rounded-lg p-4 min-h-[70vh]">
-            <h2 className="text-lg font-bold text-primary mb-4 text-center">
+          <section className="flex-1 flex flex-col bg-foreground rounded-lg p-4 h-[70vh]">
+            <h2 className="text-lg font-bold text-primary py-2 mb-4">
               Completed
             </h2>
-            <div className="flex flex-col gap-4 flex-1 overflow-y-auto">
+            <div className="overflow-y-auto">
+              <div className="flex flex-col gap-4 flex-1">
               {loading ? (
                 <>
                   <QueuedChainSkeleton />
@@ -439,6 +444,7 @@ export default function Dashboard() {
                     );
                   })
               )}
+              </div>
             </div>
           </section>
         </div>
