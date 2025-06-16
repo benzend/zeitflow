@@ -1,0 +1,214 @@
+import Head from 'next/head';
+import Link from 'next/link';
+
+type ReleaseNote = {
+  version: string;
+  date: string;
+  features: string[];
+  improvements: string[];
+  fixes: string[];
+};
+
+const releaseNotes: ReleaseNote[] = [
+  {
+    version: '1.1.0',
+    date: '2025-06-15',
+    features: [
+      'Added copy-to-clipboard functionality for chain results',
+      'Implemented chain stopping and resuming capabilities',
+      'Added silent updates for results page to reduce UI flicker',
+      'Introduced scrollable boxes in dashboard for better content management',
+      'Optimized response layout to reduce vertical space'
+    ],
+    improvements: [
+      'Enhanced dashboard layout with 3-column design',
+      'Improved chain step reordering with drag-and-drop functionality',
+      'Added progress bar to dashboard for better visibility',
+      'Updated chain processing to start instantly when queue space is available',
+      'Improved chain step ordering and indexing'
+    ],
+    fixes: [
+      'Fixed dashboard height issues',
+      'Improved chain step completion tracking',
+      'Enhanced error handling for chain processing'
+    ]
+  },
+  {
+    version: '1.0.0',
+    date: '2025-06-08',
+    features: [
+      'Added email-based authentication system',
+      'Implemented Stripe subscription management',
+      'Added pricing pages and subscription modal',
+      'Introduced rate limit usage tracking',
+      'Added Google Analytics integration',
+      'Implemented Vemetric analytics',
+      'Added environment example configuration'
+    ],
+    improvements: [
+      'Enhanced UI with modern, clean design',
+      'Improved navigation with breadcrumb-style links',
+      'Added loading skeletons for better user experience',
+      'Implemented responsive layout for all screen sizes',
+      'Updated branding and visual identity',
+      'Added black background to favicon'
+    ],
+    fixes: [
+      'Fixed authentication flow and session handling',
+      'Improved error handling and display',
+      'Enhanced rate limiting for verification emails',
+      'Fixed URL validation issues'
+    ]
+  },
+  {
+    version: '0.9.0',
+    date: '2025-06-04',
+    features: [
+      'Added user registration and authentication',
+      'Implemented sign-out functionality',
+      'Added loading animations and skeletons',
+      'Introduced drag-and-drop chain step reordering',
+      'Added instant chain processing when queue space is available',
+      'Implemented completed chains section in dashboard'
+    ],
+    improvements: [
+      'Updated color scheme and styling',
+      'Enhanced dashboard layout and spacing',
+      'Improved button and input styling',
+      'Added better overlay effects',
+      'Updated primary button styles'
+    ],
+    fixes: [
+      'Fixed build issues',
+      'Resolved dashboard height problems',
+      'Fixed chain step ordering'
+    ]
+  },
+  {
+    version: '0.8.0',
+    date: '2025-05-28',
+    features: [
+      'Added foundational chain processing functionality',
+      'Implemented chain step API',
+      'Added queue management system',
+      'Introduced chain state model',
+      'Added dashboard and chain pages',
+      'Implemented rate limiting'
+    ],
+    improvements: [
+      'Added database integration with Postgres and Drizzle ORM',
+      'Implemented migration system',
+      'Added ESLint for code quality',
+      'Enhanced error handling for chain processing'
+    ],
+    fixes: [
+      'Fixed chain step completion tracking',
+      'Improved queue update handling',
+      'Enhanced chain state management'
+    ]
+  },
+  {
+    version: '0.7.0',
+    date: '2025-05-17',
+    features: [
+      'Initial application setup',
+      'Added landing page',
+      'Implemented logo and branding',
+      'Added coming soon page',
+      'Set up database infrastructure'
+    ],
+    improvements: [
+      'Configured Next.js application',
+      'Added initial styling and layout',
+      'Set up development environment'
+    ],
+    fixes: []
+  }
+];
+
+const ReleaseNoteCard = ({ note }: { note: ReleaseNote }) => (
+  <div className="border border-primary/20 rounded-lg bg-foreground-light p-6 mb-6">
+    <div className="flex items-center gap-4 mb-4">
+      <h2 className="text-2xl font-bold text-primary">Version {note.version}</h2>
+      <span className="text-sm text-gray-400">{note.date}</span>
+    </div>
+
+    {note.features.length > 0 && (
+      <div className="mb-4">
+        <h3 className="text-lg font-semibold text-primary mb-2">✨ New Features</h3>
+        <ul className="list-disc list-inside space-y-1 text-primary/90">
+          {note.features.map((feature, index) => (
+            <li key={index}>{feature}</li>
+          ))}
+        </ul>
+      </div>
+    )}
+
+    {note.improvements.length > 0 && (
+      <div className="mb-4">
+        <h3 className="text-lg font-semibold text-primary mb-2">🚀 Improvements</h3>
+        <ul className="list-disc list-inside space-y-1 text-primary/90">
+          {note.improvements.map((improvement, index) => (
+            <li key={index}>{improvement}</li>
+          ))}
+        </ul>
+      </div>
+    )}
+
+    {note.fixes.length > 0 && (
+      <div>
+        <h3 className="text-lg font-semibold text-primary mb-2">🐛 Fixes</h3>
+        <ul className="list-disc list-inside space-y-1 text-primary/90">
+          {note.fixes.map((fix, index) => (
+            <li key={index}>{fix}</li>
+          ))}
+        </ul>
+      </div>
+    )}
+  </div>
+);
+
+export default function ReleaseNotes() {
+  return (
+    <div>
+      <Head>
+        <title>Release Notes - jjoist</title>
+        <meta name="description" content="Latest updates and improvements to jjoist" />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+
+      <main className="container mx-auto px-4 py-10 max-w-4xl min-h-[90vh]">
+        <nav className="mb-10 flex justify-between items-center">
+          <ul className="flex gap-4">
+            <li>
+              <Link href="/dashboard">
+                <span className="text-primary underline hover:text-primary-light transition duration-200">
+                  Dashboard
+                </span>
+              </Link>
+            </li>
+            <li>
+              <span className="text-gray-400">/</span>
+            </li>
+            <li>
+              <span className="text-primary">Release Notes</span>
+            </li>
+          </ul>
+        </nav>
+
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-primary mb-4">Release Notes</h1>
+          <p className="text-primary/80">
+            Track the latest updates, features, and improvements to jjoist.
+          </p>
+        </div>
+
+        <div className="space-y-6">
+          {releaseNotes.map((note) => (
+            <ReleaseNoteCard key={note.version} note={note} />
+          ))}
+        </div>
+      </main>
+    </div>
+  );
+} 
