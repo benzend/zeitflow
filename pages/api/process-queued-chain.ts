@@ -1,9 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { db } from '@/lib/db';
-import {
-  queuedChainStepsTable,
-  queuedChainsTable,
-} from '@/schema';
+import { queuedChainStepsTable, queuedChainsTable } from '@/schema';
 import { isRateLimited } from '@/lib/rate-limit';
 import { and, asc, eq } from 'drizzle-orm';
 import { config } from 'dotenv';
@@ -39,12 +36,10 @@ export default async function handler(
   });
 
   if (isLimited) {
-    return res
-      .status(429)
-      .json({
-        success: false,
-        message: 'Too many requests. Please try again later.',
-      });
+    return res.status(429).json({
+      success: false,
+      message: 'Too many requests. Please try again later.',
+    });
   }
 
   try {
@@ -79,6 +74,12 @@ export default async function handler(
         .json({ success: false, message: 'Chain already completed' });
     }
 
+    if (queuedChain[0].status === 'stopped') {
+      return res
+        .status(400)
+        .json({ success: false, message: 'Chain has been manually stopped' });
+    }
+
     const processingChainSteps = await db
       .select()
       .from(queuedChainStepsTable)
@@ -87,16 +88,15 @@ export default async function handler(
           eq(queuedChainStepsTable.queuedChainId, queuedChain[0].id),
           eq(queuedChainStepsTable.status, 'processing')
         )
-      ).orderBy(queuedChainStepsTable.position);
+      )
+      .orderBy(queuedChainStepsTable.position);
 
     // If there are already max of 5 running chain steps, return a 400 error
     if (processingChainSteps.length >= 5) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: 'Chain already running at max capacity',
-        });
+      return res.status(400).json({
+        success: false,
+        message: 'Chain already running at max capacity',
+      });
     }
 
     // check for the non running queued chain steps to run next
@@ -112,7 +112,6 @@ export default async function handler(
       .orderBy(queuedChainStepsTable.position)
       .limit(1);
 
-
     // If there are no queued chain steps, mark the chain as completed and return a 200 status
     if (queuedChainStepsNotRunning.length === 0) {
       queuedChain[0].status = 'completed';
@@ -120,7 +119,6 @@ export default async function handler(
         .update(queuedChainsTable)
         .set({ status: 'completed' })
         .where(eq(queuedChainsTable.id, queuedChain[0].id));
-
 
       // Since this queued chain is completed, we can check if there are any queued chains that are next in line
       const queuedChains = await db
@@ -174,7 +172,15 @@ export default async function handler(
         const prev = await db
           .select()
           .from(queuedChainStepsTable)
-          .where(and(eq(queuedChainStepsTable.queuedChainId, queuedChainStep.queuedChainId), eq(queuedChainStepsTable.status, 'completed')))
+          .where(
+            and(
+              eq(
+                queuedChainStepsTable.queuedChainId,
+                queuedChainStep.queuedChainId
+              ),
+              eq(queuedChainStepsTable.status, 'completed')
+            )
+          )
           .limit(1);
 
         if (prev.length > 0) {
@@ -193,9 +199,7 @@ export default async function handler(
       }
 
       const response = await chat(
-        mergePrevResponseWithPrompt(
-          previousResponse, queuedChainStep.prompt
-        )
+        mergePrevResponseWithPrompt(previousResponse, queuedChainStep.prompt)
       );
 
       // Let the system know that the chain step is completed
@@ -279,12 +283,13 @@ async function chat(prompt: string) {
   return response.json();
 }
 
-function mergePrevResponseWithPrompt(previousResponse: string | null, prompt: string) {
+function mergePrevResponseWithPrompt(
+  previousResponse: string | null,
+  prompt: string
+) {
   if (!previousResponse) {
     return prompt;
   }
 
-  return prompt +
-    '\n\n' +
-    previousResponse;
+  return prompt + '\n\n' + previousResponse;
 }

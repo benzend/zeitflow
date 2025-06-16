@@ -182,6 +182,44 @@ export default function Dashboard() {
     if (!confirm('Are you sure you want to stop this chain?')) {
       return;
     }
+
+    try {
+      const response = await fetch(`/api/stop-chain?id=${id}`, {
+        method: 'POST',
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        fetchChains({ silent: true });
+      } else {
+        setError(data.message || 'Failed to stop chain');
+      }
+    } catch (err) {
+      setError('An error occurred while stopping the chain');
+      console.error(err);
+    }
+  };
+
+  const handleResumeChain = async (id: number) => {
+    if (!confirm('Are you sure you want to resume this chain?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/resume-chain?id=${id}`, {
+        method: 'POST',
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        fetchChains({ silent: true });
+      } else {
+        setError(data.message || 'Failed to resume chain');
+      }
+    } catch (err) {
+      setError('An error occurred while resuming the chain');
+      console.error(err);
+    }
   };
 
   return (
@@ -298,7 +336,9 @@ export default function Dashboard() {
                 queuedChains
                   .filter(
                     (qc) =>
-                      qc.status === 'pending' || qc.status === 'processing'
+                      qc.status === 'pending' ||
+                      qc.status === 'processing' ||
+                      qc.status === 'stopped'
                   )
                   .map((queuedChain) => {
                     const chain = chains.find(
@@ -317,12 +357,24 @@ export default function Dashboard() {
                             >
                               View
                             </button>
-                            <button
-                              className="bg-red-500 text-white py-1 px-2 rounded hover:bg-red-600 cursor-pointer transition duration-200 text-sm"
-                              onClick={() => handleStopChain(queuedChain.id)}
-                            >
-                              Stop
-                            </button>
+                            {queuedChain.status === 'processing' && (
+                              <button
+                                className="bg-red-500 text-white py-1 px-2 rounded hover:bg-red-600 cursor-pointer transition duration-200 text-sm"
+                                onClick={() => handleStopChain(queuedChain.id)}
+                              >
+                                Stop
+                              </button>
+                            )}
+                            {queuedChain.status === 'stopped' && (
+                              <button
+                                className="bg-red-500 text-white py-1 px-2 rounded hover:bg-red-600 cursor-pointer transition duration-200 text-sm"
+                                onClick={() =>
+                                  handleResumeChain(queuedChain.id)
+                                }
+                              >
+                                Resume
+                              </button>
+                            )}
                           </>
                         }
                         stepsCount={queuedChain.steps?.length || 0}
