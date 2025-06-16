@@ -151,10 +151,6 @@ export default function Dashboard() {
     }
   };
 
-  const handleViewChain = (id: number) => {
-    router.push(`/chain/${id}`);
-  };
-
   const handleAddChainToQueue = async (chainId: number) => {
     if (!confirm('Are you sure you want to add this chain to the queue?')) {
       return;

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
@@ -66,6 +66,30 @@ export default function Results() {
     }
   }, [session, status, router]);
 
+  const fetchResults = useCallback(async ({ silent = false }: { silent?: boolean } = {}) => {
+    try {
+      if (!silent) {
+        setLoading(true);
+      }
+      const response = await fetch(`/api/results?id=${id}`);
+      const data = await response.json();
+
+      if (data.success) {
+        setQueuedChain(data.queuedChain || null);
+        setQueuedChainSteps(data.queuedChainSteps || []);
+      } else {
+        setError(data.message || 'Failed to fetch results');
+      }
+    } catch (err) {
+      setError('An error occurred while fetching results');
+      console.error(err);
+    } finally {
+      if (!silent) {
+        setLoading(false);
+      }
+    }
+  }, [id]);
+
   // Set up polling when chain is processing
   useEffect(() => {
     if (queuedChain?.status === 'processing') {
@@ -89,7 +113,7 @@ export default function Results() {
       clearInterval(pollingInterval);
       setPollingInterval(null);
     }
-  }, [queuedChain?.status]);
+  }, [queuedChain?.status, fetchResults, pollingInterval]);
 
   // Fetch results on component mount
   useEffect(() => {
@@ -104,31 +128,6 @@ export default function Results() {
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session, id]);
-
-  const fetchResults = async ({ silent = false }: { silent?: boolean } = {}) => {
-    try {
-      if (!silent) {
-        setLoading(true);
-      }
-      const response = await fetch(`/api/results?id=${id}`);
-      const data = await response.json();
-
-      if (data.success) {
-        setQueuedChain(data.queuedChain || null);
-        setQueuedChainSteps(data.queuedChainSteps || []);
-      } else {
-        setError(data.message || 'Failed to fetch results');
-      }
-    } catch (err) {
-      setError('An error occurred while fetching results');
-      console.error(err);
-    } finally {
-      if (!silent) {
-        setLoading(false);
-      }
-    }
-  };
-
 
   const getStatusBadge = (status: string) => {
     const baseClasses = "px-3 py-1 rounded-full text-sm font-medium";
