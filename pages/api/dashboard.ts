@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from './auth/[...nextauth]';
 import { db } from '@/lib/db';
 import { chainsTable, chainStepsTable, queuedChainsTable, queuedChainStepsTable, SelectChain, SelectChainStep, SelectQueuedChain, SelectQueuedChainStep, usersTable } from '@/schema';
-import { isRateLimited, isRateLimitedWithSubscription } from '@/lib/rate-limit';
+import { isRateLimited } from '@/lib/rate-limit';
 import { eq, inArray } from 'drizzle-orm';
 
 type ResponseData = {
@@ -13,11 +13,6 @@ type ResponseData = {
   chains?: SelectChain[];
   chainSteps?: SelectChainStep[];
   queuedChains?: (SelectQueuedChain & { steps?: SelectQueuedChainStep[] })[];
-  usage?: {
-    callsUsed: number;
-    callsLimit: number;
-    tier: string;
-  };
 };
 
 export default async function handler(
@@ -181,28 +176,9 @@ async function handleGet(
       stepCount: chainStepCounts.filter(step => step.chainId === chain.id).length
     }));
 
-    // Get usage data
-    const user = await db.select()
-      .from(usersTable)
-      .where(eq(usersTable.id, userId))
-      .limit(1);
-
-    const usageData = await isRateLimitedWithSubscription(
-      user[0].email,
-      `add_to_queue:${user[0].email}`,
-      60 * 60 * 1000, // 1 hour window
-      true
-    );
-
-    const usage = {
-      callsUsed: usageData.limit - usageData.remaining,
-      callsLimit: usageData.limit,
-      tier: usageData.tier
-    };
-
     if (chains.length === 0) {
       return res.status(200)
-        .json({ success: true, message: 'Successfully grabbed chains!', chains: [], chainSteps: [], usage });
+        .json({ success: true, message: 'Successfully grabbed chains!', chains: [], chainSteps: [] });
     }
 
     const queuedChains = await db.select()
@@ -223,7 +199,7 @@ async function handleGet(
     }));
 
     return res.status(200)
-      .json({ success: true, message: 'Successfully grabbed chains!', chains: chainsWithStepCounts, queuedChains: queuedChainsWithSteps, usage });
+      .json({ success: true, message: 'Successfully grabbed chains!', chains: chainsWithStepCounts, queuedChains: queuedChainsWithSteps });
   }
 }
 

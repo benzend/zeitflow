@@ -62,11 +62,6 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [newChainName, setNewChainName] = useState('');
-  const [usage, setUsage] = useState<{
-    callsUsed: number;
-    callsLimit: number;
-    tier: string;
-  } | null>(null);
   const router = useRouter();
   const [showAddChainModal, setShowAddChainModal] = useState(false);
 
@@ -107,7 +102,6 @@ export default function Dashboard() {
       if (data.success) {
         setChains(data.chains || []);
         setQueuedChains(data.queuedChains || []);
-        setUsage(data.usage || null);
       } else {
         setError(data.message || 'Failed to fetch chains');
       }
