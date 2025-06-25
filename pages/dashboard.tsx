@@ -239,15 +239,6 @@ export default function Dashboard() {
           </ul>
 
           <div className="flex gap-4 items-center">
-            {usage && (
-              <div className="text-sm text-primary">
-                <span className="font-medium">
-                  {usage.callsUsed}/{usage.callsLimit}
-                </span>
-                <span className="text-gray-400 ml-1">calls used</span>
-                <div className="text-xs text-gray-500">{usage.tier} plan</div>
-              </div>
-            )}
             <SubscriptionModal onSubscriptionChange={fetchChains} />
             <button
               onClick={() => signOut({ callbackUrl: '/auth/signin' })}
