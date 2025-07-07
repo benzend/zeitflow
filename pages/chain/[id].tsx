@@ -327,6 +327,7 @@ export default function ChainDetail() {
 
       if (data.success) {
         setRunChain(true);
+        router.push(`/results/${data.queuedChainId}`);
       } else {
         setError(data.message || 'Failed to run chain');
       }

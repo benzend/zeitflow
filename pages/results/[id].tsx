@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
-import Head from 'next/head';
-import { useRouter } from 'next/router';
-import { useSession } from 'next-auth/react';
-import Link from 'next/link';
+import { useState, useEffect, useCallback, useRef } from "react";
+import Head from "next/head";
+import { useRouter } from "next/router";
+import { useSession } from "next-auth/react";
+import Link from "next/link";
 
 type QueuedChainStepWithDetails = {
   id: number;
@@ -54,7 +54,7 @@ const CopyButton = ({ text }: { text: string }) => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error('Failed to copy text:', err);
+      console.error("Failed to copy text:", err);
     }
   };
 
@@ -66,14 +66,28 @@ const CopyButton = ({ text }: { text: string }) => {
     >
       {copied ? (
         <>
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-4 w-4"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fillRule="evenodd"
+              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+              clipRule="evenodd"
+            />
           </svg>
           Copied!
         </>
       ) : (
         <>
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-4 w-4"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
             <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
             <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
           </svg>
@@ -87,13 +101,13 @@ const CopyButton = ({ text }: { text: string }) => {
 const getStatusBadge = (status: string) => {
   const baseClasses = "px-2.5 py-1 rounded-lg text-xs font-medium";
   switch (status) {
-    case 'completed':
+    case "completed":
       return `${baseClasses} bg-green-400/10 text-green-400`;
-    case 'processing':
+    case "processing":
       return `${baseClasses} bg-yellow-400/10 text-yellow-400`;
-    case 'error':
+    case "error":
       return `${baseClasses} bg-red-400/10 text-red-400`;
-    case 'pending':
+    case "pending":
       return `${baseClasses} bg-gray-400/10 text-gray-400`;
     default:
       return `${baseClasses} bg-gray-400/20 text-gray-400`;
@@ -115,9 +129,7 @@ const StepCard = ({ step }: { step: QueuedChainStepWithDetails }) => {
             <h3 className="text-xl font-semibold text-primary">
               Step {step.position + 1}
             </h3>
-            <span className={getStatusBadge(step.status)}>
-              {step.status}
-            </span>
+            <span className={getStatusBadge(step.status)}>{step.status}</span>
           </div>
           <div className="flex items-center gap-4">
             <div className="text-xs text-gray-400">
@@ -130,11 +142,15 @@ const StepCard = ({ step }: { step: QueuedChainStepWithDetails }) => {
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className={`h-5 w-5 text-primary transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+                className={`h-5 w-5 text-primary transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}
                 viewBox="0 0 20 20"
                 fill="currentColor"
               >
-                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                <path
+                  fillRule="evenodd"
+                  d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                  clipRule="evenodd"
+                />
               </svg>
             </button>
           </div>
@@ -149,7 +165,9 @@ const StepCard = ({ step }: { step: QueuedChainStepWithDetails }) => {
             {step.response && (
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <h4 className="text-sm font-medium text-primary">Response:</h4>
+                  <h4 className="text-sm font-medium text-primary">
+                    Response:
+                  </h4>
                   <CopyButton text={step.response} />
                 </div>
                 <div className="bg-foreground p-4 rounded border text-primary/90 whitespace-pre-wrap">
@@ -160,7 +178,9 @@ const StepCard = ({ step }: { step: QueuedChainStepWithDetails }) => {
 
             {step.error && (
               <div>
-                <h4 className="text-sm font-medium text-red-400 mb-2">Error:</h4>
+                <h4 className="text-sm font-medium text-red-400 mb-2">
+                  Error:
+                </h4>
                 <div className="bg-red-500/20 border border-red-500 text-red-400 p-4 rounded">
                   {step.error}
                 </div>
@@ -177,71 +197,76 @@ export default function Results() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const { id } = router.query;
-  
+
   const [queuedChain, setQueuedChain] = useState<QueuedChainData | null>(null);
-  const [queuedChainSteps, setQueuedChainSteps] = useState<QueuedChainStepWithDetails[]>([]);
+  const [queuedChainSteps, setQueuedChainSteps] = useState<
+    QueuedChainStepWithDetails[]
+  >([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
+  const [error, setError] = useState("");
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Redirect to sign-in if not authenticated
   useEffect(() => {
-    if (status === 'loading') return;
+    if (status === "loading") return;
 
     if (!session) {
-      router.push('/auth/signin');
+      router.push("/auth/signin");
       return;
     }
   }, [session, status, router]);
 
-  const fetchResults = useCallback(async ({ silent = false }: { silent?: boolean } = {}) => {
-    try {
-      if (!silent) {
-        setLoading(true);
-      }
-      const response = await fetch(`/api/results?id=${id}`);
-      const data = await response.json();
+  const fetchResults = useCallback(
+    async ({ silent = false }: { silent?: boolean } = {}) => {
+      try {
+        if (!silent) {
+          setLoading(true);
+        }
+        const response = await fetch(`/api/results?id=${id}`);
+        const data = await response.json();
 
-      if (data.success) {
-        setQueuedChain(data.queuedChain || null);
-        setQueuedChainSteps(data.queuedChainSteps || []);
-      } else {
-        setError(data.message || 'Failed to fetch results');
+        if (data.success) {
+          setQueuedChain(data.queuedChain || null);
+          setQueuedChainSteps(data.queuedChainSteps || []);
+        } else {
+          setError(data.message || "Failed to fetch results");
+        }
+      } catch (err) {
+        setError("An error occurred while fetching results");
+        console.error(err);
+      } finally {
+        if (!silent) {
+          setLoading(false);
+        }
       }
-    } catch (err) {
-      setError('An error occurred while fetching results');
-      console.error(err);
-    } finally {
-      if (!silent) {
-        setLoading(false);
-      }
-    }
-  }, [id]);
+    },
+    [id],
+  );
 
   // Set up polling when chain is processing
   useEffect(() => {
-    if (queuedChain?.status === 'processing') {
-      // Clear any existing interval
-      if (pollingInterval) {
-        clearInterval(pollingInterval);
-      }
-      
-      // Set up new polling interval (every 3 seconds)
-      const interval = setInterval(() => fetchResults({ silent: true }), 3000);
-      setPollingInterval(interval);
-
-      // Cleanup on unmount or when status changes
-      return () => {
-        if (interval) {
-          clearInterval(interval);
-        }
-      };
-    } else if (pollingInterval) {
-      // Clear interval if chain is not processing
-      clearInterval(pollingInterval);
-      setPollingInterval(null);
+    // Clear any existing interval
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
     }
-  }, [queuedChain?.status, fetchResults, pollingInterval]);
+
+    if (queuedChain?.status !== "completed") {
+      // Set up new polling interval (every 3 seconds)
+      pollingIntervalRef.current = setInterval(
+        () => fetchResults({ silent: true }),
+        3000,
+      );
+    }
+
+    // Cleanup on unmount or when status changes
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
+    };
+  }, [queuedChain?.status, fetchResults]);
 
   // Fetch results on component mount
   useEffect(() => {
@@ -250,14 +275,14 @@ export default function Results() {
     }
     // Cleanup polling on unmount
     return () => {
-      if (pollingInterval) {
-        clearInterval(pollingInterval);
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
       }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session, id]);
+  }, [session, id, fetchResults]);
 
-  if (loading || status === 'loading') {
+  if (loading || status === "loading") {
     return (
       <div>
         <Head>
@@ -303,7 +328,7 @@ export default function Results() {
   return (
     <div>
       <Head>
-        <title>Results - {queuedChain?.chainName || 'Chain'} - jjoist</title>
+        <title>Results - {queuedChain?.chainName || "Chain"} - jjoist</title>
         <meta name="description" content="View chain execution results" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
@@ -337,20 +362,20 @@ export default function Results() {
           <div className="mb-8">
             <div className="flex items-center gap-4 mb-4">
               <h1 className="text-3xl font-bold text-primary">
-                {queuedChain.chainName || 'Untitled Chain'}
+                {queuedChain.chainName || "Untitled Chain"}
               </h1>
               <span className={getStatusBadge(queuedChain.status)}>
                 {queuedChain.status}
               </span>
             </div>
-            
+
             <div className="text-sm text-gray-400 mb-2">
               Chain ID: {queuedChain.chainId} | Execution ID: {queuedChain.id}
             </div>
-            
+
             <div className="text-sm text-gray-400 mb-4">
-              Started: {formatDate(queuedChain.createdAt)} | 
-              Last Updated: {formatDate(queuedChain.updatedAt)}
+              Started: {formatDate(queuedChain.createdAt)} | Last Updated:{" "}
+              {formatDate(queuedChain.updatedAt)}
             </div>
 
             {queuedChain.error && (
