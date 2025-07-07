@@ -57,6 +57,20 @@
       "when": 1749432692273,
       "tag": "0007_military_robbie_robertson",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1751848071236,
+      "tag": "0008_uneven_luke_cage",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1751852035568,
+      "tag": "0009_thick_songbird",
+      "breakpoints": true
     }
   ]
 }

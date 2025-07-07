@@ -1,7 +1,7 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from './auth/[...nextauth]';
-import { db } from '@/lib/db';
+import type { NextApiRequest, NextApiResponse } from "next";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "./auth/[...nextauth]";
+import { db } from "@/lib/db";
 import {
   queuedChainStepsTable,
   chainsTable,
@@ -9,30 +9,37 @@ import {
   queuedChainsTable,
   queuesTable,
   usersTable,
-} from '@/schema';
-import { isRateLimitedWithSubscription } from '@/lib/rate-limit';
-import { eq } from 'drizzle-orm';
+  queuedChainVariablesTable,
+} from "@/schema";
+import { isRateLimitedWithSubscription } from "@/lib/rate-limit";
+import {
+  extractVariablesFromPrompts,
+  validateVariables,
+} from "@/lib/variables";
+import { eq } from "drizzle-orm";
 
 type ResponseData = {
   success: boolean;
   message: string;
   queuedChainId?: number;
+  requiredVariables?: string[];
+  missingVariables?: string[];
 };
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<ResponseData>
+  res: NextApiResponse<ResponseData>,
 ) {
-  if (req.method !== 'POST') {
+  if (req.method !== "POST") {
     return res
       .status(405)
-      .json({ success: false, message: 'Method not allowed' });
+      .json({ success: false, message: "Method not allowed" });
   }
 
   // Check authentication
   const session = await getServerSession(req, res, authOptions);
   if (!session?.user?.email) {
-    return res.status(401).json({ success: false, message: 'Unauthorized' });
+    return res.status(401).json({ success: false, message: "Unauthorized" });
   }
 
   const user = await db
@@ -42,7 +49,7 @@ export default async function handler(
     .limit(1);
 
   if (user.length === 0) {
-    return res.status(401).json({ success: false, message: 'Unauthorized' });
+    return res.status(401).json({ success: false, message: "Unauthorized" });
   }
 
   // Note: No longer using IP-based rate limiting, using user email instead
@@ -51,25 +58,24 @@ export default async function handler(
   const rateLimitResult = await isRateLimitedWithSubscription(
     session.user.email,
     `add_to_queue:${session.user.email}`,
-    60 * 60 * 1000 // 1 hour
+    60 * 60 * 1000, // 1 hour
   );
 
   if (rateLimitResult.isLimited) {
-    return res
-      .status(429)
-      .json({
-        success: false,
-        message: `Rate limit exceeded. You are on the ${rateLimitResult.tier} plan with ${rateLimitResult.limit} requests per hour. Upgrade your subscription for higher limits.`,
-      });
+    return res.status(429).json({
+      success: false,
+      message: `Rate limit exceeded. You are on the ${rateLimitResult.tier} plan with ${rateLimitResult.limit} requests per hour. Upgrade your subscription for higher limits.`,
+    });
   }
 
   try {
     const chainId = req.query.id ? parseInt(req.query.id as string, 10) : null;
+    const { variables = {} } = req.body;
 
     if (!chainId) {
       return res
         .status(400)
-        .json({ success: false, message: 'Chain ID is required' });
+        .json({ success: false, message: "Chain ID is required" });
     }
 
     // Get a specific chain
@@ -82,17 +88,15 @@ export default async function handler(
     if (chain.length === 0) {
       return res
         .status(404)
-        .json({ success: false, message: 'Chain not found' });
+        .json({ success: false, message: "Chain not found" });
     }
 
     // Verify the chain belongs to the authenticated user
     if (chain[0].userId !== user[0].id) {
-      return res
-        .status(403)
-        .json({
-          success: false,
-          message: 'Not authorized to queue this chain',
-        });
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to queue this chain",
+      });
     }
 
     let queue = await db
@@ -118,7 +122,24 @@ export default async function handler(
     if (chainSteps.length === 0) {
       return res
         .status(400)
-        .json({ success: false, message: 'Cannot queue chain with no steps' });
+        .json({ success: false, message: "Cannot queue chain with no steps" });
+    }
+
+    // Extract all variables from chain steps
+    const allPrompts = chainSteps.map((step) => step.prompt);
+    const requiredVariables = extractVariablesFromPrompts(allPrompts);
+
+    // Validate that all required variables are provided
+    if (requiredVariables.length > 0) {
+      const validation = validateVariables(requiredVariables, variables);
+      if (!validation.isValid) {
+        return res.status(400).json({
+          success: false,
+          message: `Missing required variables: ${validation.missingVariables.join(", ")}`,
+          requiredVariables,
+          missingVariables: validation.missingVariables,
+        });
+      }
     }
 
     const queuedChain = await db
@@ -127,7 +148,7 @@ export default async function handler(
         name: chain[0].name,
         queueId: queue[0].id,
         chainId: chain[0].id,
-        status: 'pending',
+        status: "pending",
         userId: user[0].id,
       })
       .returning({ id: queuedChainsTable.id });
@@ -138,37 +159,49 @@ export default async function handler(
         position: cs.position,
         queuedChainId: queuedChain[0].id,
         chainStepId: cs.id,
-        status: 'pending',
+        status: "pending",
         userId: user[0].id,
-      }))
+      })),
     );
+
+    // Store variables if any were provided
+    if (requiredVariables.length > 0) {
+      await db.insert(queuedChainVariablesTable).values(
+        Object.entries(variables).map(([variableName, variableValue]) => ({
+          queuedChainId: queuedChain[0].id,
+          variableName,
+          variableValue: variableValue as string,
+          userId: user[0].id,
+        })),
+      );
+    }
 
     const runningChains = await db
       .select()
       .from(queuedChainsTable)
-      .where(eq(queuedChainsTable.status, 'running'));
+      .where(eq(queuedChainsTable.status, "running"));
 
     if (runningChains.length < 5) {
-      console.debug(`found freed space while adding queuedChain(${queuedChain[0].id}) to queue. processing now`)
+      console.debug(
+        `found freed space while adding queuedChain(${queuedChain[0].id}) to queue. processing now`,
+      );
       fetch(
         `${process.env.HOST}/api/process-queued-chain?id=${queuedChain[0].id}`,
         {
-          method: 'POST',
-        }
+          method: "POST",
+        },
       );
     }
 
-    return res
-      .status(200)
-      .json({
-        success: true,
-        message: 'Successfully queued chain!',
-        queuedChainId: queuedChain[0].id,
-      });
+    return res.status(200).json({
+      success: true,
+      message: "Successfully queued chain!",
+      queuedChainId: queuedChain[0].id,
+    });
   } catch (error) {
-    console.error('Chain operation error:', error);
+    console.error("Chain operation error:", error);
     return res
       .status(500)
-      .json({ success: false, message: 'Failed to process request' });
+      .json({ success: false, message: "Failed to process request" });
   }
 }

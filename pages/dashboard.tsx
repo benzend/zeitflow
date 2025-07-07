@@ -1,12 +1,13 @@
-import { useState, useEffect } from 'react';
-import Head from 'next/head';
-import { useRouter } from 'next/router';
-import { signOut, useSession } from 'next-auth/react';
-import { SelectChain, SelectQueuedChainWithStatus } from '@/schema';
-import Link from 'next/link';
+import { useState, useEffect } from "react";
+import Head from "next/head";
+import { useRouter } from "next/router";
+import { signOut, useSession } from "next-auth/react";
+import { SelectChain, SelectQueuedChainWithStatus } from "@/schema";
+import Link from "next/link";
 
 type ChainWithStepCount = SelectChain & { stepCount: number };
-import SubscriptionModal from '@/components/SubscriptionCard';
+import SubscriptionModal from "@/components/SubscriptionCard";
+import VariablesModal from "@/components/VariablesModal";
 
 // Add loading skeleton components
 const ChainSkeleton = () => (
@@ -60,17 +61,20 @@ export default function Dashboard() {
     SelectQueuedChainWithStatus[]
   >([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [newChainName, setNewChainName] = useState('');
+  const [error, setError] = useState("");
+  const [newChainName, setNewChainName] = useState("");
   const router = useRouter();
   const [showAddChainModal, setShowAddChainModal] = useState(false);
+  const [showVariablesModal, setShowVariablesModal] = useState(false);
+  const [selectedChainForQueue, setSelectedChainForQueue] =
+    useState<ChainWithStepCount | null>(null);
 
   // Redirect to sign-in if not authenticated
   useEffect(() => {
-    if (status === 'loading') return; // Still loading
+    if (status === "loading") return; // Still loading
 
     if (!session) {
-      router.push('/auth/signin');
+      router.push("/auth/signin");
       return;
     }
   }, [session, status, router]);
@@ -96,17 +100,17 @@ export default function Dashboard() {
   const fetchChains = async (opts = { silent: false }) => {
     try {
       if (!opts.silent) setLoading(true);
-      const response = await fetch('/api/dashboard');
+      const response = await fetch("/api/dashboard");
       const data = await response.json();
 
       if (data.success) {
         setChains(data.chains || []);
         setQueuedChains(data.queuedChains || []);
       } else {
-        setError(data.message || 'Failed to fetch chains');
+        setError(data.message || "Failed to fetch chains");
       }
     } catch (err) {
-      setError('An error occurred while fetching chains');
+      setError("An error occurred while fetching chains");
       console.error(err);
     } finally {
       if (!opts.silent) setLoading(false);
@@ -117,15 +121,15 @@ export default function Dashboard() {
     e.preventDefault();
 
     if (!newChainName.trim()) {
-      setError('Chain name is required');
+      setError("Chain name is required");
       return;
     }
 
     try {
-      const response = await fetch('/api/dashboard', {
-        method: 'POST',
+      const response = await fetch("/api/dashboard", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           name: newChainName,
@@ -137,77 +141,97 @@ export default function Dashboard() {
       if (data.success) {
         router.push(`/chain/${data.chainId}`);
       } else {
-        setError(data.message || 'Failed to create chain');
+        setError(data.message || "Failed to create chain");
       }
     } catch (err) {
-      setError('An error occurred while creating the chain');
+      setError("An error occurred while creating the chain");
       console.error(err);
     }
   };
 
   const handleAddChainToQueue = async (chainId: number) => {
-    if (!confirm('Are you sure you want to add this chain to the queue?')) {
-      return;
-    }
+    const chain = chains.find((c) => c.id === chainId);
+    if (!chain) return;
+
+    // Set the selected chain and show variables modal
+    setSelectedChainForQueue(chain);
+    setShowVariablesModal(true);
+  };
+
+  const handleVariablesSubmit = async (variables: Record<string, string>) => {
+    if (!selectedChainForQueue) return;
 
     try {
-      const response = await fetch(`/api/add-to-queue?id=${chainId}`, {
-        method: 'POST',
-      });
+      const response = await fetch(
+        `/api/add-to-queue?id=${selectedChainForQueue.id}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ variables }),
+        },
+      );
 
       const data = await response.json();
 
       if (data.success) {
         fetchChains({ silent: true });
+        setSelectedChainForQueue(null);
       } else {
-        setError(data.message || 'Failed to run chain');
+        setError(data.message || "Failed to run chain");
       }
     } catch (err) {
-      setError('An error occurred while running the chain');
+      setError("An error occurred while running the chain");
       console.error(err);
     }
   };
 
+  const handleVariablesModalClose = () => {
+    setShowVariablesModal(false);
+    setSelectedChainForQueue(null);
+  };
+
   const handleStopChain = async (id: number) => {
-    if (!confirm('Are you sure you want to stop this chain?')) {
+    if (!confirm("Are you sure you want to stop this chain?")) {
       return;
     }
 
     try {
       const response = await fetch(`/api/stop-chain?id=${id}`, {
-        method: 'POST',
+        method: "POST",
       });
       const data = await response.json();
 
       if (data.success) {
         fetchChains({ silent: true });
       } else {
-        setError(data.message || 'Failed to stop chain');
+        setError(data.message || "Failed to stop chain");
       }
     } catch (err) {
-      setError('An error occurred while stopping the chain');
+      setError("An error occurred while stopping the chain");
       console.error(err);
     }
   };
 
   const handleResumeChain = async (id: number) => {
-    if (!confirm('Are you sure you want to resume this chain?')) {
+    if (!confirm("Are you sure you want to resume this chain?")) {
       return;
     }
 
     try {
       const response = await fetch(`/api/resume-chain?id=${id}`, {
-        method: 'POST',
+        method: "POST",
       });
       const data = await response.json();
 
       if (data.success) {
         fetchChains({ silent: true });
       } else {
-        setError(data.message || 'Failed to resume chain');
+        setError(data.message || "Failed to resume chain");
       }
     } catch (err) {
-      setError('An error occurred while resuming the chain');
+      setError("An error occurred while resuming the chain");
       console.error(err);
     }
   };
@@ -235,7 +259,7 @@ export default function Dashboard() {
           <div className="flex gap-4 items-center">
             <SubscriptionModal onSubscriptionChange={fetchChains} />
             <button
-              onClick={() => signOut({ callbackUrl: '/auth/signin' })}
+              onClick={() => signOut({ callbackUrl: "/auth/signin" })}
               className="bg-primary text-[#18181b] py-2 px-4 rounded-lg hover:bg-primary-light transition duration-200 cursor-pointer"
             >
               Sign Out
@@ -254,9 +278,7 @@ export default function Dashboard() {
           {/* Prompt Chains Column */}
           <section className="flex-1 flex flex-col bg-foreground rounded-lg p-4 h-[70vh]">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-bold text-primary">
-                Prompt Chains
-              </h2>
+              <h2 className="text-lg font-bold text-primary">Prompt Chains</h2>
               <button
                 className="text-primary p-2 rounded-lg cursor-pointer"
                 onClick={() => setShowAddChainModal(true)}
@@ -266,39 +288,39 @@ export default function Dashboard() {
             </div>
             <div className="overflow-y-auto">
               <div className="flex flex-col gap-4 flex-1">
-              {loading ? (
-                <>
-                  <ChainSkeleton />
-                  <ChainSkeleton />
-                  <ChainSkeleton />
-                </>
-              ) : (
-                chains.map((chain) => (
-                  <Card
-                    key={chain.id}
-                    name={chain.name || ''}
-                    actions={
-                      <>
-                        <Link
-                          href={`/chain/${chain.id}`}
-                          className="border-primary border-1 text-primary py-1 px-2 rounded hover:border-primary-light hover:text-primary-light cursor-pointer transition duration-200 text-sm"
-                        >
-                          Edit
-                        </Link>
-                        <button
-                          onClick={() => handleAddChainToQueue(chain.id)}
-                          className="bg-primary text-[#18181b] py-1 px-2 rounded hover:bg-primary-light cursor-pointer transition duration-200 text-sm"
-                        >
-                          Run
-                        </button>
-                      </>
-                    }
-                    stepsCount={chain.stepCount}
-                    stepsCompletedCount={0}
-                    showProgress={false}
-                  />
-                ))
-              )}
+                {loading ? (
+                  <>
+                    <ChainSkeleton />
+                    <ChainSkeleton />
+                    <ChainSkeleton />
+                  </>
+                ) : (
+                  chains.map((chain) => (
+                    <Card
+                      key={chain.id}
+                      name={chain.name || ""}
+                      actions={
+                        <>
+                          <Link
+                            href={`/chain/${chain.id}`}
+                            className="border-primary border-1 text-primary py-1 px-2 rounded hover:border-primary-light hover:text-primary-light cursor-pointer transition duration-200 text-sm"
+                          >
+                            Edit
+                          </Link>
+                          <button
+                            onClick={() => handleAddChainToQueue(chain.id)}
+                            className="bg-primary text-[#18181b] py-1 px-2 rounded hover:bg-primary-light cursor-pointer transition duration-200 text-sm"
+                          >
+                            Run
+                          </button>
+                        </>
+                      }
+                      stepsCount={chain.stepCount}
+                      stepsCompletedCount={0}
+                      showProgress={false}
+                    />
+                  ))
+                )}
               </div>
             </div>
           </section>
@@ -310,68 +332,70 @@ export default function Dashboard() {
             </h2>
             <div className="overflow-y-auto">
               <div className="flex flex-col gap-4 flex-1">
-              {loading ? (
-                <>
-                  <QueuedChainSkeleton />
-                  <QueuedChainSkeleton />
-                  <QueuedChainSkeleton />
-                </>
-              ) : (
-                queuedChains
-                  .filter(
-                    (qc) =>
-                      qc.status === 'pending' ||
-                      qc.status === 'processing' ||
-                      qc.status === 'stopped'
-                  )
-                  .map((queuedChain) => {
-                    const chain = chains.find(
-                      (c) => c.id === queuedChain.chainId
-                    );
-                    if (!chain) return null;
-                    return (
-                      <Card
-                        key={queuedChain.id}
-                        name={chain.name || ''}
-                        actions={
-                          <>
-                            <Link
-                              href={`/results/${queuedChain.id}`}
-                              className="border-primary border-1 text-primary py-1 px-2 rounded hover:border-primary-light hover:text-primary-light cursor-pointer transition duration-200 text-sm"
-                            >
-                              View
-                            </Link>
-                            {queuedChain.status === 'processing' && (
-                              <button
-                                className="bg-red-500 text-white py-1 px-2 rounded hover:bg-red-600 cursor-pointer transition duration-200 text-sm"
-                                onClick={() => handleStopChain(queuedChain.id)}
+                {loading ? (
+                  <>
+                    <QueuedChainSkeleton />
+                    <QueuedChainSkeleton />
+                    <QueuedChainSkeleton />
+                  </>
+                ) : (
+                  queuedChains
+                    .filter(
+                      (qc) =>
+                        qc.status === "pending" ||
+                        qc.status === "processing" ||
+                        qc.status === "stopped",
+                    )
+                    .map((queuedChain) => {
+                      const chain = chains.find(
+                        (c) => c.id === queuedChain.chainId,
+                      );
+                      if (!chain) return null;
+                      return (
+                        <Card
+                          key={queuedChain.id}
+                          name={chain.name || ""}
+                          actions={
+                            <>
+                              <Link
+                                href={`/results/${queuedChain.id}`}
+                                className="border-primary border-1 text-primary py-1 px-2 rounded hover:border-primary-light hover:text-primary-light cursor-pointer transition duration-200 text-sm"
                               >
-                                Stop
-                              </button>
-                            )}
-                            {queuedChain.status === 'stopped' && (
-                              <button
-                                className="bg-red-500 text-white py-1 px-2 rounded hover:bg-red-600 cursor-pointer transition duration-200 text-sm"
-                                onClick={() =>
-                                  handleResumeChain(queuedChain.id)
-                                }
-                              >
-                                Resume
-                              </button>
-                            )}
-                          </>
-                        }
-                        stepsCount={queuedChain.steps?.length || 0}
-                        stepsCompletedCount={
-                          queuedChain.steps?.filter(
-                            (step) => step.status === 'completed'
-                          ).length || 0
-                        }
-                        error={queuedChain.error || ''}
-                      />
-                    );
-                  })
-              )}
+                                View
+                              </Link>
+                              {queuedChain.status === "processing" && (
+                                <button
+                                  className="bg-red-500 text-white py-1 px-2 rounded hover:bg-red-600 cursor-pointer transition duration-200 text-sm"
+                                  onClick={() =>
+                                    handleStopChain(queuedChain.id)
+                                  }
+                                >
+                                  Stop
+                                </button>
+                              )}
+                              {queuedChain.status === "stopped" && (
+                                <button
+                                  className="bg-red-500 text-white py-1 px-2 rounded hover:bg-red-600 cursor-pointer transition duration-200 text-sm"
+                                  onClick={() =>
+                                    handleResumeChain(queuedChain.id)
+                                  }
+                                >
+                                  Resume
+                                </button>
+                              )}
+                            </>
+                          }
+                          stepsCount={queuedChain.steps?.length || 0}
+                          stepsCompletedCount={
+                            queuedChain.steps?.filter(
+                              (step) => step.status === "completed",
+                            ).length || 0
+                          }
+                          error={queuedChain.error || ""}
+                        />
+                      );
+                    })
+                )}
               </div>
             </div>
           </section>
@@ -383,52 +407,53 @@ export default function Dashboard() {
             </h2>
             <div className="overflow-y-auto">
               <div className="flex flex-col gap-4 flex-1">
-              {loading ? (
-                <>
-                  <QueuedChainSkeleton />
-                  <QueuedChainSkeleton />
-                  <QueuedChainSkeleton />
-                </>
-              ) : (
-                queuedChains
-                  .filter(
-                    (qc) => qc.status === 'completed' || qc.status === 'error'
-                  )
-                  .toSorted(
-                    (a, b) =>
-                      new Date(b.createdAt).getTime() -
-                      new Date(a.createdAt).getTime()
-                  )
-                  .map((queuedChain) => {
-                    const chain = chains.find(
-                      (c) => c.id === queuedChain.chainId
-                    );
-                    if (!chain) return null;
-                    return (
-                      <Card
-                        key={queuedChain.id}
-                        name={chain.name || ''}
-                        actions={
-                          <>
-                            <Link
-                              href={`/results/${queuedChain.id}`}
-                              className="bg-primary text-[#18181b] py-1 px-2 rounded hover:bg-primary-light cursor-pointer transition duration-200 text-sm"
-                            >
-                              View Results
-                            </Link>
-                          </>
-                        }
-                        stepsCount={queuedChain.steps?.length || 0}
-                        stepsCompletedCount={
-                          queuedChain.steps?.filter(
-                            (step) => step.status === 'completed'
-                          ).length || 0
-                        }
-                        error={queuedChain.error || ''}
-                      />
-                    );
-                  })
-              )}
+                {loading ? (
+                  <>
+                    <QueuedChainSkeleton />
+                    <QueuedChainSkeleton />
+                    <QueuedChainSkeleton />
+                  </>
+                ) : (
+                  queuedChains
+                    .filter(
+                      (qc) =>
+                        qc.status === "completed" || qc.status === "error",
+                    )
+                    .toSorted(
+                      (a, b) =>
+                        new Date(b.createdAt).getTime() -
+                        new Date(a.createdAt).getTime(),
+                    )
+                    .map((queuedChain) => {
+                      const chain = chains.find(
+                        (c) => c.id === queuedChain.chainId,
+                      );
+                      if (!chain) return null;
+                      return (
+                        <Card
+                          key={queuedChain.id}
+                          name={chain.name || ""}
+                          actions={
+                            <>
+                              <Link
+                                href={`/results/${queuedChain.id}`}
+                                className="bg-primary text-[#18181b] py-1 px-2 rounded hover:bg-primary-light cursor-pointer transition duration-200 text-sm"
+                              >
+                                View Results
+                              </Link>
+                            </>
+                          }
+                          stepsCount={queuedChain.steps?.length || 0}
+                          stepsCompletedCount={
+                            queuedChain.steps?.filter(
+                              (step) => step.status === "completed",
+                            ).length || 0
+                          }
+                          error={queuedChain.error || ""}
+                        />
+                      );
+                    })
+                )}
               </div>
             </div>
           </section>
@@ -483,6 +508,14 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+
+      <VariablesModal
+        isOpen={showVariablesModal}
+        onClose={handleVariablesModalClose}
+        onSubmit={handleVariablesSubmit}
+        chainId={selectedChainForQueue?.id || 0}
+        chainName={selectedChainForQueue?.name || ""}
+      />
     </div>
   );
 }

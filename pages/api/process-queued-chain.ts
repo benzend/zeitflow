@@ -1,11 +1,12 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { db } from '@/lib/db';
-import { queuedChainStepsTable, queuedChainsTable } from '@/schema';
-import { isRateLimited } from '@/lib/rate-limit';
-import { and, asc, eq } from 'drizzle-orm';
-import { config } from 'dotenv';
+import type { NextApiRequest, NextApiResponse } from "next";
+import { db } from "@/lib/db";
+import { queuedChainStepsTable, queuedChainsTable } from "@/schema";
+import { isRateLimited } from "@/lib/rate-limit";
+import { substituteVariables } from "@/lib/variables";
+import { and, asc, eq } from "drizzle-orm";
+import { config } from "dotenv";
 
-config({ path: '.env.local' });
+config({ path: ".env.local" });
 
 type ResponseData = {
   success: boolean;
@@ -14,17 +15,17 @@ type ResponseData = {
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<ResponseData>
+  res: NextApiResponse<ResponseData>,
 ) {
-  if (req.method !== 'POST') {
+  if (req.method !== "POST") {
     return res
       .status(405)
-      .json({ success: false, message: 'Method not allowed' });
+      .json({ success: false, message: "Method not allowed" });
   }
 
   // Get client IP for rate limiting
   const ip =
-    req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown-ip';
+    req.headers["x-forwarded-for"] || req.socket.remoteAddress || "unknown-ip";
 
   const clientIp = Array.isArray(ip) ? ip[0] : ip;
 
@@ -38,7 +39,7 @@ export default async function handler(
   if (isLimited) {
     return res.status(429).json({
       success: false,
-      message: 'Too many requests. Please try again later.',
+      message: "Too many requests. Please try again later.",
     });
   }
 
@@ -50,7 +51,7 @@ export default async function handler(
     if (!queuedChainId) {
       return res
         .status(400)
-        .json({ success: false, message: 'Queued chain ID is required' });
+        .json({ success: false, message: "Queued chain ID is required" });
     }
 
     // Get a specific chain
@@ -64,20 +65,20 @@ export default async function handler(
     if (queuedChain.length === 0) {
       return res
         .status(404)
-        .json({ success: false, message: 'Queued chain not found' });
+        .json({ success: false, message: "Queued chain not found" });
     }
 
     // If the chain has already been completed, return a 400 error
-    if (queuedChain[0].status === 'completed') {
+    if (queuedChain[0].status === "completed") {
       return res
         .status(400)
-        .json({ success: false, message: 'Chain already completed' });
+        .json({ success: false, message: "Chain already completed" });
     }
 
-    if (queuedChain[0].status === 'stopped') {
+    if (queuedChain[0].status === "stopped") {
       return res
         .status(400)
-        .json({ success: false, message: 'Chain has been manually stopped' });
+        .json({ success: false, message: "Chain has been manually stopped" });
     }
 
     const processingChainSteps = await db
@@ -86,8 +87,8 @@ export default async function handler(
       .where(
         and(
           eq(queuedChainStepsTable.queuedChainId, queuedChain[0].id),
-          eq(queuedChainStepsTable.status, 'processing')
-        )
+          eq(queuedChainStepsTable.status, "processing"),
+        ),
       )
       .orderBy(queuedChainStepsTable.position);
 
@@ -95,7 +96,7 @@ export default async function handler(
     if (processingChainSteps.length >= 5) {
       return res.status(400).json({
         success: false,
-        message: 'Chain already running at max capacity',
+        message: "Chain already running at max capacity",
       });
     }
 
@@ -105,52 +106,52 @@ export default async function handler(
       .from(queuedChainStepsTable)
       .where(
         and(
-          eq(queuedChainStepsTable.status, 'pending'),
-          eq(queuedChainStepsTable.queuedChainId, queuedChain[0].id)
-        )
+          eq(queuedChainStepsTable.status, "pending"),
+          eq(queuedChainStepsTable.queuedChainId, queuedChain[0].id),
+        ),
       )
       .orderBy(queuedChainStepsTable.position)
       .limit(1);
 
     // If there are no queued chain steps, mark the chain as completed and return a 200 status
     if (queuedChainStepsNotRunning.length === 0) {
-      queuedChain[0].status = 'completed';
+      queuedChain[0].status = "completed";
       await db
         .update(queuedChainsTable)
-        .set({ status: 'completed' })
+        .set({ status: "completed" })
         .where(eq(queuedChainsTable.id, queuedChain[0].id));
 
       // Since this queued chain is completed, we can check if there are any queued chains that are next in line
       const queuedChains = await db
         .select()
         .from(queuedChainsTable)
-        .where(eq(queuedChainsTable.status, 'pending'))
+        .where(eq(queuedChainsTable.status, "pending"))
         // we should check the oldest queued chain first
         .orderBy(asc(queuedChainsTable.createdAt))
         .limit(1);
 
       if (queuedChains.length > 0) {
-        console.debug('found next queued chain', queuedChains[0].id);
+        console.debug("found next queued chain", queuedChains[0].id);
         fetch(
           `${process.env.HOST}/api/process-queued-chain?id=${queuedChains[0].id}`,
           {
-            method: 'POST',
-          }
+            method: "POST",
+          },
         );
       } else {
-        console.debug('no next queued chain found');
+        console.debug("no next queued chain found");
       }
 
       return res
         .status(200)
-        .json({ success: true, message: 'Finished running chain steps' });
+        .json({ success: true, message: "Finished running chain steps" });
     }
 
-    if (queuedChain[0].status !== 'processing') {
-      queuedChain[0].status = 'processing';
+    if (queuedChain[0].status !== "processing") {
+      queuedChain[0].status = "processing";
       await db
         .update(queuedChainsTable)
-        .set({ status: 'processing' })
+        .set({ status: "processing" })
         .where(eq(queuedChainsTable.id, queuedChain[0].id));
     }
 
@@ -159,15 +160,15 @@ export default async function handler(
     // Let the system know that the chain step is running (processing)
     await db
       .update(queuedChainStepsTable)
-      .set({ status: 'processing' })
+      .set({ status: "processing" })
       .where(eq(queuedChainStepsTable.id, queuedChainStep.id));
 
     try {
       let previousQueuedChainStep = null;
 
       if (queuedChainStep.position !== 0) {
-        console.debug('finding previous step');
-        console.debug('position', queuedChainStep.position);
+        console.debug("finding previous step");
+        console.debug("position", queuedChainStep.position);
 
         const prev = await db
           .select()
@@ -176,104 +177,110 @@ export default async function handler(
             and(
               eq(
                 queuedChainStepsTable.queuedChainId,
-                queuedChainStep.queuedChainId
+                queuedChainStep.queuedChainId,
               ),
-              eq(queuedChainStepsTable.status, 'completed')
-            )
+              eq(queuedChainStepsTable.status, "completed"),
+            ),
           )
           .limit(1);
 
         if (prev.length > 0) {
           previousQueuedChainStep = prev[0];
         } else {
-          throw new Error('Previous queued chain step not found');
+          throw new Error("Previous queued chain step not found");
         }
       }
 
       let previousResponse = null;
       if (previousQueuedChainStep) {
-        console.debug('found previous step', previousQueuedChainStep.id);
+        console.debug("found previous step", previousQueuedChainStep.id);
         previousResponse = previousQueuedChainStep.response;
       } else {
-        console.debug('no previous step found');
+        console.debug("no previous step found");
       }
 
+      // Substitute variables in the prompt
+      const processedPrompt = await substituteVariables(
+        queuedChainStep.prompt,
+        queuedChainStep.queuedChainId,
+      );
+
       const response = await chat(
-        mergePrevResponseWithPrompt(previousResponse, queuedChainStep.prompt)
+        mergePrevResponseWithPrompt(previousResponse, processedPrompt),
       );
 
       // Let the system know that the chain step is completed
       await db
         .update(queuedChainStepsTable)
         .set({
-          status: 'completed',
+          status: "completed",
           response: response.choices[0].message.content,
         })
         .where(eq(queuedChainStepsTable.id, queuedChainStep.id));
 
-      console.debug('completed chain step created', queuedChainStep.id);
+      console.debug("completed chain step created", queuedChainStep.id);
 
       // Recursively run the next chain step
-      console.debug('starting next process');
+      console.debug("starting next process");
       fetch(
         `${process.env.HOST}/api/process-queued-chain?id=${queuedChain[0].id}`,
         {
-          method: 'POST',
-        }
+          method: "POST",
+        },
       );
     } catch (error) {
-      console.error('Chain operation error:', error);
+      console.error("Chain operation error:", error);
       const errorMessage =
         error instanceof Error ? error.message : String(error);
 
       await db
         .update(queuedChainStepsTable)
-        .set({ status: 'error', error: errorMessage })
+        .set({ status: "error", error: errorMessage })
         .where(eq(queuedChainStepsTable.id, queuedChainStep.id));
 
       // Recursively keep the process running
-      console.debug('starting next process');
+      console.debug("starting next process");
       await fetch(
         `${process.env.HOST}/api/process-queued-chain?id=${queuedChain[0].id}`,
         {
-          method: 'POST',
-        }
+          method: "POST",
+        },
       );
     }
 
-    console.debug('finished running chain steps');
+    console.debug("finished running chain steps");
     return res
       .status(200)
-      .json({ success: true, message: 'Successfully ran chain steps!' });
+      .json({ success: true, message: "Successfully ran chain steps!" });
   } catch (error) {
-    console.error('Chain operation error:', error);
+    console.error("Chain operation error:", error);
     return res
       .status(500)
-      .json({ success: false, message: 'Failed to process request' });
+      .json({ success: false, message: "Failed to process request" });
   }
 }
 
 async function chat(prompt: string) {
   const response = await fetch(
-    'https://openrouter.ai/api/v1/chat/completions',
+    "https://openrouter.ai/api/v1/chat/completions",
     {
-      method: 'POST',
+      method: "POST",
       headers: {
-        Authorization: 'Bearer ' + process.env.OPENROUTER_API_KEY,
-        'HTTP-Referer': 'https://jjoist.com', // Optional. Site URL for rankings on openrouter.ai.
-        'X-Title': 'jjoist', // Optional. Site title for rankings on openrouter.ai.
-        'Content-Type': 'application/json',
+        Authorization: "Bearer " + process.env.OPENROUTER_API_KEY,
+        "HTTP-Referer": "https://jjoist.com", // Optional. Site URL for rankings on openrouter.ai.
+        "X-Title": "jjoist", // Optional. Site title for rankings on openrouter.ai.
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: 'openai/gpt-4o',
+        model: "openai/gpt-4o",
         messages: [
           {
-            role: 'user',
+            role: "user",
             content: prompt,
           },
         ],
       }),
-    }
+    },
   );
 
   if (response.status !== 200) {
@@ -285,11 +292,11 @@ async function chat(prompt: string) {
 
 function mergePrevResponseWithPrompt(
   previousResponse: string | null,
-  prompt: string
+  prompt: string,
 ) {
   if (!previousResponse) {
     return prompt;
   }
 
-  return prompt + '\n\n' + previousResponse;
+  return prompt + "\n\n" + previousResponse;
 }

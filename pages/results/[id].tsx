@@ -28,6 +28,11 @@ type QueuedChainData = {
   chainName: string | null;
 };
 
+type QueuedChainVariables = {
+  variableName: string;
+  variableValue: string;
+};
+
 const StepSkeleton = () => (
   <div className="border border-primary/20 rounded-lg p-6 bg-foreground-light animate-pulse">
     <div className="flex justify-between items-center mb-4">
@@ -202,6 +207,9 @@ export default function Results() {
   const [queuedChainSteps, setQueuedChainSteps] = useState<
     QueuedChainStepWithDetails[]
   >([]);
+  const [queuedChainVariables, setQueuedChainVariables] = useState<
+    QueuedChainVariables[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -228,6 +236,7 @@ export default function Results() {
         if (data.success) {
           setQueuedChain(data.queuedChain || null);
           setQueuedChainSteps(data.queuedChainSteps || []);
+          setQueuedChainVariables(data.queuedChainVariables || []);
         } else {
           setError(data.message || "Failed to fetch results");
         }
@@ -376,6 +385,15 @@ export default function Results() {
             <div className="text-sm text-gray-400 mb-4">
               Started: {formatDate(queuedChain.createdAt)} | Last Updated:{" "}
               {formatDate(queuedChain.updatedAt)}
+            </div>
+
+            <div className="text-sm text-gray-400 mb-4">
+              Variables:{" "}
+              {queuedChainVariables.map((variable) => (
+                <span key={variable.variableName}>
+                  {variable.variableName}: {variable.variableValue}
+                </span>
+              ))}
             </div>
 
             {queuedChain.error && (

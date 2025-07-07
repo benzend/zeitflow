@@ -7,7 +7,9 @@ import {
   chainStepsTable, 
   queuedChainStepsTable, 
   queuedChainsTable, 
-  usersTable 
+  SelectQueuedChainVariables,
+  usersTable, 
+  queuedChainVariablesTable
 } from '@/schema';
 import { isRateLimited } from '@/lib/rate-limit';
 import { eq } from 'drizzle-orm';
@@ -39,6 +41,7 @@ type ResponseData = {
     chainName: string | null;
   };
   queuedChainSteps?: QueuedChainStepWithDetails[];
+  queuedChainVariables?: SelectQueuedChainVariables[];
 };
 
 export default async function handler(
@@ -146,6 +149,15 @@ export default async function handler(
       .where(eq(queuedChainStepsTable.queuedChainId, queuedChainId))
       .orderBy(queuedChainStepsTable.position);
 
+    const queuedChainVariables = await db
+      .select({
+        variableName: queuedChainVariablesTable.variableName,
+        variableValue: queuedChainVariablesTable.variableValue,
+      })
+      .from(queuedChainVariablesTable)
+      .where(eq(queuedChainVariablesTable.queuedChainId, queuedChainId))
+      .orderBy(queuedChainVariablesTable.variableName);
+
     return res.status(200).json({
       success: true,
       message: 'Successfully retrieved results!',
@@ -159,6 +171,7 @@ export default async function handler(
         chainName: queuedChain[0].chainName,
       },
       queuedChainSteps: queuedChainSteps as QueuedChainStepWithDetails[],
+      queuedChainVariables: queuedChainVariables as SelectQueuedChainVariables[],
     });
 
   } catch (error) {

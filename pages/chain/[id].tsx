@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
-import Head from 'next/head';
-import { useRouter } from 'next/router';
-import { SelectChain, SelectChainStep } from '@/schema';
+import { useState, useEffect } from "react";
+import Head from "next/head";
+import { useRouter } from "next/router";
+import { SelectChain, SelectChainStep } from "@/schema";
+import VariablesModal from "@/components/VariablesModal";
+import { HighlightedText } from "@/lib/highlight-variables";
 import {
   DndContext,
   closestCenter,
@@ -10,18 +12,16 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
-} from '@dnd-kit/core';
+} from "@dnd-kit/core";
 import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import {
-  useSortable,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { Tooltip } from 'react-tippy';
+} from "@dnd-kit/sortable";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { Tooltip } from "react-tippy";
 
 // Add skeleton components
 const ChainInfoSkeleton = () => (
@@ -95,7 +95,9 @@ const SortableStep = ({
       {editingStepId === step.id ? (
         <div>
           <div className="flex justify-between items-center mb-4">
-            <h4 className="font-semibold text-primary">Edit Step {index + 1}</h4>
+            <h4 className="font-semibold text-primary">
+              Edit Step {index + 1}
+            </h4>
             <button
               onClick={onCancelEditStep}
               className="text-gray-400 hover:text-gray-600 transition duration-200"
@@ -136,7 +138,9 @@ const SortableStep = ({
               >
                 ⋮⋮
               </div>
-              <span className="font-semibold text-primary">Step {index + 1}:</span>
+              <span className="font-semibold text-primary">
+                Step {index + 1}:
+              </span>
             </div>
             <div className="flex gap-2 ml-4">
               <button
@@ -155,9 +159,10 @@ const SortableStep = ({
               </button>
             </div>
           </div>
-          <p className="text-primary whitespace-pre-wrap">
-            {step.prompt}
-          </p>
+          <HighlightedText
+            text={step.prompt}
+            className="text-primary whitespace-pre-wrap block"
+          />
         </div>
       )}
     </div>
@@ -170,11 +175,12 @@ export default function ChainDetail() {
   const [runChain, setRunChain] = useState(false);
   const [addChainStep, setAddChainStep] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [editMode, setEditMode] = useState(false);
-  const [chainName, setChainName] = useState('');
+  const [chainName, setChainName] = useState("");
   const [editingStepId, setEditingStepId] = useState<number | null>(null);
-  const [editStepPrompt, setEditStepPrompt] = useState('');
+  const [editStepPrompt, setEditStepPrompt] = useState("");
+  const [showVariablesModal, setShowVariablesModal] = useState(false);
   const router = useRouter();
   const { id } = router.query;
 
@@ -182,7 +188,7 @@ export default function ChainDetail() {
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
   useEffect(() => {
@@ -202,10 +208,10 @@ export default function ChainDetail() {
         setChainName(data.chains[0].name);
         setChainSteps(data.chainSteps);
       } else {
-        setError(data.message || 'Failed to fetch chain');
+        setError(data.message || "Failed to fetch chain");
       }
     } catch (err) {
-      setError('An error occurred while fetching the chain');
+      setError("An error occurred while fetching the chain");
       console.error(err);
     } finally {
       setLoading(false);
@@ -216,15 +222,15 @@ export default function ChainDetail() {
     e.preventDefault();
 
     if (!chainName.trim()) {
-      setError('Chain name is required');
+      setError("Chain name is required");
       return;
     }
 
     try {
       const response = await fetch(`/api/dashboard?id=${id}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           name: chainName,
@@ -237,39 +243,39 @@ export default function ChainDetail() {
         setEditMode(false);
         fetchChain(id as string);
       } else {
-        setError(data.message || 'Failed to update chain');
+        setError(data.message || "Failed to update chain");
       }
     } catch (err) {
-      setError('An error occurred while updating the chain');
+      setError("An error occurred while updating the chain");
       console.error(err);
     }
   };
 
   const handleDeleteChain = async () => {
-    if (!confirm('Are you sure you want to delete this chain?')) {
+    if (!confirm("Are you sure you want to delete this chain?")) {
       return;
     }
 
     try {
       const response = await fetch(`/api/dashboard?id=${id}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
 
       const data = await response.json();
 
       if (data.success) {
-        router.push('/dashboard');
+        router.push("/dashboard");
       } else {
-        setError(data.message || 'Failed to delete chain');
+        setError(data.message || "Failed to delete chain");
       }
     } catch (err) {
-      setError('An error occurred while deleting the chain');
+      setError("An error occurred while deleting the chain");
       console.error(err);
     }
   };
 
   const handleBackToDashboard = () => {
-    router.push('/dashboard');
+    router.push("/dashboard");
   };
 
   const handleAddChainStep = async (e: React.FormEvent) => {
@@ -277,26 +283,26 @@ export default function ChainDetail() {
 
     const formData = new FormData(e.target as HTMLFormElement);
 
-    if (!formData.get('prompt')) {
-      setError('Chain step prompt is required');
+    if (!formData.get("prompt")) {
+      setError("Chain step prompt is required");
       return;
     }
 
-    if (!formData.get('position')) {
-      setError('Chain step position is required');
+    if (!formData.get("position")) {
+      setError("Chain step position is required");
       return;
     }
 
     try {
       const response = await fetch(`/api/chain-step`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          prompt: formData.get('prompt'),
+          prompt: formData.get("prompt"),
           chainId: id,
-          position: formData.get('position'),
+          position: formData.get("position"),
         }),
       });
 
@@ -306,10 +312,10 @@ export default function ChainDetail() {
         setAddChainStep(false);
         fetchChain(id as string);
       } else {
-        setError(data.message || 'Failed to add chain step');
+        setError(data.message || "Failed to add chain step");
       }
     } catch (err) {
-      setError('An error occurred while adding the chain step');
+      setError("An error occurred while adding the chain step");
       console.error(err);
     }
   };
@@ -318,9 +324,20 @@ export default function ChainDetail() {
     if (!chain) {
       return;
     }
+    // Show variables modal instead of directly running
+    setShowVariablesModal(true);
+  };
+
+  const handleVariablesSubmit = async (variables: Record<string, string>) => {
+    if (!chain) return;
+
     try {
       const response = await fetch(`/api/add-to-queue?id=${chain.id}`, {
-        method: 'POST',
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ variables }),
       });
 
       const data = await response.json();
@@ -329,12 +346,16 @@ export default function ChainDetail() {
         setRunChain(true);
         router.push(`/results/${data.queuedChainId}`);
       } else {
-        setError(data.message || 'Failed to run chain');
+        setError(data.message || "Failed to run chain");
       }
     } catch (err) {
-      setError('An error occurred while running the chain');
+      setError("An error occurred while running the chain");
       console.error(err);
     }
+  };
+
+  const handleVariablesModalClose = () => {
+    setShowVariablesModal(false);
   };
 
   const handleEditStep = (step: SelectChainStep) => {
@@ -344,20 +365,20 @@ export default function ChainDetail() {
 
   const handleCancelEditStep = () => {
     setEditingStepId(null);
-    setEditStepPrompt('');
+    setEditStepPrompt("");
   };
 
   const handleUpdateStep = async (stepId: number) => {
     if (!editStepPrompt.trim()) {
-      setError('Step prompt is required');
+      setError("Step prompt is required");
       return;
     }
 
     try {
       const response = await fetch(`/api/chain-step?id=${stepId}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           prompt: editStepPrompt,
@@ -368,25 +389,25 @@ export default function ChainDetail() {
 
       if (data.success) {
         setEditingStepId(null);
-        setEditStepPrompt('');
+        setEditStepPrompt("");
         fetchChain(id as string);
       } else {
-        setError(data.message || 'Failed to update step');
+        setError(data.message || "Failed to update step");
       }
     } catch (err) {
-      setError('An error occurred while updating the step');
+      setError("An error occurred while updating the step");
       console.error(err);
     }
   };
 
   const handleDeleteStep = async (stepId: number) => {
-    if (!confirm('Are you sure you want to delete this step?')) {
+    if (!confirm("Are you sure you want to delete this step?")) {
       return;
     }
 
     try {
       const response = await fetch(`/api/chain-step?id=${stepId}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
 
       const data = await response.json();
@@ -394,10 +415,10 @@ export default function ChainDetail() {
       if (data.success) {
         fetchChain(id as string);
       } else {
-        setError(data.message || 'Failed to delete step');
+        setError(data.message || "Failed to delete step");
       }
     } catch (err) {
-      setError('An error occurred while deleting the step');
+      setError("An error occurred while deleting the step");
       console.error(err);
     }
   };
@@ -416,24 +437,24 @@ export default function ChainDetail() {
       const newChainSteps = arrayMove(chainSteps, oldIndex, newIndex);
       setChainSteps(newChainSteps);
 
-      console.log('new chain steps', newChainSteps);
+      console.log("new chain steps", newChainSteps);
 
       try {
         await Promise.all(
           newChainSteps.map((step, index) =>
             fetch(`/api/chain-step?id=${step.id}`, {
-              method: 'PUT',
+              method: "PUT",
               headers: {
-                'Content-Type': 'application/json',
+                "Content-Type": "application/json",
               },
               body: JSON.stringify({
                 position: index,
               }),
-            })
-          )
+            }),
+          ),
         );
       } catch (err) {
-        setError('An error occurred while reordering steps');
+        setError("An error occurred while reordering steps");
         console.error(err);
         fetchChain(id as string);
       }
@@ -559,7 +580,7 @@ export default function ChainDetail() {
                 <button
                   onClick={() => {
                     setEditMode(false);
-                    setChainName(chain.name || '');
+                    setChainName(chain.name || "");
                   }}
                   className="text-gray-400 hover:text-gray-600 transition duration-200"
                 >
@@ -588,7 +609,7 @@ export default function ChainDetail() {
                     type="button"
                     onClick={() => {
                       setEditMode(false);
-                      setChainName(chain.name || '');
+                      setChainName(chain.name || "");
                     }}
                     className="px-4 py-2 text-primary hover:text-primary-light transition duration-200"
                   >
@@ -611,13 +632,13 @@ export default function ChainDetail() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-foreground border border-primary/20 p-4 rounded-lg">
                   <p className="text-primary">
-                    <span className="font-semibold">Created:</span>{' '}
+                    <span className="font-semibold">Created:</span>{" "}
                     {new Date(chain.createdAt).toLocaleString()}
                   </p>
                 </div>
                 <div className="bg-foreground border border-primary/20 p-4 rounded-lg">
                   <p className="text-primary">
-                    <span className="font-semibold">Last Updated:</span>{' '}
+                    <span className="font-semibold">Last Updated:</span>{" "}
                     {new Date(chain.updatedAt).toLocaleString()}
                   </p>
                 </div>
@@ -715,19 +736,27 @@ export default function ChainDetail() {
                       Add Step
                     </button>
                   </div>
-                  <input type="hidden" name="position" value={chainSteps?.length || 0} />
+                  <input
+                    type="hidden"
+                    name="position"
+                    value={chainSteps?.length || 0}
+                  />
                 </form>
               </div>
             )}
           </div>
           <div className="flex justify-end mt-6">
             {chainSteps?.length === 0 ? (
-              <Tooltip title="Chain must have at least one step" trigger="mouseenter" placement="bottom">
+              <Tooltip
+                title="Chain must have at least one step"
+                trigger="mouseenter"
+                placement="bottom"
+              >
                 <button
                   className="bg-[#a3e635] text-[#18181b] py-2 px-4 rounded-lg hover:bg-[#bef264] transition duration-200 opacity-50 cursor-not-allowed"
                   disabled
                 >
-                  {runChain ? 'Running...' : 'Run Chain'}
+                  {runChain ? "Running..." : "Run Chain"}
                 </button>
               </Tooltip>
             ) : (
@@ -735,12 +764,20 @@ export default function ChainDetail() {
                 className="bg-[#a3e635] text-[#18181b] py-2 px-4 rounded-lg hover:bg-[#bef264] transition duration-200"
                 onClick={() => handleRunChain()}
               >
-                {runChain ? 'Running...' : 'Run Chain'}
+                {runChain ? "Running..." : "Run Chain"}
               </button>
             )}
           </div>
         </main>
       </div>
+
+      <VariablesModal
+        isOpen={showVariablesModal}
+        onClose={handleVariablesModalClose}
+        onSubmit={handleVariablesSubmit}
+        chainId={chain?.id || 0}
+        chainName={chain?.name || ""}
+      />
     </div>
   );
 }
