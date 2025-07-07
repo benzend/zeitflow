@@ -334,6 +334,19 @@ export default function Results() {
     );
   }
 
+  const supplementStepPromptVariable = (step: QueuedChainStepWithDetails, varables: QueuedChainVariables[]): QueuedChainStepWithDetails => {
+    let newPrompt = step.prompt;
+
+    for (const variable of varables) {
+      newPrompt = newPrompt.replaceAll(
+        `{{${variable.variableName}}}`,
+        `{{${variable.variableName}: "${variable.variableValue}"}}`,
+      );
+    }
+
+    return { ...step, prompt: newPrompt };
+  };
+
   return (
     <div>
       <Head>
@@ -411,7 +424,7 @@ export default function Results() {
             </div>
           ) : (
             queuedChainSteps.map((step) => (
-              <StepCard key={step.id} step={step} />
+              <StepCard key={step.id} step={supplementStepPromptVariable(step, queuedChainVariables)} />
             ))
           )}
         </div>
