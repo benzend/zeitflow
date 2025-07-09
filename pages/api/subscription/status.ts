@@ -34,6 +34,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .where(eq(subscriptionsTable.userId, user[0].id))
       .limit(1);
 
+    if (['benjamin.scottt.dev@gmail.com', 'benn.jscott@gmail.com', 'benn.jscott+dev@gmail.com'].includes(user[0].email)) {
+      return res.json({
+        hasSubscription: false,
+        tier: 'GODMODE',
+        queueLimit: 10000,
+      });
+    }
+
+
     if (subscription.length === 0) {
       return res.json({
         hasSubscription: false,
