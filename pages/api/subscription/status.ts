@@ -64,7 +64,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         queueLimit = 20;
     }
 
-    if (['benjamin.scottt.dev@gmail.com', 'benn.jscott@gmail.com'].includes(user[0].email)) {
+    if (['benjamin.scottt.dev@gmail.com', 'benn.jscott@gmail.com', 'benn.jscott+dev@gmail.com'].includes(user[0].email)) {
       tier = 'GODMODE';
       queueLimit = 10000;
     }

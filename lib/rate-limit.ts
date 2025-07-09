@@ -119,7 +119,7 @@ export async function isRateLimitedWithSubscription(
     }
   }
 
-  if (['benjamin.scottt.dev@gmail.com', 'benn.jscott@gmail.com'].includes(user[0].email)) {
+  if (['benjamin.scottt.dev@gmail.com', 'benn.jscott@gmail.com', 'benn.jscott+dev@gmail.com'].includes(user[0].email)) {
     maxRequests = 10000;
     tier = 'GODMODE';
   }
