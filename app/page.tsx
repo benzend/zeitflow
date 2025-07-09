@@ -34,11 +34,14 @@ export default function Home() {
         </div>
 
         <main className="flex flex-col items-center gap-16 flex-1 justify-center w-full max-w-7xl">
-          <section className="bg-[#27272a]/50 backdrop-blur-sm rounded-3xl shadow-xl p-12 flex flex-col items-center gap-8 w-full animate-slide-up-fade delay-400">
+          <section className="bg-[#27272a]/50 backdrop-blur-sm rounded-3xl shadow-xl py-10 px-4 md:py-12 md:px-12 flex flex-col items-center gap-8 w-full animate-slide-up-fade delay-400">
             <h2 className="text-3xl font-bold text-[#a3e635] mb-6 animate-shimmer">
               How it works
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 w-full">
+            <div className="w-full md:px-10 mb-10">
+              <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0 }}><iframe src="https://cap.so/embed/khxp5yg4x6tpc9a" allowFullScreen style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}></iframe></div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 w-full px-10 pb-10 md:pb-0 md:px-0">
               {[
                 {
                   icon: QueueIcon,
@@ -120,11 +123,10 @@ export default function Home() {
               ].map((plan, index) => (
                 <div
                   key={plan.name}
-                  className={`relative bg-[#18181b] rounded-2xl p-6 border ${
-                    plan.popular 
-                      ? 'border-[#a3e635] shadow-lg shadow-[#a3e635]/20' 
-                      : 'border-[#404040]'
-                  } hover:border-[#a3e635] transition-all duration-300 animate-slide-up-fade`}
+                  className={`relative bg-[#18181b] rounded-2xl p-6 border ${plan.popular
+                    ? 'border-[#a3e635] shadow-lg shadow-[#a3e635]/20'
+                    : 'border-[#404040]'
+                    } hover:border-[#a3e635] transition-all duration-300 animate-slide-up-fade`}
                   style={{ animationDelay: `${(index + 6) * 100}ms` }}
                 >
                   {plan.popular && (
@@ -134,7 +136,7 @@ export default function Home() {
                       </span>
                     </div>
                   )}
-                  
+
                   <div className="text-center mb-6">
                     <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
                     <div className="flex items-baseline justify-center mb-2">
@@ -165,9 +167,8 @@ export default function Home() {
 
                   <Link
                     href={plan.href}
-                    className={`block w-full py-2 px-4 rounded-lg font-medium text-center text-white transition-all duration-200 ${plan.buttonClass} ${
-                      plan.popular ? 'hover:animate-pulse-glow' : ''
-                    }`}
+                    className={`block w-full py-2 px-4 rounded-lg font-medium text-center text-white transition-all duration-200 ${plan.buttonClass} ${plan.popular ? 'hover:animate-pulse-glow' : ''
+                      }`}
                   >
                     {plan.buttonText}
                   </Link>
