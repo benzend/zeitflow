@@ -79,7 +79,10 @@ export async function isRateLimitedWithSubscription(
 ): Promise<{ isLimited: boolean; tier: string; limit: number; remaining: number }> {
   // Get user and their subscription
   const user = await db
-    .select()
+    .select({
+      id: usersTable.id,
+      email: usersTable.email,
+    })
     .from(usersTable)
     .where(eq(usersTable.email, userEmail))
     .limit(1);
@@ -114,6 +117,11 @@ export async function isRateLimitedWithSubscription(
         maxRequests = SUBSCRIPTION_PLANS.FREE.queueLimit;
         tier = 'FREE';
     }
+  }
+
+  if (['benjamin.scottt.dev@gmail.com', 'benn.jscott@gmail.com'].includes(user[0].email)) {
+    maxRequests = 10000;
+    tier = 'GODMODE';
   }
 
   // Check rate limit

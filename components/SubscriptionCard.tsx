@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 
 interface SubscriptionStatus {
   hasSubscription: boolean;
-  tier: 'FREE' | 'PRO' | 'UNLIMITED';
+  tier: 'FREE' | 'PRO' | 'UNLIMITED' | 'GODMODE';
   queueLimit: number;
   status?: string;
   currentPeriodEnd?: string;
@@ -108,7 +108,7 @@ export default function SubscriptionModal({ onSubscriptionChange }: Subscription
         {loading ? (
           'Subscription'
         ) : subscription ? (
-          `${subscription.tier} Plan`
+          `${subscription.tier}${subscription.tier === 'GODMODE' ? '' : ' Plan'}`
         ) : (
           'Subscription'
         )}
