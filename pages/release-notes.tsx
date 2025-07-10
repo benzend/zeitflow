@@ -11,6 +11,27 @@ type ReleaseNote = {
 
 const releaseNotes: ReleaseNote[] = [
   {
+    version: "1.3.0",
+    date: "2025-07-09",
+    features: [
+      "Added multi-model AI support with Gemini 2.0, GPT-4, and Claude Sonnet 4",
+      "Implemented per-step model selection for granular control over AI processing",
+      "Added model dropdown selector in chain step editor with user-friendly names",
+      "Introduced model display in chain step view and results page",
+      "Set Gemini 2.0 Flash as the new default model for optimal performance",
+    ],
+    improvements: [
+      "Enhanced chain step creation workflow with model selection",
+      "Updated database schema to support model persistence across chain executions",
+      "Improved OpenRouter integration to support multiple AI providers",
+      "Added model information display in execution results for better transparency",
+    ],
+    fixes: [
+      "Ensured backward compatibility for existing chains without model specification",
+      "Fixed model parameter handling in API endpoints",
+    ],
+  },
+  {
     version: "1.2.0",
     date: "2025-07-06",
     features: [
