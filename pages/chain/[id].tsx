@@ -388,6 +388,7 @@ export default function ChainDetail() {
   const handleEditStep = (step: SelectChainStep) => {
     setEditingStepId(step.id);
     setEditStepPrompt(step.prompt);
+    setEditStepModel(step.model);
   };
 
   const handleCancelEditStep = () => {
