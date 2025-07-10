@@ -11,6 +11,7 @@ type QueuedChainStepWithDetails = {
   position: number;
   response: string | null;
   status: string;
+  model: string;
   error: string | null;
   createdAt: string;
   updatedAt: string;
@@ -193,6 +194,10 @@ const StepCard = ({ step }: { step: QueuedChainStepWithDetails }) => {
             )}
           </div>
         )}
+
+        <div className="text-xs text-gray-400">
+          Model: {step.model}
+        </div>
       </div>
     </div>
   );

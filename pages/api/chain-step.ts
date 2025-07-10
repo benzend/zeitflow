@@ -168,7 +168,7 @@ async function handlePut(
       .json({ success: false, message: 'Chain Step ID is required' });
   }
 
-  if (!req.body.prompt && !req.body.cycleCount && req.body.cycle_count === undefined && req.body.position === undefined) {
+  if (!req.body.prompt && !req.body.model && !req.body.cycleCount && req.body.cycle_count === undefined && req.body.position === undefined) {
     return res.status(400)
       .json({ success: false, message: 'At least one field (prompt, cycleCount, or position) must be provided for update' });
   }
@@ -197,6 +197,10 @@ async function handlePut(
 
   if (req.body.position !== undefined) {
     updateData.position = req.body.position;
+  }
+
+  if (req.body.model !== undefined) {
+    updateData.model = req.body.model;
   }
 
   if (Object.keys(updateData).length === 0) {

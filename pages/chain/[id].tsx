@@ -48,16 +48,24 @@ const ChainStepSkeleton = () => (
   </div>
 );
 
+const VERBOSE_MODELS = {
+  "google/gemini-2.0-flash-001": "Gemini 2.0",
+  "openai/gpt-4": "GPT-4",
+  "anthropic/claude-sonnet-4": "Claude Sonnet 4",
+} as const;
+
 interface SortableStepProps {
   step: SelectChainStep;
   index: number;
   editingStepId: number | null;
   editStepPrompt: string;
+  editStepModel: string;
   onEditStep: (step: SelectChainStep) => void;
   onCancelEditStep: () => void;
   onUpdateStep: (stepId: number) => void;
   onDeleteStep: (stepId: number) => void;
   setEditStepPrompt: (prompt: string) => void;
+  setEditStepModel: (prompt: string) => void;
 }
 
 const SortableStep = ({
@@ -65,11 +73,13 @@ const SortableStep = ({
   index,
   editingStepId,
   editStepPrompt,
+  editStepModel,
   onEditStep,
   onCancelEditStep,
   onUpdateStep,
   onDeleteStep,
   setEditStepPrompt,
+  setEditStepModel,
 }: SortableStepProps) => {
   const {
     attributes,
@@ -111,6 +121,19 @@ const SortableStep = ({
             className="w-full p-3 bg-foreground border border-primary/20 rounded-lg focus:outline-none focus:border-primary transition duration-200 text-primary min-h-[100px] mb-4"
             placeholder="Enter step prompt..."
           />
+
+          <div className="text-xs text-gray-400 mt-2">
+            <label htmlFor="model" className="mb-2">Model</label>
+            <br />
+            <select name="model" id="model" value={editStepModel} onChange={(e) => setEditStepModel(e.target.value)} className="border-gray-300 border px-3 py-2 rounded">
+              {Object.keys(VERBOSE_MODELS).map((model) => (
+                <option key={model} value={model}>
+                  {VERBOSE_MODELS[model as keyof typeof VERBOSE_MODELS]}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div className="flex justify-end gap-2">
             <button
               onClick={onCancelEditStep}
@@ -163,6 +186,9 @@ const SortableStep = ({
             text={step.prompt}
             className="text-primary whitespace-pre-wrap block"
           />
+          <div className="text-xs text-gray-400 mt-2">
+            Model: {VERBOSE_MODELS[step.model as keyof typeof VERBOSE_MODELS]}
+          </div>
         </div>
       )}
     </div>
@@ -180,6 +206,7 @@ export default function ChainDetail() {
   const [chainName, setChainName] = useState("");
   const [editingStepId, setEditingStepId] = useState<number | null>(null);
   const [editStepPrompt, setEditStepPrompt] = useState("");
+  const [editStepModel, setEditStepModel] = useState("");
   const [showVariablesModal, setShowVariablesModal] = useState(false);
   const router = useRouter();
   const { id } = router.query;
@@ -382,6 +409,7 @@ export default function ChainDetail() {
         },
         body: JSON.stringify({
           prompt: editStepPrompt,
+          model: editStepModel,
         }),
       });
 
@@ -436,8 +464,6 @@ export default function ChainDetail() {
 
       const newChainSteps = arrayMove(chainSteps, oldIndex, newIndex);
       setChainSteps(newChainSteps);
-
-      console.log("new chain steps", newChainSteps);
 
       try {
         await Promise.all(
@@ -681,11 +707,13 @@ export default function ChainDetail() {
                       index={index}
                       editingStepId={editingStepId}
                       editStepPrompt={editStepPrompt}
+                      editStepModel={editStepModel}
                       onEditStep={handleEditStep}
                       onCancelEditStep={handleCancelEditStep}
                       onUpdateStep={handleUpdateStep}
                       onDeleteStep={handleDeleteStep}
                       setEditStepPrompt={setEditStepPrompt}
+                      setEditStepModel={setEditStepModel}
                     />
                   ))}
                 </SortableContext>

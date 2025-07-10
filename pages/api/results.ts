@@ -138,6 +138,7 @@ export default async function handler(
         response: queuedChainStepsTable.response,
         position: queuedChainStepsTable.position,
         status: queuedChainStepsTable.status,
+        model: queuedChainStepsTable.model,
         error: queuedChainStepsTable.error,
         createdAt: queuedChainStepsTable.createdAt,
         updatedAt: queuedChainStepsTable.updatedAt,
