@@ -1,0 +1,2 @@
+ALTER TABLE "chain_steps" ADD COLUMN "model" text DEFAULT 'google/gemini-2.0-flash-001' NOT NULL;--> statement-breakpoint
+ALTER TABLE "queued_chain_steps" ADD COLUMN "model" text DEFAULT 'google/gemini-2.0-flash-001' NOT NULL;

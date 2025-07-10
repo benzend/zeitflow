@@ -135,6 +135,8 @@ export const chainStepsTable = pgTable("chain_steps", {
   result: text("result"),
   position: integer("position").notNull(),
 
+  model: text("model").notNull().default("google/gemini-2.0-flash-001"),
+
   cycleCount: integer("cycle_count").notNull(),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -207,6 +209,8 @@ export const queuedChainStepsTable = pgTable("queued_chain_steps", {
   userId: text("user_id")
     .notNull()
     .references(() => usersTable.id, { onDelete: "cascade" }),
+
+  model: text("model").notNull().default("google/gemini-2.0-flash-001"),
 
   prompt: text("prompt").notNull(),
   position: integer("position").notNull(),

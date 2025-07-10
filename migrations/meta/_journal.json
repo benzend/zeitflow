@@ -71,6 +71,13 @@
       "when": 1751852035568,
       "tag": "0009_thick_songbird",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1752116411928,
+      "tag": "0010_ambitious_mole_man",
+      "breakpoints": true
     }
   ]
 }

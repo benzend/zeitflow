@@ -160,6 +160,7 @@ export default async function handler(
         queuedChainId: queuedChain[0].id,
         chainStepId: cs.id,
         status: "pending",
+        model: cs.model,
         userId: user[0].id,
       })),
     );

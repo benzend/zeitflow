@@ -16,6 +16,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@neondatabase/serverless": "^1.0.0",
     "@next/third-parties": "^15.3.3",
+    "@openrouter/ai-sdk-provider": "^0.7.2",
     "@stripe/stripe-js": "^7.3.1",
     "@types/bcryptjs": "^3.0.0",
     "@vemetric/react": "^0.5.4",

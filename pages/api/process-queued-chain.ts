@@ -5,6 +5,7 @@ import { isRateLimited } from "@/lib/rate-limit";
 import { substituteVariables } from "@/lib/variables";
 import { and, asc, eq } from "drizzle-orm";
 import { config } from "dotenv";
+import { chat } from "./utils/openrouter";
 
 config({ path: ".env.local" });
 
@@ -205,8 +206,9 @@ export default async function handler(
         queuedChainStep.queuedChainId,
       );
 
-      const response = await chat(
+      const { text: response } = await chat(
         mergePrevResponseWithPrompt(previousResponse, processedPrompt),
+        queuedChainStep.model,
       );
 
       // Let the system know that the chain step is completed
@@ -214,7 +216,7 @@ export default async function handler(
         .update(queuedChainStepsTable)
         .set({
           status: "completed",
-          response: response.choices[0].message.content,
+          response: response,
         })
         .where(eq(queuedChainStepsTable.id, queuedChainStep.id));
 
@@ -258,36 +260,6 @@ export default async function handler(
       .status(500)
       .json({ success: false, message: "Failed to process request" });
   }
-}
-
-async function chat(prompt: string) {
-  const response = await fetch(
-    "https://openrouter.ai/api/v1/chat/completions",
-    {
-      method: "POST",
-      headers: {
-        Authorization: "Bearer " + process.env.OPENROUTER_API_KEY,
-        "HTTP-Referer": "https://jjoist.com", // Optional. Site URL for rankings on openrouter.ai.
-        "X-Title": "jjoist", // Optional. Site title for rankings on openrouter.ai.
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "openai/gpt-4o",
-        messages: [
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-      }),
-    },
-  );
-
-  if (response.status !== 200) {
-    throw new Error(`OpenAI API returned an error: ${response.statusText}`);
-  }
-
-  return response.json();
 }
 
 function mergePrevResponseWithPrompt(
