@@ -69,6 +69,7 @@ export default function Dashboard() {
   const [showVariablesModal, setShowVariablesModal] = useState(false);
   const [selectedChainForQueue, setSelectedChainForQueue] =
     useState<ChainWithStepCount | null>(null);
+  const [activeTab, setActiveTab] = useState<'chains' | 'in-progress' | 'completed'>('chains');
 
   // Redirect to sign-in if not authenticated
   useEffect(() => {
@@ -237,25 +238,40 @@ export default function Dashboard() {
     }
   };
 
+  // Filter chains for different sections
+  const inProgressChains = queuedChains.filter(
+    (qc) => qc.status === "pending" || qc.status === "processing" || qc.status === "stopped"
+  );
+  
+  const completedChains = queuedChains.filter(
+    (qc) => qc.status === "completed" || qc.status === "error"
+  ).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
   return (
     <div>
       <Head>
         <title>Dashboard - jjoist</title>
         <meta name="description" content="Manage your AI chains" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className="container mx-auto px-4 py-10 max-w-6xl min-h-[90vh]">
-        <nav className="mb-10 flex justify-between items-center">
-          <ul className="flex gap-4">
-            <li>
-              <Link href="/dashboard">
-                <span className="text-primary underline hover:text-primary-light transition duration-200">
-                  Dashboard
-                </span>
-              </Link>
-            </li>
-          </ul>
+      <main className="container mx-auto px-4 py-6 max-w-6xl min-h-[90vh]">
+        {/* Mobile-friendly navigation */}
+        <nav className="mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+          <div className="flex items-center justify-between">
+            <Link href="/dashboard">
+              <span className="text-primary underline hover:text-primary-light transition duration-200 text-lg font-semibold">
+                Dashboard
+              </span>
+            </Link>
+            <button
+              className="sm:hidden text-primary p-2 rounded-lg cursor-pointer text-xl"
+              onClick={() => setShowAddChainModal(true)}
+            >
+              +
+            </button>
+          </div>
 
           <div className="flex gap-4 items-center">
             <SubscriptionModal onSubscriptionChange={fetchChains} />
@@ -264,13 +280,49 @@ export default function Dashboard() {
         </nav>
 
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 text-sm">
             {error}
           </div>
         )}
 
-        {/* Kanban Board Layout */}
-        <div className="flex gap-6 w-full">
+        {/* Mobile Tab Navigation */}
+        <div className="sm:hidden mb-6">
+          <div className="flex bg-foreground rounded-lg p-1">
+            <button
+              onClick={() => setActiveTab('chains')}
+              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                activeTab === 'chains'
+                  ? 'bg-primary text-[#18181b]'
+                  : 'text-primary hover:text-primary-light'
+              }`}
+            >
+              Chains ({chains.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('in-progress')}
+              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                activeTab === 'in-progress'
+                  ? 'bg-primary text-[#18181b]'
+                  : 'text-primary hover:text-primary-light'
+              }`}
+            >
+              In Progress ({inProgressChains.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('completed')}
+              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                activeTab === 'completed'
+                  ? 'bg-primary text-[#18181b]'
+                  : 'text-primary hover:text-primary-light'
+              }`}
+            >
+              Completed ({completedChains.length})
+            </button>
+          </div>
+        </div>
+
+        {/* Desktop Layout */}
+        <div className="hidden sm:flex gap-6 w-full">
           {/* Prompt Chains Column */}
           <section className="flex-1 flex flex-col bg-foreground rounded-lg p-4 h-[70vh]">
             <div className="flex justify-between items-center mb-4">
@@ -335,62 +387,55 @@ export default function Dashboard() {
                     <QueuedChainSkeleton />
                   </>
                 ) : (
-                  queuedChains
-                    .filter(
-                      (qc) =>
-                        qc.status === "pending" ||
-                        qc.status === "processing" ||
-                        qc.status === "stopped",
-                    )
-                    .map((queuedChain) => {
-                      const chain = chains.find(
-                        (c) => c.id === queuedChain.chainId,
-                      );
-                      if (!chain) return null;
-                      return (
-                        <Card
-                          key={queuedChain.id}
-                          name={chain.name || ""}
-                          actions={
-                            <>
-                              <Link
-                                href={`/results/${queuedChain.id}`}
-                                className="border-primary border-1 text-primary py-1 px-2 rounded hover:border-primary-light hover:text-primary-light cursor-pointer transition duration-200 text-sm"
+                  inProgressChains.map((queuedChain) => {
+                    const chain = chains.find(
+                      (c) => c.id === queuedChain.chainId,
+                    );
+                    if (!chain) return null;
+                    return (
+                      <Card
+                        key={queuedChain.id}
+                        name={chain.name || ""}
+                        actions={
+                          <>
+                            <Link
+                              href={`/results/${queuedChain.id}`}
+                              className="border-primary border-1 text-primary py-1 px-2 rounded hover:border-primary-light hover:text-primary-light cursor-pointer transition duration-200 text-sm"
+                            >
+                              View
+                            </Link>
+                            {queuedChain.status === "processing" && (
+                              <button
+                                className="bg-red-500 text-white py-1 px-2 rounded hover:bg-red-600 cursor-pointer transition duration-200 text-sm"
+                                onClick={() =>
+                                  handleStopChain(queuedChain.id)
+                                }
                               >
-                                View
-                              </Link>
-                              {queuedChain.status === "processing" && (
-                                <button
-                                  className="bg-red-500 text-white py-1 px-2 rounded hover:bg-red-600 cursor-pointer transition duration-200 text-sm"
-                                  onClick={() =>
-                                    handleStopChain(queuedChain.id)
-                                  }
-                                >
-                                  Stop
-                                </button>
-                              )}
-                              {queuedChain.status === "stopped" && (
-                                <button
-                                  className="bg-red-500 text-white py-1 px-2 rounded hover:bg-red-600 cursor-pointer transition duration-200 text-sm"
-                                  onClick={() =>
-                                    handleResumeChain(queuedChain.id)
-                                  }
-                                >
-                                  Resume
-                                </button>
-                              )}
-                            </>
-                          }
-                          stepsCount={queuedChain.steps?.length || 0}
-                          stepsCompletedCount={
-                            queuedChain.steps?.filter(
-                              (step) => step.status === "completed",
-                            ).length || 0
-                          }
-                          error={queuedChain.error || ""}
-                        />
-                      );
-                    })
+                                Stop
+                              </button>
+                            )}
+                            {queuedChain.status === "stopped" && (
+                              <button
+                                className="bg-red-500 text-white py-1 px-2 rounded hover:bg-red-600 cursor-pointer transition duration-200 text-sm"
+                                onClick={() =>
+                                  handleResumeChain(queuedChain.id)
+                                }
+                              >
+                                Resume
+                              </button>
+                            )}
+                          </>
+                        }
+                        stepsCount={queuedChain.steps?.length || 0}
+                        stepsCompletedCount={
+                          queuedChain.steps?.filter(
+                            (step: any) => step.status === "completed",
+                          ).length || 0
+                        }
+                        error={queuedChain.error || ""}
+                      />
+                    );
+                  })
                 )}
               </div>
             </div>
@@ -410,55 +455,214 @@ export default function Dashboard() {
                     <QueuedChainSkeleton />
                   </>
                 ) : (
-                  queuedChains
-                    .filter(
-                      (qc) =>
-                        qc.status === "completed" || qc.status === "error",
-                    )
-                    .toSorted(
-                      (a, b) =>
-                        new Date(b.createdAt).getTime() -
-                        new Date(a.createdAt).getTime(),
-                    )
-                    .map((queuedChain) => {
-                      const chain = chains.find(
-                        (c) => c.id === queuedChain.chainId,
-                      );
-                      if (!chain) return null;
-                      return (
-                        <Card
-                          key={queuedChain.id}
-                          name={chain.name || ""}
-                          actions={
-                            <>
-                              <Link
-                                href={`/results/${queuedChain.id}`}
-                                className="bg-primary text-[#18181b] py-1 px-2 rounded hover:bg-primary-light cursor-pointer transition duration-200 text-sm"
-                              >
-                                View Results
-                              </Link>
-                            </>
-                          }
-                          stepsCount={queuedChain.steps?.length || 0}
-                          stepsCompletedCount={
-                            queuedChain.steps?.filter(
-                              (step) => step.status === "completed",
-                            ).length || 0
-                          }
-                          error={queuedChain.error || ""}
-                        />
-                      );
-                    })
+                  completedChains.map((queuedChain) => {
+                    const chain = chains.find(
+                      (c) => c.id === queuedChain.chainId,
+                    );
+                    if (!chain) return null;
+                    return (
+                      <Card
+                        key={queuedChain.id}
+                        name={chain.name || ""}
+                        actions={
+                          <>
+                            <Link
+                              href={`/results/${queuedChain.id}`}
+                              className="bg-primary text-[#18181b] py-1 px-2 rounded hover:bg-primary-light cursor-pointer transition duration-200 text-sm"
+                            >
+                              View Results
+                            </Link>
+                          </>
+                        }
+                        stepsCount={queuedChain.steps?.length || 0}
+                        stepsCompletedCount={
+                          queuedChain.steps?.filter(
+                            (step: any) => step.status === "completed",
+                          ).length || 0
+                        }
+                        error={queuedChain.error || ""}
+                      />
+                    );
+                  })
                 )}
               </div>
             </div>
           </section>
         </div>
+
+        {/* Mobile Layout */}
+        <div className="sm:hidden">
+          {/* Prompt Chains Section */}
+          {activeTab === 'chains' && (
+            <section className="bg-foreground rounded-lg p-4">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-bold text-primary">Prompt Chains</h2>
+                <button
+                  className="text-primary p-2 rounded-lg cursor-pointer"
+                  onClick={() => setShowAddChainModal(true)}
+                >
+                  +
+                </button>
+              </div>
+              <div className="flex flex-col gap-4">
+                {loading ? (
+                  <>
+                    <ChainSkeleton />
+                    <ChainSkeleton />
+                    <ChainSkeleton />
+                  </>
+                ) : (
+                  chains.map((chain) => (
+                    <MobileCard
+                      key={chain.id}
+                      name={chain.name || ""}
+                      actions={
+                        <>
+                          <Link
+                            href={`/chain/${chain.id}`}
+                            className="border-primary border-1 text-primary py-1 px-2 rounded hover:border-primary-light hover:text-primary-light cursor-pointer transition duration-200 text-sm"
+                          >
+                            Edit
+                          </Link>
+                          <button
+                            onClick={() => handleAddChainToQueue(chain.id)}
+                            className="bg-primary text-[#18181b] py-1 px-2 rounded hover:bg-primary-light cursor-pointer transition duration-200 text-sm"
+                          >
+                            Run
+                          </button>
+                        </>
+                      }
+                      stepsCount={chain.stepCount}
+                      stepsCompletedCount={0}
+                      showProgress={false}
+                    />
+                  ))
+                )}
+              </div>
+            </section>
+          )}
+
+          {/* In Progress Section */}
+          {activeTab === 'in-progress' && (
+            <section className="bg-foreground rounded-lg p-4">
+              <h2 className="text-lg font-bold text-primary py-2 mb-4">
+                In Progress
+              </h2>
+              <div className="flex flex-col gap-4">
+                {loading ? (
+                  <>
+                    <QueuedChainSkeleton />
+                    <QueuedChainSkeleton />
+                    <QueuedChainSkeleton />
+                  </>
+                ) : (
+                  inProgressChains.map((queuedChain) => {
+                    const chain = chains.find(
+                      (c) => c.id === queuedChain.chainId,
+                    );
+                    if (!chain) return null;
+                    return (
+                      <MobileCard
+                        key={queuedChain.id}
+                        name={chain.name || ""}
+                        actions={
+                          <>
+                            <Link
+                              href={`/results/${queuedChain.id}`}
+                              className="border-primary border-1 text-primary py-1 px-2 rounded hover:border-primary-light hover:text-primary-light cursor-pointer transition duration-200 text-sm"
+                            >
+                              View
+                            </Link>
+                            {queuedChain.status === "processing" && (
+                              <button
+                                className="bg-red-500 text-white py-1 px-2 rounded hover:bg-red-600 cursor-pointer transition duration-200 text-sm"
+                                onClick={() =>
+                                  handleStopChain(queuedChain.id)
+                                }
+                              >
+                                Stop
+                              </button>
+                            )}
+                            {queuedChain.status === "stopped" && (
+                              <button
+                                className="bg-red-500 text-white py-1 px-2 rounded hover:bg-red-600 cursor-pointer transition duration-200 text-sm"
+                                onClick={() =>
+                                  handleResumeChain(queuedChain.id)
+                                }
+                              >
+                                Resume
+                              </button>
+                            )}
+                          </>
+                        }
+                        stepsCount={queuedChain.steps?.length || 0}
+                        stepsCompletedCount={
+                          queuedChain.steps?.filter(
+                            (step: any) => step.status === "completed",
+                          ).length || 0
+                        }
+                        error={queuedChain.error || ""}
+                      />
+                    );
+                  })
+                )}
+              </div>
+            </section>
+          )}
+
+          {/* Completed Section */}
+          {activeTab === 'completed' && (
+            <section className="bg-foreground rounded-lg p-4">
+              <h2 className="text-lg font-bold text-primary py-2 mb-4">
+                Completed
+              </h2>
+              <div className="flex flex-col gap-4">
+                {loading ? (
+                  <>
+                    <QueuedChainSkeleton />
+                    <QueuedChainSkeleton />
+                    <QueuedChainSkeleton />
+                  </>
+                ) : (
+                  completedChains.map((queuedChain) => {
+                    const chain = chains.find(
+                      (c) => c.id === queuedChain.chainId,
+                    );
+                    if (!chain) return null;
+                    return (
+                      <MobileCard
+                        key={queuedChain.id}
+                        name={chain.name || ""}
+                        actions={
+                          <>
+                            <Link
+                              href={`/results/${queuedChain.id}`}
+                              className="bg-primary text-[#18181b] py-1 px-2 rounded hover:bg-primary-light cursor-pointer transition duration-200 text-sm"
+                            >
+                              View Results
+                            </Link>
+                          </>
+                        }
+                        stepsCount={queuedChain.steps?.length || 0}
+                        stepsCompletedCount={
+                          queuedChain.steps?.filter(
+                            (step: any) => step.status === "completed",
+                          ).length || 0
+                        }
+                        error={queuedChain.error || ""}
+                      />
+                    );
+                  })
+                )}
+              </div>
+            </section>
+          )}
+        </div>
       </main>
 
       {showAddChainModal && (
-        <div className="fixed inset-0 bg-black/50 flex justify-center items-center">
-          <div className="bg-foreground p-8 rounded-lg shadow-lg max-w-md w-full">
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center p-4 z-50">
+          <div className="bg-foreground p-6 rounded-lg shadow-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-primary">Add New Chain</h2>
               <button
@@ -516,6 +720,7 @@ export default function Dashboard() {
   );
 }
 
+// Desktop Card Component
 const Card = ({
   name,
   actions,
@@ -552,6 +757,51 @@ const Card = ({
           )}
         </div>
         <div className="flex gap-2 justify-end">{actions}</div>
+      </div>
+      {showProgress && stepsCount > 0 && (
+        <ProgressBar completed={stepsCompletedCount} total={stepsCount} />
+      )}
+    </div>
+  );
+};
+
+// Mobile Card Component
+const MobileCard = ({
+  name,
+  actions,
+  stepsCount,
+  stepsCompletedCount,
+  error,
+  showProgress = true,
+}: {
+  name: string;
+  actions: React.ReactNode;
+  stepsCount: number;
+  stepsCompletedCount: number;
+  error?: string;
+  showProgress?: boolean;
+}) => {
+  return (
+    <div className="border-[#a3e635] border-1 rounded-lg shadow hover:shadow-md transition duration-200 bg-foreground-light overflow-hidden">
+      <div className="p-4">
+        <div className="flex justify-between items-start mb-3">
+          <div className="flex-1">
+            <h3 className="text-md text-[#a3e635] font-semibold">{name}</h3>
+            <div className="text-sm text-gray-400 mt-1">
+              {error && <span className="text-red-400">(Error)</span>}
+            </div>
+          </div>
+          <div className="flex gap-2 flex-wrap">{actions}</div>
+        </div>
+        <div className="mt-3">
+          {showProgress ? (
+            <p className="text-sm font-bold text-primary">
+              {stepsCompletedCount}/{stepsCount} Steps Processed
+            </p>
+          ) : (
+            <p className="text-sm font-bold text-primary">{stepsCount} Steps</p>
+          )}
+        </div>
       </div>
       {showProgress && stepsCount > 0 && (
         <ProgressBar completed={stepsCompletedCount} total={stepsCount} />
