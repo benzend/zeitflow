@@ -11,6 +11,25 @@ type ReleaseNote = {
 
 const releaseNotes: ReleaseNote[] = [
   {
+    version: "1.4.0",
+    date: "2025-07-12",
+    features: [
+      "Added comprehensive account settings page with profile information display",
+      "Implemented account deletion functionality with multi-step confirmation process",
+      "Added profile dropdown component for better user navigation",
+      "Enhanced subscription management integration in settings",
+    ],
+    improvements: [
+      "Improved user account management with centralized settings interface",
+      "Enhanced security with password confirmation for account deletion",
+      "Better user experience with clear danger zone warnings",
+      "Streamlined navigation with profile dropdown access",
+    ],
+    fixes: [
+      "Fixed input prompt formatting issues in chain results",
+    ],
+  },
+  {
     version: "1.3.0",
     date: "2025-07-09",
     features: [
