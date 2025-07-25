@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { SelectChain, SelectQueuedChainWithStatus } from "@/schema";
 import Link from "next/link";
 
 type ChainWithStepCount = SelectChain & { stepCount: number };
 import SubscriptionModal from "@/components/SubscriptionCard";
 import VariablesModal from "@/components/VariablesModal";
+import ProfileDropdown from "@/components/ProfileDropdown";
 
 // Add loading skeleton components
 const ChainSkeleton = () => (
@@ -258,12 +259,7 @@ export default function Dashboard() {
 
           <div className="flex gap-4 items-center">
             <SubscriptionModal onSubscriptionChange={fetchChains} />
-            <button
-              onClick={() => signOut({ callbackUrl: "/auth/signin" })}
-              className="bg-primary text-[#18181b] py-2 px-4 rounded-lg hover:bg-primary-light transition duration-200 cursor-pointer"
-            >
-              Sign Out
-            </button>
+            <ProfileDropdown />
           </div>
         </nav>
 

@@ -162,12 +162,12 @@ const StepCard = ({ step }: { step: QueuedChainStepWithDetails }) => {
           </div>
         </div>
 
-        <div className="bg-foreground p-4 rounded border text-primary/90 mb-4">
+        <div className="bg-foreground p-4 rounded border text-primary/90 mb-4 whitespace-pre-wrap">
           {step.prompt}
         </div>
 
         {isExpanded && (
-          <div className="space-y-4 border-t border-primary/20 pt-4">
+          <div className="space-y-4 border-t border-primary/20 pt-4 mb-4">
             {step.response && (
               <div>
                 <div className="flex justify-between items-center mb-2">
