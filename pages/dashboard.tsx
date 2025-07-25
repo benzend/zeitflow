@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
-import { SelectChain, SelectQueuedChainWithStatus } from "@/schema";
+import { SelectChain, SelectQueuedChainWithStatus, SelectQueuedChainStep } from "@/schema";
 import Link from "next/link";
 
 type ChainWithStepCount = SelectChain & { stepCount: number };
@@ -429,7 +429,7 @@ export default function Dashboard() {
                         stepsCount={queuedChain.steps?.length || 0}
                         stepsCompletedCount={
                           queuedChain.steps?.filter(
-                            (step: any) => step.status === "completed",
+                            (step: SelectQueuedChainStep) => step.status === "completed",
                           ).length || 0
                         }
                         error={queuedChain.error || ""}
@@ -477,7 +477,7 @@ export default function Dashboard() {
                         stepsCount={queuedChain.steps?.length || 0}
                         stepsCompletedCount={
                           queuedChain.steps?.filter(
-                            (step: any) => step.status === "completed",
+                            (step: SelectQueuedChainStep) => step.status === "completed",
                           ).length || 0
                         }
                         error={queuedChain.error || ""}
@@ -598,7 +598,7 @@ export default function Dashboard() {
                         stepsCount={queuedChain.steps?.length || 0}
                         stepsCompletedCount={
                           queuedChain.steps?.filter(
-                            (step: any) => step.status === "completed",
+                            (step: SelectQueuedChainStep) => step.status === "completed",
                           ).length || 0
                         }
                         error={queuedChain.error || ""}
@@ -646,7 +646,7 @@ export default function Dashboard() {
                         stepsCount={queuedChain.steps?.length || 0}
                         stepsCompletedCount={
                           queuedChain.steps?.filter(
-                            (step: any) => step.status === "completed",
+                            (step: SelectQueuedChainStep) => step.status === "completed",
                           ).length || 0
                         }
                         error={queuedChain.error || ""}

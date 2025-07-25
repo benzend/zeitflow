@@ -9,8 +9,6 @@ import SubscriptionModal from "@/components/SubscriptionCard";
 export default function Settings() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteStep, setDeleteStep] = useState(1);
   const [password, setPassword] = useState("");
@@ -28,17 +26,7 @@ export default function Settings() {
     }
   }, [session, status, router]);
 
-  const handleSaveSettings = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setMessage("");
 
-    // Simulate saving settings
-    setTimeout(() => {
-      setMessage("Settings saved successfully!");
-      setLoading(false);
-    }, 1000);
-  };
 
   const handleDeleteAccount = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,7 +53,7 @@ export default function Settings() {
       } else {
         setDeleteError(data.error || "Failed to delete account");
       }
-    } catch (error) {
+    } catch {
       setDeleteError("An error occurred while deleting your account");
     } finally {
       setDeleteLoading(false);
@@ -129,11 +117,7 @@ export default function Settings() {
         <div className="bg-foreground rounded-lg p-8 shadow-lg">
           <h1 className="text-2xl font-bold text-primary mb-8">Account Settings</h1>
 
-          {message && (
-            <div className="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
-              {message}
-            </div>
-          )}
+
 
           <div className="space-y-8">
             {/* Profile Information */}
