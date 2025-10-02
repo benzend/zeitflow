@@ -124,8 +124,7 @@ export default function VariablesModal({
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       {variable}
                     </label>
-                    <input
-                      type="text"
+                    <textarea
                       value={values[variable] || ""}
                       onChange={(e) =>
                         handleValueChange(variable, e.target.value)
