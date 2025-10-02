@@ -4,6 +4,8 @@ import { useRouter } from "next/router";
 import { SelectChain, SelectChainStep } from "@/schema";
 import VariablesModal from "@/components/VariablesModal";
 import { HighlightedText } from "@/lib/highlight-variables";
+import { extractVariablesFromChainSteps } from "@/lib/variables-client";
+import TypeaheadTextarea from "@/components/TypeaheadTextarea";
 import {
   DndContext,
   closestCenter,
@@ -66,6 +68,7 @@ interface SortableStepProps {
   onDeleteStep: (stepId: number) => void;
   setEditStepPrompt: (prompt: string) => void;
   setEditStepModel: (prompt: string) => void;
+  getEditStepSuggestions: () => string[];
 }
 
 const SortableStep = ({
@@ -80,6 +83,7 @@ const SortableStep = ({
   onDeleteStep,
   setEditStepPrompt,
   setEditStepModel,
+  getEditStepSuggestions,
 }: SortableStepProps) => {
   const {
     attributes,
@@ -119,9 +123,10 @@ const SortableStep = ({
               ✕
             </button>
           </div>
-          <textarea
+          <TypeaheadTextarea
             value={editStepPrompt}
-            onChange={(e) => setEditStepPrompt(e.target.value)}
+            onChange={setEditStepPrompt}
+            suggestions={getEditStepSuggestions()}
             className="w-full p-3 bg-foreground border border-primary/20 rounded-lg focus:outline-none focus:border-primary transition duration-200 text-primary min-h-[100px] mb-4"
             placeholder="Enter step prompt..."
           />
@@ -211,9 +216,39 @@ export default function ChainDetail() {
   const [editingStepId, setEditingStepId] = useState<number | null>(null);
   const [editStepPrompt, setEditStepPrompt] = useState("");
   const [editStepModel, setEditStepModel] = useState("");
+  const [newStepPrompt, setNewStepPrompt] = useState("");
   const [showVariablesModal, setShowVariablesModal] = useState(false);
   const router = useRouter();
   const { id } = router.query;
+
+  // Safely get available variables for editing
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const getEditStepSuggestions = () => {
+    try {
+      if (!chainSteps || !Array.isArray(chainSteps) || !editingStepId) {
+        return [];
+      }
+      const otherSteps = chainSteps.filter((step: SelectChainStep) => step.id !== editingStepId);
+      return extractVariablesFromChainSteps(otherSteps);
+    } catch (error) {
+      console.error('Error extracting variables for edit step:', error);
+      return [];
+    }
+  };
+
+  // Safely get available variables for new step
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const getNewStepSuggestions = () => {
+    try {
+      if (!chainSteps || !Array.isArray(chainSteps)) {
+        return [];
+      }
+      return extractVariablesFromChainSteps(chainSteps);
+    } catch (error) {
+      console.error('Error extracting variables for new step:', error);
+      return [];
+    }
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -312,15 +347,8 @@ export default function ChainDetail() {
   const handleAddChainStep = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const formData = new FormData(e.target as HTMLFormElement);
-
-    if (!formData.get("prompt")) {
+    if (!newStepPrompt.trim()) {
       setError("Chain step prompt is required");
-      return;
-    }
-
-    if (!formData.get("position")) {
-      setError("Chain step position is required");
       return;
     }
 
@@ -331,9 +359,9 @@ export default function ChainDetail() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          prompt: formData.get("prompt"),
+          prompt: newStepPrompt,
           chainId: id,
-          position: formData.get("position"),
+          position: chainSteps?.length || 0,
         }),
       });
 
@@ -341,6 +369,7 @@ export default function ChainDetail() {
 
       if (data.success) {
         setAddChainStep(false);
+        setNewStepPrompt("");
         fetchChain(id as string);
       } else {
         setError(data.message || "Failed to add chain step");
@@ -719,6 +748,7 @@ export default function ChainDetail() {
                       onDeleteStep={handleDeleteStep}
                       setEditStepPrompt={setEditStepPrompt}
                       setEditStepModel={setEditStepModel}
+                      getEditStepSuggestions={getEditStepSuggestions}
                     />
                   ))}
                 </SortableContext>
@@ -732,7 +762,10 @@ export default function ChainDetail() {
                     Add New Step
                   </h3>
                   <button
-                    onClick={() => setAddChainStep(false)}
+                    onClick={() => {
+                      setAddChainStep(false);
+                      setNewStepPrompt("");
+                    }}
                     className="text-gray-400 hover:text-gray-600 transition duration-200"
                   >
                     ✕
@@ -746,18 +779,24 @@ export default function ChainDetail() {
                     >
                       Prompt
                     </label>
-                    <textarea
+                    <TypeaheadTextarea
                       id="chainStepPrompt"
                       name="prompt"
+                      value={newStepPrompt}
+                      onChange={setNewStepPrompt}
+                      suggestions={getNewStepSuggestions()}
                       className="w-full p-3 bg-foreground border border-primary/20 rounded-lg focus:outline-none focus:border-primary transition duration-200 text-primary min-h-[100px]"
                       required
                     />
-                    <input type="hidden" name="chainId" value={chain.id} />
+
                   </div>
                   <div className="flex justify-end gap-4">
                     <button
                       type="button"
-                      onClick={() => setAddChainStep(false)}
+                      onClick={() => {
+                        setAddChainStep(false);
+                        setNewStepPrompt("");
+                      }}
                       className="px-4 py-2 text-primary hover:text-primary-light transition duration-200"
                     >
                       Cancel
@@ -769,11 +808,7 @@ export default function ChainDetail() {
                       Add Step
                     </button>
                   </div>
-                  <input
-                    type="hidden"
-                    name="position"
-                    value={chainSteps?.length || 0}
-                  />
+
                 </form>
               </div>
             )}
