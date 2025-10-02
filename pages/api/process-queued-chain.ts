@@ -207,7 +207,7 @@ export default async function handler(
       );
 
       const { text: response } = await chat(
-        mergePrevResponseWithPrompt(previousResponse, processedPrompt),
+        processedPrompt,
         queuedChainStep.model,
       );
 
@@ -260,15 +260,4 @@ export default async function handler(
       .status(500)
       .json({ success: false, message: "Failed to process request" });
   }
-}
-
-function mergePrevResponseWithPrompt(
-  previousResponse: string | null,
-  prompt: string,
-) {
-  if (!previousResponse) {
-    return prompt;
-  }
-
-  return prompt + "\n\n" + previousResponse;
 }
