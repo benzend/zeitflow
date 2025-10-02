@@ -165,45 +165,11 @@ export default async function handler(
       .where(eq(queuedChainStepsTable.id, queuedChainStep.id));
 
     try {
-      let previousQueuedChainStep = null;
-
-      if (queuedChainStep.position !== 0) {
-        console.debug("finding previous step");
-        console.debug("position", queuedChainStep.position);
-
-        const prev = await db
-          .select()
-          .from(queuedChainStepsTable)
-          .where(
-            and(
-              eq(
-                queuedChainStepsTable.queuedChainId,
-                queuedChainStep.queuedChainId,
-              ),
-              eq(queuedChainStepsTable.status, "completed"),
-            ),
-          )
-          .limit(1);
-
-        if (prev.length > 0) {
-          previousQueuedChainStep = prev[0];
-        } else {
-          throw new Error("Previous queued chain step not found");
-        }
-      }
-
-      let previousResponse = null;
-      if (previousQueuedChainStep) {
-        console.debug("found previous step", previousQueuedChainStep.id);
-        previousResponse = previousQueuedChainStep.response;
-      } else {
-        console.debug("no previous step found");
-      }
-
       // Substitute variables in the prompt
       const processedPrompt = await substituteVariables(
         queuedChainStep.prompt,
         queuedChainStep.queuedChainId,
+        queuedChainStep.id
       );
 
       const { text: response } = await chat(
