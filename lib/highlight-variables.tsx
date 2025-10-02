@@ -12,10 +12,10 @@ export function highlightVariables(text: string): React.ReactNode[] {
       return (
         <span
           key={index}
-          className="bg-[#a3e635] bg-opacity-20 text-[#a3e635] px-1 rounded font-medium"
+          className="bg-[#a3e635]/20 rounded-lg px-2 py-1 text-xs font-semibold text-[#a3e635]"
           title="Variable"
         >
-          {part}
+          {part.slice(2, -2)}
         </span>
       );
     } else {
