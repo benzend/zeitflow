@@ -107,6 +107,10 @@ const SortableStep = ({
           <div className="flex justify-between items-center mb-4">
             <h4 className="font-semibold text-primary">
               Edit Step {index + 1}
+
+              <span className="text-xs text-gray-400 ml-4">
+                Note: Use {"{{"}variableName{"}}"} to create a variable
+              </span>
             </h4>
             <button
               onClick={onCancelEditStep}
