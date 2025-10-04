@@ -81,7 +81,7 @@ export function useTypeahead(
     // Find the last {{ pattern - use a more specific approach
     const lastBraceIndex = beforeCursor.lastIndexOf('{{');
     if (lastBraceIndex === -1) {
-      console.log('No {{ found in beforeCursor');
+      console.debug('No {{ found in beforeCursor');
       return;
     }
     
@@ -90,8 +90,6 @@ export function useTypeahead(
     
     // Check if what comes after {{ is only word characters (the partial variable name)
     const match = afterLastBrace.match(/^(\w*)$/);
-    
-    console.log({ beforeCursor, afterCursor, lastBraceIndex, beforeLastBrace, afterLastBrace, match, suggestion });
     
     if (match) {
       const suggestionName = typeof suggestion === "string" ? suggestion : suggestion.name;
