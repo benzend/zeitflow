@@ -104,10 +104,10 @@ const SortableStep = ({
     <div
       ref={setNodeRef}
       style={style}
-      className="bg-foreground-light border border-primary/20 p-4 rounded-lg mb-4"
+      className="bg-foreground-light border border-primary/20 rounded-lg mb-4"
     >
       {editingStepId === step.id ? (
-        <div>
+        <div className="p-4">
           <div className="flex justify-between items-center mb-4">
             <h4 className="font-semibold text-primary">
               Edit Step {index + 1}
@@ -159,45 +159,16 @@ const SortableStep = ({
           </div>
         </div>
       ) : (
-        <div>
-          <div className="flex justify-between items-start mb-2">
-            <div className="flex items-center gap-2">
-              <div
-                {...attributes}
-                {...listeners}
-                className="cursor-grab active:cursor-grabbing p-1 text-gray-400 hover:text-gray-600"
-                title="Drag to reorder"
-              >
-                ⋮⋮
-              </div>
-              <span className="font-semibold text-primary">
-                Step {index + 1}:
-              </span>
-            </div>
-            <div className="flex gap-2 ml-4">
-              <button
-                onClick={() => onEditStep(step)}
-                className="text-blue-500 hover:text-blue-600 transition duration-200 text-sm"
-                title="Edit step"
-              >
-                Edit
-              </button>
-              <button
-                onClick={() => onDeleteStep(step.id)}
-                className="text-red-500 hover:text-red-600 transition duration-200 text-sm"
-                title="Delete step"
-              >
-                Delete
-              </button>
-            </div>
+        <div className="flex justify-between items-center">
+          <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing py-5 px-2 mr-4 text-gray-400 hover:text-gray-500" title="Drag to reorder">
+            ⠿
           </div>
-          <HighlightedText
-            text={step.prompt}
-            className="text-primary whitespace-pre-wrap block"
-          />
-          <div className="text-xs text-gray-400 mt-2">
-            Model: {VERBOSE_MODELS[step.model as keyof typeof VERBOSE_MODELS]}
-          </div>
+          <button onClick={() => onEditStep(step)} className="w-full text-left cursor-pointer my-4 mr-4" title="Click to edit step">
+            <HighlightedText
+              text={step.prompt}
+              className="text-primary whitespace-pre-wrap block"
+            />
+          </button>
         </div>
       )}
     </div>
@@ -571,7 +542,7 @@ export default function ChainDetail() {
           </div>
           <button
             onClick={handleBackToDashboard}
-            className="bg-[#a3e635] text-[#18181b] py-2 px-4 rounded-lg hover:bg-[#bef264] transition duration-200"
+            className="py-2 px-4"
           >
             Back to Dashboard
           </button>
@@ -588,7 +559,7 @@ export default function ChainDetail() {
           <div className="text-center mt-4">
             <button
               onClick={handleBackToDashboard}
-              className="bg-[#a3e635] text-[#18181b] py-2 px-4 rounded-lg hover:bg-[#bef264] transition duration-200"
+              className="py-2 px-4"
             >
               Back to Dashboard
             </button>
@@ -611,7 +582,7 @@ export default function ChainDetail() {
           <div className="flex justify-between items-center mb-8">
             <button
               onClick={handleBackToDashboard}
-              className="bg-[#a3e635] text-[#18181b] py-2 px-4 rounded hover:bg-[#bef264] transition duration-200"
+              className="text-[#a3e635] cursor-pointer hover:text-[#bef264] transition duration-200 hover:underline"
             >
               Back to Dashboard
             </button>
@@ -689,25 +660,6 @@ export default function ChainDetail() {
               <h1 className="text-3xl font-bold text-[#a3e635] mb-4">
                 {chain.name}
               </h1>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-foreground border border-primary/20 p-4 rounded-lg">
-                  <p className="text-primary">
-                    <span className="font-semibold">Created:</span>{" "}
-                    {new Date(chain.createdAt).toLocaleString()}
-                  </p>
-                </div>
-                <div className="bg-foreground border border-primary/20 p-4 rounded-lg">
-                  <p className="text-primary">
-                    <span className="font-semibold">Last Updated:</span>{" "}
-                    {new Date(chain.updatedAt).toLocaleString()}
-                  </p>
-                </div>
-                <div className="bg-foreground border border-primary/20 p-4 rounded-lg">
-                  <p className="text-primary">
-                    <span className="font-semibold">Chain ID:</span> {chain.id}
-                  </p>
-                </div>
-              </div>
             </div>
           )}
 
