@@ -5,15 +5,15 @@ interface TypeaheadState {
   query: string;
   selectedIndex: number;
   cursorPosition: number;
-  suggestions: string[];
+  suggestions: (string | { name: string; description: string })[];
 }
 
 interface TypeaheadResult {
   isOpen: boolean;
   query: string;
   selectedIndex: number;
-  suggestions: string[];
-  filteredSuggestions: string[];
+  suggestions: (string | { name: string; description: string })[];
+  filteredSuggestions: (string | { name: string; description: string })[];
   handleTextChange: (text: string, selectionStart: number) => void;
   handleKeyDown: (e: React.KeyboardEvent) => boolean;
   selectSuggestion: (index: number) => void;
@@ -24,7 +24,7 @@ interface TypeaheadResult {
 export function useTypeahead(
   value: string,
   onChange: (value: string) => void,
-  suggestions: string[],
+  suggestions: (string | { name: string; description: string })[],
 ): TypeaheadResult {
   const [state, setState] = useState<TypeaheadState>({
     isOpen: false,
@@ -40,9 +40,15 @@ export function useTypeahead(
     textareaRef.current = ref;
   }, []);
 
-  const filteredSuggestions = state.suggestions.filter((suggestion) =>
-    suggestion.toLowerCase().includes(state.query.toLowerCase())
-  );
+  const suggestionFilter = (suggestion: string | {name: string, description: string}) => {
+    if (typeof suggestion === "string") {
+      return suggestion.toLowerCase().includes(state.query.toLowerCase());
+    } else {
+      return suggestion.name.toLowerCase().includes(state.query.toLowerCase());
+    }
+  };
+
+  const filteredSuggestions = state.suggestions.filter(suggestionFilter);
 
   const handleTextChange = useCallback((text: string, selectionStart: number) => {
     // Check if cursor is after {{ pattern
@@ -64,26 +70,44 @@ export function useTypeahead(
   }, [suggestions]);
 
   const selectSuggestion = useCallback((index: number) => {
+    debugger
     const suggestion = filteredSuggestions[index];
     if (!suggestion) return;
 
     // Find the {{ pattern before cursor
     const beforeCursor = value.substring(0, state.cursorPosition);
     const afterCursor = value.substring(state.cursorPosition);
-    const match = beforeCursor.match(/^(.*)\{\{(\w*)$/);
+    
+    // Find the last {{ pattern - use a more specific approach
+    const lastBraceIndex = beforeCursor.lastIndexOf('{{');
+    if (lastBraceIndex === -1) {
+      console.log('No {{ found in beforeCursor');
+      return;
+    }
+    
+    const beforeLastBrace = beforeCursor.substring(0, lastBraceIndex);
+    const afterLastBrace = beforeCursor.substring(lastBraceIndex + 2);
+    
+    // Check if what comes after {{ is only word characters (the partial variable name)
+    const match = afterLastBrace.match(/^(\w*)$/);
+    
+    console.log({ beforeCursor, afterCursor, lastBraceIndex, beforeLastBrace, afterLastBrace, match, suggestion });
     
     if (match) {
-      const newValue = match[1] + `{{${suggestion}}}` + afterCursor;
+      const suggestionName = typeof suggestion === "string" ? suggestion : suggestion.name;
+      const newValue = beforeLastBrace + `{{${suggestionName}}}` + afterCursor;
       onChange(newValue);
-      
+
       // Set cursor after the inserted variable
-      const newCursorPos = match[1].length + suggestion.length + 4; // 4 for {{}}
+      const newCursorPos = beforeLastBrace.length + suggestionName.length + 4; // 4 for {{}}
       setTimeout(() => {
         if (textareaRef.current) {
           textareaRef.current.setSelectionRange(newCursorPos, newCursorPos);
           textareaRef.current.focus();
         }
       }, 0);
+    } else {
+      console.warn("No valid {{ pattern found for suggestion insertion");
     }
     
     setState(prev => ({ ...prev, isOpen: false, query: "", selectedIndex: 0 }));

@@ -68,7 +68,7 @@ interface SortableStepProps {
   onDeleteStep: (stepId: number) => void;
   setEditStepPrompt: (prompt: string) => void;
   setEditStepModel: (prompt: string) => void;
-  getEditStepSuggestions: () => string[];
+  getEditStepSuggestions: () => (string | { name: string, description: string })[];
 }
 
 const SortableStep = ({
@@ -229,7 +229,7 @@ export default function ChainDetail() {
         return [];
       }
       const otherSteps = chainSteps.filter((step: SelectChainStep) => step.id !== editingStepId);
-      return extractVariablesFromChainSteps(otherSteps);
+      return [...extractVariablesFromChainSteps(otherSteps), { name: 'previousOutput', description: 'The output of the previous step' }];
     } catch (error) {
       console.error('Error extracting variables for edit step:', error);
       return [];

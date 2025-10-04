@@ -4,7 +4,7 @@ import { useTypeahead } from "@/lib/use-typeahead";
 interface TypeaheadTextareaProps {
   value: string;
   onChange: (value: string) => void;
-  suggestions: string[];
+  suggestions: (string | { name: string, description: string })[];
   className?: string;
   placeholder?: string;
   required?: boolean;
@@ -118,9 +118,12 @@ export default function TypeaheadTextarea({
           <div className="px-3 py-2 text-xs text-gray-400 border-b border-primary/20">
             Variables {query && `matching "${query}"`}
           </div>
-          {filteredSuggestions.map((suggestion, index) => (
+          {filteredSuggestions.map((suggestion, index) => {
+            const suggestionName = typeof suggestion === "string" ? suggestion : suggestion.name;
+            const suggestionDescription = typeof suggestion === "string" ? "" : suggestion.description;
+            return (
             <button
-              key={suggestion}
+              key={suggestionName}
               type="button"
               className={`w-full text-left px-3 py-2 text-sm transition duration-200 flex items-center gap-2 ${
                 index === selectedIndex
@@ -134,13 +137,18 @@ export default function TypeaheadTextarea({
               }}
             >
               <span className="bg-[#a3e635]/20 rounded px-1 py-0.5 text-xs font-mono text-[#a3e635]">
-                {suggestion}
+                {suggestionName}
               </span>
               <span className="text-xs text-gray-400">
-                {`{{${suggestion}}}`}
+                {`{{${suggestionName}}}`}
               </span>
+              {suggestionDescription && (
+                <span className="text-xs text-gray-400">
+                  {suggestionDescription}
+                </span>
+              )}
             </button>
-          ))}
+          )})}
           {filteredSuggestions.length === 0 && (
             <div className="px-3 py-2 text-sm text-gray-400">
               No variables found
