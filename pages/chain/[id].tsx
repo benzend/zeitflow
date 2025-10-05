@@ -169,6 +169,11 @@ const SortableStep = ({
               className="text-primary whitespace-pre-wrap block"
             />
           </button>
+          <div className="self-start mt-4 mr-4">
+            <button onClick={() => onDeleteStep(step.id)} className="text-red-500 hover:text-red-600 transition duration-200 text-sm cursor-pointer" title="Delete step">
+              Delete
+            </button>
+          </div>
         </div>
       )}
     </div>
