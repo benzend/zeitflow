@@ -110,8 +110,8 @@ async function handlePost(
       .json({ success: false, message: 'Failed to create chain step' });
   }
 
-  if (!req.body.position) {
-    console.error('Missing position param from request body:', req.body);
+  if (typeof req.body.position !== 'number') {
+    console.error('Position must be a number:', req.body);
     return res
       .status(500)
       .json({ success: false, message: 'Failed to create chain step' });
