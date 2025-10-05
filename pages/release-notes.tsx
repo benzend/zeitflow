@@ -11,6 +11,35 @@ type ReleaseNote = {
 
 const releaseNotes: ReleaseNote[] = [
   {
+    version: "1.5.0",
+    date: "2025-10-05",
+    features: [
+      "Added intelligent typeahead functionality for variable suggestions in chain step prompts",
+      "Implemented TypeaheadTextarea component with smart variable completion",
+      "Added delete step button for individual chain step removal",
+      "Enhanced mobile-responsive dashboard design for better mobile experience",
+      "Introduced comprehensive account deletion management system",
+      "Added profile dropdown component with user navigation options",
+      "Created dedicated settings page for account management",
+    ],
+    improvements: [
+      "Enhanced variable insertion with improved regex pattern matching",
+      "Streamlined chain step editing UI with cleaner interface design",
+      "Improved variable highlighting visibility in prompts",
+      "Optimized AI processing by removing previous response from prompts for better clarity",
+      "Enhanced Variables Modal with textarea input for better user experience",
+      "Added helpful guidance notes for variable creation using {{variableName}} syntax",
+      "Improved mobile dashboard layout with responsive grid system",
+    ],
+    fixes: [
+      "Fixed typeahead suggestions not correctly inserting variables",
+      "Resolved variable visibility issues in prompt highlighting",
+      "Fixed terms page rendering issues",
+      "Cleaned up console logging and debugging code",
+      "Improved database environment configuration handling",
+    ],
+  },
+  {
     version: "1.4.0",
     date: "2025-07-12",
     features: [
