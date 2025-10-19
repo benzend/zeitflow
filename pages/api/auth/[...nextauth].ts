@@ -1,11 +1,13 @@
 import NextAuth, { NextAuthOptions } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
 import CredentialsProvider from 'next-auth/providers/credentials'
+import EmailProvider from 'next-auth/providers/email'
 import { DrizzleAdapter } from '@auth/drizzle-adapter'
 import { db } from '@/lib/db'
 import { usersTable, accountsTable, sessionsTable, verificationTokensTable } from '@/schema'
 import { eq } from 'drizzle-orm'
 import bcrypt from 'bcryptjs'
+import { sendMagicLinkEmail } from '@/lib/email'
 
 export const authOptions: NextAuthOptions = {
   adapter: DrizzleAdapter(db, {
@@ -53,6 +55,28 @@ export const authOptions: NextAuthOptions = {
           name: user[0].name,
         }
       }
+    }),
+    EmailProvider({
+      server: {
+        host: process.env.EMAIL_SERVER_HOST,
+        port: process.env.EMAIL_SERVER_PORT,
+        auth: {
+          user: process.env.EMAIL_SERVER_USER,
+          pass: process.env.EMAIL_SERVER_PASSWORD,
+        },
+      },
+      from: process.env.EMAIL_FROM,
+      async sendVerificationRequest({
+        identifier: email,
+        url,
+      }) {
+        const result = await sendMagicLinkEmail(email, url)
+        
+        if (!result.success) {
+          throw new Error(`Failed to send verification email: ${result.error}`)
+        }
+      },
+      maxAge: 24 * 60 * 60, // 24 hours
     }),
   ],
   pages: {

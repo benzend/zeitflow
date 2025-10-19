@@ -10,11 +10,16 @@ import { useRouter } from 'next/router';
 export default function SignIn({ providers }: { providers: Provider[] }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [magicLinkEmail, setMagicLinkEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [magicLinkLoading, setMagicLinkLoading] = useState(false);
   const [error, setError] = useState('');
+  const [magicLinkError, setMagicLinkError] = useState('');
+  const [magicLinkSuccess, setMagicLinkSuccess] = useState('');
   const [showResendVerification, setShowResendVerification] = useState(false);
   const [verificationLoading, setVerificationLoading] = useState(false);
   const [verificationMessage, setVerificationMessage] = useState('');
+  const [activeTab, setActiveTab] = useState<'credentials' | 'magic'>('credentials');
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -77,8 +82,36 @@ export default function SignIn({ providers }: { providers: Provider[] }) {
     }
   };
 
+  const handleMagicLinkSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!magicLinkEmail) return;
+
+    setMagicLinkLoading(true);
+    setMagicLinkError('');
+    setMagicLinkSuccess('');
+
+    try {
+      const result = await signIn('email', {
+        email: magicLinkEmail,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setMagicLinkError('Failed to send magic link. Please try again.');
+      } else {
+        setMagicLinkSuccess('Magic link sent! Check your email inbox.');
+        setMagicLinkEmail('');
+      }
+    } catch {
+      setMagicLinkError('An error occurred. Please try again.');
+    } finally {
+      setMagicLinkLoading(false);
+    }
+  };
+
   const credentialsProvider = Object.values(providers).find(p => p.id === 'credentials');
-  const otherProviders = Object.values(providers).filter(p => p.id !== 'credentials');
+  const emailProvider = Object.values(providers).find(p => p.id === 'email');
+  const otherProviders = Object.values(providers).filter(p => p.id !== 'credentials' && p.id !== 'email');
 
   return (
     <div>
@@ -101,7 +134,38 @@ export default function SignIn({ providers }: { providers: Provider[] }) {
               </div>
             </div>
 
-            {credentialsProvider && (
+            {/* Tab Navigation */}
+            {(credentialsProvider || emailProvider) && (
+              <div className="flex mb-6 border-b border-gray-600">
+                {credentialsProvider && (
+                  <button
+                    onClick={() => setActiveTab('credentials')}
+                    className={`flex-1 py-2 px-4 text-sm font-medium transition-colors ${
+                      activeTab === 'credentials'
+                        ? 'text-primary border-b-2 border-primary'
+                        : 'text-primary/60 hover:text-primary'
+                    }`}
+                  >
+                    Email & Password
+                  </button>
+                )}
+                {emailProvider && (
+                  <button
+                    onClick={() => setActiveTab('magic')}
+                    className={`flex-1 py-2 px-4 text-sm font-medium transition-colors ${
+                      activeTab === 'magic'
+                        ? 'text-primary border-b-2 border-primary'
+                        : 'text-primary/60 hover:text-primary'
+                    }`}
+                  >
+                    Magic Link
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Credentials Form */}
+            {activeTab === 'credentials' && credentialsProvider && (
               <form onSubmit={handleSubmit} className="space-y-4 mb-6">
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-primary mb-2">
@@ -164,9 +228,44 @@ export default function SignIn({ providers }: { providers: Provider[] }) {
               </form>
             )}
 
+            {/* Magic Link Form */}
+            {activeTab === 'magic' && emailProvider && (
+              <form onSubmit={handleMagicLinkSignIn} className="space-y-4 mb-6">
+                <div>
+                  <label htmlFor="magic-email" className="block text-sm font-medium text-primary mb-2">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    id="magic-email"
+                    value={magicLinkEmail}
+                    onChange={(e) => setMagicLinkEmail(e.target.value)}
+                    required
+                    className="w-full px-3 py-2 border border-gray-600 bg-background text-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    placeholder="Enter your email"
+                  />
+                </div>
+                {magicLinkError && (
+                  <p className="text-red-500 text-sm">{magicLinkError}</p>
+                )}
+                {magicLinkSuccess && (
+                  <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <p className="text-green-800 text-sm">{magicLinkSuccess}</p>
+                  </div>
+                )}
+                <button
+                  type="submit"
+                  disabled={magicLinkLoading}
+                  className="w-full bg-primary text-[#18181b] py-3 px-4 rounded-lg hover:bg-primary-light transition duration-200 font-medium disabled:opacity-50"
+                >
+                  {magicLinkLoading ? 'Sending magic link...' : 'Send magic link'}
+                </button>
+              </form>
+            )}
+
             {otherProviders.length > 0 && (
               <>
-                {credentialsProvider && (
+                {(credentialsProvider || emailProvider) && (
                   <div className="relative mb-6">
                     <div className="absolute inset-0 flex items-center">
                       <div className="w-full border-t border-gray-600"></div>
