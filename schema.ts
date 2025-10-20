@@ -225,6 +225,68 @@ export const queuedChainStepsTable = pgTable("queued_chain_steps", {
     .$onUpdateFn(() => new Date()),
 });
 
+// Workflow system tables
+export const workflowsTable = pgTable("workflows", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => usersTable.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  description: text("description"),
+  status: text("status").notNull().default("draft"), // draft, published, archived
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .notNull()
+    .$onUpdateFn(() => new Date()),
+});
+
+export const workflowNodesTable = pgTable("workflow_nodes", {
+  id: text("id").primaryKey(), // Using string ID to match frontend
+  workflowId: integer("workflow_id")
+    .notNull()
+    .references(() => workflowsTable.id, { onDelete: "cascade" }),
+  type: text("type").notNull(), // endpoint, ai, scheduler, review
+  positionX: integer("position_x").notNull(),
+  positionY: integer("position_y").notNull(),
+  label: text("label").notNull(),
+  config: text("config"), // JSON string containing node-specific configuration
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .notNull()
+    .$onUpdateFn(() => new Date()),
+});
+
+export const workflowConnectionsTable = pgTable("workflow_connections", {
+  id: serial("id").primaryKey(),
+  workflowId: integer("workflow_id")
+    .notNull()
+    .references(() => workflowsTable.id, { onDelete: "cascade" }),
+  fromNodeId: text("from_node_id")
+    .notNull()
+    .references(() => workflowNodesTable.id, { onDelete: "cascade" }),
+  toNodeId: text("to_node_id")
+    .notNull()
+    .references(() => workflowNodesTable.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const workflowExecutionsTable = pgTable("workflow_executions", {
+  id: serial("id").primaryKey(),
+  workflowId: integer("workflow_id")
+    .notNull()
+    .references(() => workflowsTable.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => usersTable.id, { onDelete: "cascade" }),
+  status: text("status").notNull().default("pending"), // pending, running, completed, failed
+  inputData: text("input_data"), // JSON string of input data
+  outputData: text("output_data"), // JSON string of output data
+  error: text("error"),
+  startedAt: timestamp("started_at").defaultNow().notNull(),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export type InsertSubscriber = typeof subscribersTable.$inferInsert;
 export type InsertRateLimit = typeof rateLimitsTable.$inferInsert;
 
@@ -245,6 +307,16 @@ export type InsertSubscription = typeof subscriptionsTable.$inferInsert;
 export type SelectSubscription = typeof subscriptionsTable.$inferSelect;
 export type InsertSubscriptionPlan = typeof subscriptionPlansTable.$inferInsert;
 export type SelectSubscriptionPlan = typeof subscriptionPlansTable.$inferSelect;
+
+// Workflow types
+export type InsertWorkflow = typeof workflowsTable.$inferInsert;
+export type SelectWorkflow = typeof workflowsTable.$inferSelect;
+export type InsertWorkflowNode = typeof workflowNodesTable.$inferInsert;
+export type SelectWorkflowNode = typeof workflowNodesTable.$inferSelect;
+export type InsertWorkflowConnection = typeof workflowConnectionsTable.$inferInsert;
+export type SelectWorkflowConnection = typeof workflowConnectionsTable.$inferSelect;
+export type InsertWorkflowExecution = typeof workflowExecutionsTable.$inferInsert;
+export type SelectWorkflowExecution = typeof workflowExecutionsTable.$inferSelect;
 
 // Add missing type for dashboard query
 export type SelectQueuedChainWithStatus = SelectQueuedChain & {

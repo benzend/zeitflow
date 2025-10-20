@@ -25,6 +25,7 @@
     "bcryptjs": "^3.0.2",
     "dotenv": "^16.5.0",
     "drizzle-orm": "^0.43.1",
+    "lucide-react": "^0.546.0",
     "next": "15.3.2",
     "next-auth": "^4.24.11",
     "nodemailer": "^6.10.1",

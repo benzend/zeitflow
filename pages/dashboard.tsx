@@ -260,11 +260,18 @@ export default function Dashboard() {
         {/* Mobile-friendly navigation */}
         <nav className="mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
           <div className="flex items-center justify-between">
-            <Link href="/dashboard">
-              <span className="text-primary underline hover:text-primary-light transition duration-200 text-lg font-semibold">
-                Dashboard
-              </span>
-            </Link>
+            <div className="flex items-center gap-6">
+              <Link href="/dashboard">
+                <span className="text-primary underline hover:text-primary-light transition duration-200 text-lg font-semibold">
+                  Dashboard
+                </span>
+              </Link>
+              <Link href="/workflows">
+                <span className="text-primary underline hover:text-primary-light transition duration-200">
+                  Workflows
+                </span>
+              </Link>
+            </div>
             <button
               className="sm:hidden text-primary p-2 rounded-lg cursor-pointer text-xl"
               onClick={() => setShowAddChainModal(true)}

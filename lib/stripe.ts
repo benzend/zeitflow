@@ -1,8 +1,6 @@
 import Stripe from 'stripe';
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-08-27.basil',
-});
+export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 export const getStripeJs = async () => {
   const { loadStripe } = await import('@stripe/stripe-js');
