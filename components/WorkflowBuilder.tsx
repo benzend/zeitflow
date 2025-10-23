@@ -135,11 +135,22 @@ Next steps:
     });
   };
 
+  const snapToGrid = (value: number, gridSize: number = 20) => {
+    return Math.round(value / gridSize) * gridSize;
+  };
+
   const handleMouseMove = (e: React.MouseEvent) => {
     if (draggingNode) {
+      const newX = e.clientX - dragOffset.x;
+      const newY = e.clientY - dragOffset.y;
+      
       setNodes(nodes.map(node => 
         node.id === draggingNode 
-          ? { ...node, x: e.clientX - dragOffset.x, y: e.clientY - dragOffset.y }
+          ? { 
+              ...node, 
+              x: snapToGrid(newX),
+              y: snapToGrid(newY)
+            }
           : node
       ));
     }
@@ -267,8 +278,8 @@ Next steps:
     const newNode: NodeData = {
       id: Date.now().toString(),
       type,
-      x: 400,
-      y: 200,
+      x: snapToGrid(400),
+      y: snapToGrid(200),
       label: type === 'endpoint' ? 'Endpoint' : type === 'ai' ? 'AI Model' : type === 'scheduler' ? 'Scheduler' : 'Review',
       ...(type === 'endpoint' ? { fields: [] } : 
          type === 'ai' ? {
@@ -341,29 +352,29 @@ Next steps:
           >
             <Plus className="text-white" size={20} />
           </button>
-          <button className="flex h-[40px] hover:bg-[#535353] items-center justify-center rounded transition-colors w-full">
-            <WorkflowIcon className="text-white" size={20} />
-          </button>
-          <button className="flex h-[40px] hover:bg-[#535353] items-center justify-center rounded transition-colors w-full">
-            <User className="text-white" size={20} />
-          </button>
-          <div className="flex-1" />
           <button
             onClick={() => addNode('ai')}
             className="flex h-[40px] hover:bg-[#535353] items-center justify-center rounded transition-colors w-full"
             title="Add AI Model"
           >
-            <svg className="text-white" width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d={svgPaths.p483a300} fill="currentColor" transform="scale(0.444) translate(-20, -368)" />
-            </svg>
+            <WorkflowIcon className="text-white" size={20} />
           </button>
           <button
             onClick={() => addNode('scheduler')}
             className="flex h-[40px] hover:bg-[#535353] items-center justify-center rounded transition-colors w-full"
             title="Add Scheduler"
           >
+            <User className="text-white" size={20} />
+          </button>
+          <div className="flex-1" />
+          <button
+            onClick={() => addNode('review')}
+            className="flex h-[40px] hover:bg-[#535353] items-center justify-center rounded transition-colors w-full"
+            title="Add Review Node"
+          >
             <svg className="text-white" width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d={svgPaths.p3c32d5f0} fill="currentColor" transform="scale(0.533) translate(-23, -20)" />
+              <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="0.8" fill="none" />
+              <path d="M5 8l2 2 4-4" stroke="currentColor" strokeWidth="0.8" fill="none" />
             </svg>
           </button>
           <div className="flex gap-1 items-center">
@@ -408,23 +419,50 @@ Next steps:
           const toX = toNode.x;
           const toY = toNode.y + 15;
           
+          const distance = Math.abs(toX - fromX);
+          const midX = distance / 2;
+          
           return (
             <svg
               key={idx}
               className="absolute pointer-events-none"
               style={{
                 left: Math.min(fromX, toX),
-                top: Math.min(fromY, toY),
+                top: Math.min(fromY, toY) - 5,
                 width: Math.abs(toX - fromX),
-                height: Math.abs(toY - fromY) || 1
+                height: Math.abs(toY - fromY) + 10 || 10
               }}
             >
-              <line
-                x1={fromX < toX ? 0 : Math.abs(toX - fromX)}
-                y1={0}
-                x2={fromX < toX ? Math.abs(toX - fromX) : 0}
-                y2={0}
-                stroke="#424242"
+              {/* Connection path with curve */}
+              <path
+                d={`M ${fromX < toX ? 0 : distance} 5 C ${fromX < toX ? midX : distance - midX} 5, ${fromX < toX ? midX : distance - midX} 5, ${fromX < toX ? distance : 0} 5`}
+                stroke="#6B7280"
+                strokeWidth="2"
+                fill="none"
+                strokeLinecap="round"
+              />
+              
+              {/* Arrow head */}
+              <polygon
+                points={`${fromX < toX ? distance - 6 : 6},2 ${fromX < toX ? distance - 6 : 6},8 ${fromX < toX ? distance : 0},5`}
+                fill="#6B7280"
+              />
+              
+              {/* Connection points */}
+              <circle
+                cx={fromX < toX ? 0 : distance}
+                cy="5"
+                r="3"
+                fill="#424242"
+                stroke="#6B7280"
+                strokeWidth="1"
+              />
+              <circle
+                cx={fromX < toX ? distance : 0}
+                cy="5"
+                r="3"
+                fill="#424242"
+                stroke="#6B7280"
                 strokeWidth="1"
               />
             </svg>
@@ -650,38 +688,45 @@ Next steps:
 
           {/* Content based on node type */}
           {selectedNodeData?.type === 'endpoint' ? (
-            <div className="mt-[93px] px-[15px]">
-              <p className="font-['Inter:Bold',_sans-serif] font-bold leading-[normal] not-italic text-[16px] text-nowrap text-white whitespace-pre">
-                Fields
-              </p>
+            <div className="mt-[70px] px-[20px] pb-[20px]">
+              <div className="mb-[20px]">
+                <h2 className="text-white text-[18px] font-bold mb-[4px]">
+                  Form Fields
+                </h2>
+                <p className="text-[#959595] text-[12px] leading-relaxed">
+                  Configure the input fields for this endpoint
+                </p>
+              </div>
 
-              <div className="mt-[10px] space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <p className="font-['Inter:Regular',_sans-serif] font-normal leading-[normal] not-italic text-[#959595] text-[10px] text-nowrap whitespace-pre">
-                    Key
+              <div className="space-y-[16px]">
+                <div className="grid grid-cols-2 gap-4 pb-[8px] border-b border-[#535353]">
+                  <p className="text-[#CCCCCC] text-[12px] font-medium">
+                    Field Name
                   </p>
-                  <p className="font-['Inter:Regular',_sans-serif] font-normal leading-[normal] not-italic text-[#959595] text-[10px] text-nowrap whitespace-pre">
-                    Type
+                  <p className="text-[#CCCCCC] text-[12px] font-medium">
+                    Input Type
                   </p>
                 </div>
 
                 {(selectedNodeData.fields || []).map((field) => (
                   <div key={field.id} className="space-y-2">
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-[#484848] border-white border-[0.5px] h-[27px] overflow-clip rounded-[10px]">
+                      <div className="bg-[#484848] border-white border-[0.5px] h-[32px] rounded-[8px] overflow-hidden">
                         <input
                           type="text"
                           value={field.key}
                           onChange={(e) => updateField(field.id, { key: e.target.value })}
-                          className="bg-transparent font-['Inter:Regular',_sans-serif] font-normal h-full leading-[normal] not-italic outline-none px-[11px] text-[10px] text-nowrap text-white w-full"
+                          placeholder="Field name"
+                          className="bg-transparent h-full w-full px-[12px] text-[12px] text-white placeholder-[#999] outline-none"
                         />
                       </div>
-                      <div className="bg-[#484848] border-[#5a5a5a] border-[0.5px] h-[27px] overflow-clip rounded-[10px]">
+                      <div className="bg-[#484848] border-[#5a5a5a] border-[0.5px] h-[32px] rounded-[8px] overflow-hidden">
                         <input
                           type="text"
                           value={field.type}
                           onChange={(e) => updateField(field.id, { type: e.target.value })}
-                          className="bg-transparent font-['Inter:Regular',_sans-serif] font-normal h-full leading-[normal] not-italic outline-none px-[11px] text-[10px] text-nowrap text-white w-full"
+                          placeholder="text, email, number..."
+                          className="bg-transparent h-full w-full px-[12px] text-[12px] text-white placeholder-[#999] outline-none"
                         />
                       </div>
                     </div>
@@ -700,26 +745,33 @@ Next steps:
 
               <button
                 onClick={addField}
-                className="border-[#f7f7f7] border-[0.5px] flex gap-2 h-[21px] hover:bg-[#535353] items-center mt-[11px] px-[10px] rounded-[10px] transition-colors"
+                className="border-[#f7f7f7] border-[0.5px] flex gap-3 h-[36px] hover:bg-[#535353] items-center mt-[16px] px-[16px] rounded-[8px] transition-colors w-full"
               >
-                <div className="flex h-[7px] items-center justify-center w-[7px]">
-                  <div className="bg-[#d9d9d9] h-px w-[7px]" />
-                  <div className="absolute bg-[#d9d9d9] h-[7px] w-px" />
+                <div className="flex h-[12px] items-center justify-center w-[12px]">
+                  <div className="bg-[#d9d9d9] h-[1px] w-[12px]" />
+                  <div className="absolute bg-[#d9d9d9] h-[12px] w-[1px]" />
                 </div>
-                <p className="font-['Inter:Regular',_sans-serif] font-normal leading-[normal] not-italic text-[10px] text-nowrap text-white whitespace-pre">
-                  Add
+                <p className="text-[12px] text-white font-medium">
+                  Add Field
                 </p>
               </button>
             </div>
           ) : selectedNodeData?.type === 'ai' && selectedNodeData.aiConfig ? (
-            <div className="mt-[93px] px-[15px] pb-[20px]">
-              <p className="font-['Inter:Bold',_sans-serif] font-bold leading-[normal] not-italic text-[16px] text-nowrap text-white whitespace-pre">
-                Prompt
-              </p>
+            <div className="mt-[70px] px-[20px] pb-[20px]">
+              <div className="mb-[20px]">
+                <h2 className="text-white text-[18px] font-bold mb-[4px]">
+                  AI Configuration
+                </h2>
+                <p className="text-[#959595] text-[12px] leading-relaxed">
+                  Configure prompts and output settings for this AI model
+                </p>
+              </div>
 
-              <p className="font-['Inter:Regular',_sans-serif] font-normal leading-[normal] mt-[10px] not-italic text-[#959595] text-[10px] text-nowrap whitespace-pre">
-                System Prompt
-              </p>
+              <div className="mb-[16px]">
+                <label className="block text-[#CCCCCC] text-[14px] font-medium mb-[8px]">
+                  System Prompt
+                </label>
+              </div>
               
               <div className="bg-[#484848] border-white border-[0.5px] mt-[4px] overflow-clip p-[11px] rounded-[10px]" style={{ minHeight: selectedNodeData.aiConfig.hasTemplate ? '330px' : '71px' }}>
                 <textarea
@@ -752,9 +804,11 @@ Next steps:
                 </button>
               </div>
 
-              <p className="font-['Inter:Regular',_sans-serif] font-normal leading-[normal] mt-[14px] not-italic text-[#959595] text-[10px] text-nowrap whitespace-pre">
-                User Prompt
-              </p>
+              <div className="mt-[20px]">
+                <label className="block text-[#CCCCCC] text-[14px] font-medium mb-[8px]">
+                  User Prompt
+                </label>
+              </div>
               
               <div className="bg-[#484848] border-[#5a5a5a] border-[0.5px] mt-[4px] overflow-clip rounded-[10px]">
                 <textarea
@@ -773,13 +827,20 @@ Next steps:
                 </button>
               </div>
 
-              <p className="font-['Inter:Bold',_sans-serif] font-bold leading-[normal] mt-[47px] not-italic text-[16px] text-nowrap text-white whitespace-pre">
-                Expected Output
-              </p>
+              <div className="mt-[32px] mb-[16px]">
+                <h3 className="text-white text-[16px] font-bold mb-[4px]">
+                  Expected Output
+                </h3>
+                <p className="text-[#959595] text-[11px]">
+                  Define the output format and structure
+                </p>
+              </div>
 
-              <p className="font-['Inter:Regular',_sans-serif] font-normal leading-[normal] mt-[10px] not-italic text-[#959595] text-[10px] text-nowrap whitespace-pre">
-                Type
-              </p>
+              <div className="mb-[12px]">
+                <label className="block text-[#CCCCCC] text-[13px] font-medium mb-[6px]">
+                  Output Type
+                </label>
+              </div>
               
               <div className="bg-[#484848] border-[#5a5a5a] border-[0.5px] h-[27px] mt-[4px] overflow-clip rounded-[10px]">
                 <input
@@ -790,9 +851,11 @@ Next steps:
                 />
               </div>
 
-              <p className="font-['Inter:Regular',_sans-serif] font-normal leading-[normal] mt-[14px] not-italic text-[#959595] text-[10px] text-nowrap whitespace-pre">
-                Structure
-              </p>
+              <div className="mt-[16px] mb-[6px]">
+                <label className="block text-[#CCCCCC] text-[13px] font-medium">
+                  JSON Structure
+                </label>
+              </div>
               
               <div className="bg-[#484848] border-[#5a5a5a] border-[0.5px] mt-[4px] overflow-clip rounded-[10px]">
                 <textarea
@@ -803,14 +866,21 @@ Next steps:
               </div>
             </div>
           ) : selectedNodeData?.type === 'scheduler' && selectedNodeData.schedulerConfig ? (
-            <div className="mt-[93px] px-[15px] pb-[20px]">
-              <p className="font-['Inter:Bold',_sans-serif] font-bold leading-[normal] not-italic text-[16px] text-nowrap text-white whitespace-pre">
-                Calendar
-              </p>
+            <div className="mt-[70px] px-[20px] pb-[20px]">
+              <div className="mb-[20px]">
+                <h2 className="text-white text-[18px] font-bold mb-[4px]">
+                  Scheduler Settings
+                </h2>
+                <p className="text-[#959595] text-[12px] leading-relaxed">
+                  Configure calendar and scheduling options
+                </p>
+              </div>
 
-              <p className="font-['Inter:Regular',_sans-serif] font-normal leading-[normal] mt-[10px] not-italic text-[#959595] text-[10px] text-nowrap whitespace-pre">
-                People Involved
-              </p>
+              <div className="mb-[12px]">
+                <label className="block text-[#CCCCCC] text-[14px] font-medium mb-[8px]">
+                  People Involved
+                </label>
+              </div>
 
               <div className="bg-[#484848] border-white border-[0.5px] mt-[4px] min-h-[71px] overflow-clip p-[7px] rounded-[10px]">
                 <div className="flex flex-wrap gap-[3px]">
@@ -854,9 +924,11 @@ Next steps:
                 </div>
               </div>
 
-              <p className="font-['Inter:Regular',_sans-serif] font-normal leading-[normal] mt-[14px] not-italic text-[#959595] text-[10px] text-nowrap whitespace-pre">
-                Minimum Time Requirement
-              </p>
+              <div className="mt-[16px] mb-[6px]">
+                <label className="block text-[#CCCCCC] text-[14px] font-medium">
+                  Minimum Time Required
+                </label>
+              </div>
 
               <div className="bg-[#484848] border-[#5a5a5a] border-[0.5px] h-[26px] mt-[4px] overflow-clip rounded-[10px]">
                 <input
@@ -867,9 +939,11 @@ Next steps:
                 />
               </div>
 
-              <p className="font-['Inter:Regular',_sans-serif] font-normal leading-[normal] mt-[14px] not-italic text-[#959595] text-[10px] text-nowrap whitespace-pre">
-                Calendar
-              </p>
+              <div className="mt-[16px] mb-[6px]">
+                <label className="block text-[#CCCCCC] text-[14px] font-medium">
+                  Target Calendar
+                </label>
+              </div>
 
               <div className="bg-[#484848] border-[#5a5a5a] border-[0.5px] h-[26px] mt-[4px] overflow-clip rounded-[10px]">
                 <input
@@ -891,7 +965,16 @@ Next steps:
               </div>
             </div>
           ) : selectedNodeData?.type === 'review' && selectedNodeData.reviewConfig ? (
-            <div className="mt-[80px] px-[15px] space-y-[6px]">
+            <div className="mt-[70px] px-[20px] pb-[20px]">
+              <div className="mb-[20px]">
+                <h2 className="text-white text-[18px] font-bold mb-[4px]">
+                  Review Checklist
+                </h2>
+                <p className="text-[#959595] text-[12px] leading-relaxed">
+                  Mark validation steps for workflow nodes
+                </p>
+              </div>
+              <div className="space-y-[8px]">
               {nodes.filter(n => n.type !== 'review').map((node) => {
                 const validationStep = selectedNodeData.reviewConfig!.validationSteps.find(s => s.nodeId === node.id);
                 const isValidated = validationStep?.validated || false;
@@ -957,6 +1040,7 @@ Next steps:
                   </div>
                 );
               })}
+              </div>
             </div>
           ) : null}
         </div>
