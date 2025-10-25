@@ -1,7 +1,8 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Plus, Workflow as WorkflowIcon, User, Trash2 } from 'lucide-react';
 import { svgPaths, schedulerSvg } from '@/lib/svg-assets';
 import { NodeData, Connection, Field, AINodeConfig, SchedulerConfig } from '@/lib/workflow-types';
+import { generateNodeId, generateFieldId } from '@/lib/workflow-utils';
 
 interface WorkflowBuilderProps {
   initialNodes?: NodeData[];
@@ -9,10 +10,10 @@ interface WorkflowBuilderProps {
   onSave?: (nodes: NodeData[], connections: Connection[]) => void;
 }
 
-export default function WorkflowBuilder({ 
-  initialNodes = [], 
-  initialConnections = [], 
-  onSave 
+export default function WorkflowBuilder({
+  initialNodes = [],
+  initialConnections = [],
+  onSave
 }: WorkflowBuilderProps) {
   const [nodes, setNodes] = useState<NodeData[]>(initialNodes.length > 0 ? initialNodes : [
     { 
@@ -91,21 +92,16 @@ Next steps:
 [set up and outline a next time (aka a jump) on the calendar based on the next steps]`
       }
     },
-    { 
-      id: '5', 
-      type: 'review', 
-      x: 777, 
-      y: 322, 
-      label: 'Review',
-      reviewConfig: {
-        validationSteps: [
-          { nodeId: '1', validated: false },
-          { nodeId: '2', validated: false },
-          { nodeId: '3', validated: true },
-          { nodeId: '4', validated: true }
-        ]
-      }
-    }
+     {
+       id: '5',
+       type: 'review',
+       x: 777,
+       y: 322,
+       label: 'Review',
+       reviewConfig: {
+         validationSteps: [] // Will be populated dynamically
+       }
+     }
   ]);
   
   const [connections, setConnections] = useState<Connection[]>(initialConnections.length > 0 ? initialConnections : [
@@ -115,13 +111,47 @@ Next steps:
     { from: '4', to: '5' }
   ]);
   
-  const [selectedNode, setSelectedNode] = useState<string | null>('5');
+  const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [draggingNode, setDraggingNode] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [newPersonName, setNewPersonName] = useState('');
   const canvasRef = useRef<HTMLDivElement>(null);
 
   const selectedNodeData = nodes.find(n => n.id === selectedNode);
+
+  // Update review node validation steps when nodes change
+  useEffect(() => {
+    const reviewNode = nodes.find(n => n.type === 'review');
+    if (reviewNode && reviewNode.reviewConfig) {
+      const nonReviewNodes = nodes.filter(n => n.type !== 'review');
+      const currentValidationSteps = reviewNode.reviewConfig.validationSteps;
+
+      // Create validation steps for all non-review nodes
+      const updatedValidationSteps = nonReviewNodes.map(node => {
+        const existingStep = currentValidationSteps.find(step => step.nodeId === node.id);
+        return existingStep || { nodeId: node.id, validated: false };
+      });
+
+      // Remove steps for nodes that no longer exist
+      const filteredSteps = updatedValidationSteps.filter(step =>
+        nonReviewNodes.some(node => node.id === step.nodeId)
+      );
+
+      if (JSON.stringify(filteredSteps) !== JSON.stringify(currentValidationSteps)) {
+        setNodes(nodes.map(node =>
+          node.id === reviewNode.id
+            ? {
+                ...node,
+                reviewConfig: {
+                  ...node.reviewConfig!,
+                  validationSteps: filteredSteps
+                }
+              }
+            : node
+        ));
+      }
+    }
+  }, [nodes]); // Re-run when nodes change
 
   const handleMouseDown = (e: React.MouseEvent, nodeId: string) => {
     const node = nodes.find(n => n.id === nodeId);
@@ -143,13 +173,17 @@ Next steps:
     if (draggingNode) {
       const newX = e.clientX - dragOffset.x;
       const newY = e.clientY - dragOffset.y;
-      
-      setNodes(nodes.map(node => 
-        node.id === draggingNode 
-          ? { 
-              ...node, 
-              x: snapToGrid(newX),
-              y: snapToGrid(newY)
+
+      // Add bounds checking to prevent nodes from being dragged off-screen
+      const boundedX = Math.max(0, Math.min(newX, window.innerWidth - 200)); // Keep some margin
+      const boundedY = Math.max(50, Math.min(newY, window.innerHeight - 100)); // Account for header
+
+      setNodes(nodes.map(node =>
+        node.id === draggingNode
+          ? {
+              ...node,
+              x: snapToGrid(boundedX),
+              y: snapToGrid(boundedY)
             }
           : node
       ));
@@ -163,7 +197,7 @@ Next steps:
   const addField = () => {
     if (!selectedNode) return;
     const newField: Field = {
-      id: Date.now().toString(),
+      id: generateFieldId(),
       key: 'New Field',
       type: 'text'
     };
@@ -260,15 +294,18 @@ Next steps:
 
   const toggleTemplate = () => {
     if (!selectedNode) return;
-    setNodes(nodes.map(node => 
+    setNodes(nodes.map(node =>
       node.id === selectedNode && node.type === 'ai'
-        ? { 
-            ...node, 
-            aiConfig: { 
-              ...node.aiConfig!, 
+        ? {
+            ...node,
+            aiConfig: {
+              ...node.aiConfig!,
               hasTemplate: !node.aiConfig!.hasTemplate,
-              templateText: node.aiConfig!.templateText || ''
-            } 
+              // Preserve template text when toggling, ensure it has a value when enabling
+              templateText: node.aiConfig!.hasTemplate
+                ? node.aiConfig!.templateText // Keep existing text when disabling
+                : (node.aiConfig!.templateText || '[meeting title] | Takeaways\n\nHere\'s what we heard:\n[list of items that were said]\n\nNext steps:\n[list of actionables]\n\n[some nice-ities about the meeting]') // Default when enabling
+            }
           }
         : node
     ));
@@ -276,7 +313,7 @@ Next steps:
 
   const addNode = (type: 'endpoint' | 'ai' | 'scheduler' | 'review') => {
     const newNode: NodeData = {
-      id: Date.now().toString(),
+      id: generateNodeId(),
       type,
       x: snapToGrid(400),
       y: snapToGrid(200),
@@ -308,6 +345,24 @@ Next steps:
   };
 
   const removeNode = (nodeId: string) => {
+    const nodeToRemove = nodes.find(n => n.id === nodeId);
+    if (!nodeToRemove) return;
+
+    // Check if this is the only node of its type and if it's connected
+    const nodesOfSameType = nodes.filter(n => n.type === nodeToRemove.type && n.id !== nodeId);
+    const connectedToThisNode = connections.filter(c => c.from === nodeId || c.to === nodeId);
+
+    // For endpoint nodes, warn if they're connected (as they provide data)
+    if (nodeToRemove.type === 'endpoint' && connectedToThisNode.length > 0 && nodesOfSameType.length === 0) {
+      // Could add a confirmation dialog here in the future
+      console.warn('Removing the only endpoint node that has connections. This may break the workflow.');
+    }
+
+    // For review nodes, they should be removable but validation steps need updating
+    if (nodeToRemove.type === 'review') {
+      // The useEffect will handle updating validation steps
+    }
+
     setNodes(nodes.filter(n => n.id !== nodeId));
     setConnections(connections.filter(c => c.from !== nodeId && c.to !== nodeId));
     if (selectedNode === nodeId) {
@@ -343,7 +398,7 @@ Next steps:
   return (
     <div className="bg-gradient-to-b from-[#2b2b2b] flex h-screen relative to-[#3c3c3c] w-full">
       {/* Left Sidebar */}
-      <div className="absolute h-[409px] left-[16px] top-[82px] w-[58px]">
+      <div className="absolute h-[409px] left-[16px] top-[82px] w-[58px] z-10 pointer-events-auto">
         <div className="bg-[#424242] border-[#535353] border flex flex-col gap-2 h-full items-center p-2 rounded-[10px]">
           <button
             onClick={() => addNode('endpoint')}
@@ -388,7 +443,8 @@ Next steps:
           {onSave && (
             <button
               onClick={handleSave}
-              className="bg-[#a3e635] text-[#18181b] px-3 py-1 rounded text-sm hover:bg-[#8bc329] transition-colors"
+              className="bg-[#a3e635] text-[#18181b] px-2 py-1 rounded text-xs hover:bg-[#8bc329] transition-colors w-full"
+              title="Save Workflow"
             >
               Save
             </button>
@@ -397,9 +453,9 @@ Next steps:
       </div>
 
       {/* Main Canvas */}
-      <div 
+      <div
         ref={canvasRef}
-        className="absolute inset-0"
+        className={`absolute inset-0 ${draggingNode ? 'pointer-events-auto' : 'pointer-events-none'}`}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
       >
@@ -413,53 +469,84 @@ Next steps:
           const fromNode = nodes.find(n => n.id === conn.from);
           const toNode = nodes.find(n => n.id === conn.to);
           if (!fromNode || !toNode) return null;
-          
+
           const fromX = fromNode.x + getNodeWidth(fromNode.type);
           const fromY = fromNode.y + 15;
           const toX = toNode.x;
           const toY = toNode.y + 15;
-          
-          const distance = Math.abs(toX - fromX);
-          const midX = distance / 2;
-          
+
+          // Calculate the bounding box for the connection
+          const minX = Math.min(fromX, toX);
+          const minY = Math.min(fromY, toY);
+          const width = Math.abs(toX - fromX);
+          const height = Math.abs(toY - fromY);
+
+          // Calculate relative positions within the SVG
+          const relFromX = fromX - minX;
+          const relFromY = fromY - minY;
+          const relToX = toX - minX;
+          const relToY = toY - minY;
+
+          // Create a curved path that works in any direction
+          const dx = relToX - relFromX;
+          const dy = relToY - relFromY;
+
+          // Control points for the curve
+          const cp1x = relFromX + dx * 0.4;
+          const cp1y = relFromY + dy * 0.2;
+          const cp2x = relToX - dx * 0.4;
+          const cp2y = relToY - dy * 0.2;
+
+          // Arrow direction calculation
+          const angle = Math.atan2(dy, dx);
+          const arrowLength = 8;
+
+          const arrowX = relToX - Math.cos(angle) * 6;
+          const arrowY = relToY - Math.sin(angle) * 6;
+
+          const arrowP1X = arrowX - Math.cos(angle - Math.PI/6) * arrowLength;
+          const arrowP1Y = arrowY - Math.sin(angle - Math.PI/6) * arrowLength;
+          const arrowP2X = arrowX - Math.cos(angle + Math.PI/6) * arrowLength;
+          const arrowP2Y = arrowY - Math.sin(angle + Math.PI/6) * arrowLength;
+
           return (
             <svg
               key={idx}
-              className="absolute pointer-events-none"
+              className="absolute pointer-events-none z-0"
               style={{
-                left: Math.min(fromX, toX),
-                top: Math.min(fromY, toY) - 5,
-                width: Math.abs(toX - fromX),
-                height: Math.abs(toY - fromY) + 10 || 10
+                left: minX,
+                top: minY,
+                width: Math.max(width, 20),
+                height: Math.max(height, 20)
               }}
             >
               {/* Connection path with curve */}
               <path
-                d={`M ${fromX < toX ? 0 : distance} 5 C ${fromX < toX ? midX : distance - midX} 5, ${fromX < toX ? midX : distance - midX} 5, ${fromX < toX ? distance : 0} 5`}
+                d={`M ${relFromX} ${relFromY} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${relToX} ${relToY}`}
                 stroke="#6B7280"
                 strokeWidth="2"
                 fill="none"
                 strokeLinecap="round"
               />
-              
+
               {/* Arrow head */}
               <polygon
-                points={`${fromX < toX ? distance - 6 : 6},2 ${fromX < toX ? distance - 6 : 6},8 ${fromX < toX ? distance : 0},5`}
+                points={`${arrowX},${arrowY} ${arrowP1X},${arrowP1Y} ${arrowP2X},${arrowP2Y}`}
                 fill="#6B7280"
               />
-              
+
               {/* Connection points */}
               <circle
-                cx={fromX < toX ? 0 : distance}
-                cy="5"
+                cx={relFromX}
+                cy={relFromY}
                 r="3"
                 fill="#424242"
                 stroke="#6B7280"
                 strokeWidth="1"
               />
               <circle
-                cx={fromX < toX ? distance : 0}
-                cy="5"
+                cx={relToX}
+                cy={relToY}
                 r="3"
                 fill="#424242"
                 stroke="#6B7280"
@@ -479,7 +566,7 @@ Next steps:
           return (
             <div
               key={node.id}
-              className="absolute cursor-move"
+              className="absolute cursor-move pointer-events-auto"
               style={{ left: node.x, top: node.y }}
               onMouseDown={(e) => handleMouseDown(e, node.id)}
               onClick={() => setSelectedNode(node.id)}

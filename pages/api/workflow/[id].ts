@@ -70,9 +70,9 @@ export default async function handler(
     .limit(1);
 
   if (!workflow) {
-    return res.status(404).json({ 
-      success: false, 
-      message: "Workflow not found" 
+    return res.status(404).json({
+      success: false,
+      message: "Workflow not found"
     });
   }
 
@@ -213,9 +213,14 @@ export default async function handler(
           .where(eq(workflowsTable.id, workflowId));
       });
 
-      return res.status(200).json({ 
-        success: true, 
-        message: "Workflow deleted successfully" 
+      return res.status(200).json({
+        success: true,
+        message: "Workflow deleted successfully"
+      });
+
+      return res.status(200).json({
+        success: true,
+        message: "Workflow deleted successfully"
       });
 
     } else {
