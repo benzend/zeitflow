@@ -24,6 +24,7 @@ export interface ReviewConfig {
     nodeId: string;
     validated: boolean;
   }[];
+  meetingConfirmed?: boolean;
 }
 
 export interface NodeData {

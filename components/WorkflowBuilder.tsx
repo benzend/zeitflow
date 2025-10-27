@@ -98,9 +98,10 @@ Next steps:
        x: 777,
        y: 322,
        label: 'Review',
-       reviewConfig: {
-         validationSteps: [] // Will be populated dynamically
-       }
+        reviewConfig: {
+          validationSteps: [], // Will be populated dynamically
+          meetingConfirmed: false
+        }
      }
   ]);
   
@@ -246,15 +247,30 @@ Next steps:
 
   const toggleValidation = (nodeId: string) => {
     if (!selectedNode) return;
-    setNodes(nodes.map(node => 
+    setNodes(nodes.map(node =>
       node.id === selectedNode && node.type === 'review'
-        ? { 
-            ...node, 
+        ? {
+            ...node,
             reviewConfig: {
               ...node.reviewConfig!,
               validationSteps: node.reviewConfig!.validationSteps.map(step =>
                 step.nodeId === nodeId ? { ...step, validated: !step.validated } : step
               )
+            }
+          }
+        : node
+    ));
+  };
+
+  const toggleMeetingConfirmation = () => {
+    if (!selectedNode) return;
+    setNodes(nodes.map(node =>
+      node.id === selectedNode && node.type === 'review'
+        ? {
+            ...node,
+            reviewConfig: {
+              ...node.reviewConfig!,
+              meetingConfirmed: !node.reviewConfig!.meetingConfirmed
             }
           }
         : node
@@ -334,11 +350,12 @@ Next steps:
           minTimeRequirement: '',
           calendar: ''
         }
-      } : {
-        reviewConfig: {
-          validationSteps: []
-        }
-      })
+       } : {
+         reviewConfig: {
+           validationSteps: [],
+           meetingConfirmed: false
+         }
+       })
     };
     setNodes([...nodes, newNode]);
     setSelectedNode(newNode.id);
@@ -559,9 +576,9 @@ Next steps:
         {/* Nodes */}
         {nodes.map(node => {
           const isSelected = selectedNode === node.id;
-          const nodeColor = isSelected && (node.type === 'ai' || node.type === 'scheduler') ? '#11ff00' : 
-                           node.type === 'review' ? '#11ff00' :
-                           (node.type === 'endpoint' ? '#11ff00' : 'white');
+          const twTextColor = isSelected ? 'green-100' : 'white';
+          const twBorderColor = isSelected ? 'green-100' : 'gray-200';
+          const color = isSelected ? '#11FF00' : '#FFFFFF';
           
           return (
             <div
@@ -572,20 +589,20 @@ Next steps:
               onClick={() => setSelectedNode(node.id)}
             >
               {node.type === 'endpoint' ? (
-                <div className={`bg-[#424242] border-[#11ff00] ${isSelected ? 'border' : 'border'} h-[31px] overflow-clip rounded-[10px] w-[98px]`}>
+                <div className={`bg-[#424242] border-${twBorderColor} border h-[31px] overflow-clip rounded-[10px] w-[98px]`}>
                   <div className="flex h-full items-center justify-between px-[11px] relative">
                     <div className="h-[13px] w-[15px]">
                       <svg className="block size-full" fill="none" viewBox="0 0 15 13">
-                        <circle cx="13" cy="2" r="1.75" stroke={isSelected ? "white" : "#11FF00"} strokeWidth="0.5" />
-                        <circle cx="10" cy="10" r="1.75" stroke={isSelected ? "white" : "#11FF00"} strokeWidth="0.5" />
-                        <circle cx="5" cy="3" r="1.75" stroke={isSelected ? "white" : "#11FF00"} strokeWidth="0.5" />
-                        <circle cx="2" cy="11" r="1.75" stroke={isSelected ? "white" : "#11FF00"} strokeWidth="0.5" />
-                        <line stroke={isSelected ? "white" : "#11FF00"} strokeWidth="0.5" x1="2.76788" x2="4.76788" y1="9.90715" y2="4.90715" />
-                        <line stroke={isSelected ? "white" : "#11FF00"} strokeWidth="0.5" x1="10.7679" x2="12.7679" y1="8.90715" y2="3.90715" />
-                        <line stroke={isSelected ? "white" : "#11FF00"} strokeWidth="0.5" x1="9.13017" x2="6.43759" y1="8.96121" y2="4.29752" />
+                        <circle cx="13" cy="2" r="1.75" stroke={color} strokeWidth="0.5" />
+                        <circle cx="10" cy="10" r="1.75" stroke={color} strokeWidth="0.5" />
+                        <circle cx="5" cy="3" r="1.75" stroke={color} strokeWidth="0.5" />
+                        <circle cx="2" cy="11" r="1.75" stroke={color} strokeWidth="0.5" />
+                        <line stroke={color} strokeWidth="0.5" x1="2.76788" x2="4.76788" y1="9.90715" y2="4.90715" />
+                        <line stroke={color} strokeWidth="0.5" x1="10.7679" x2="12.7679" y1="8.90715" y2="3.90715" />
+                        <line stroke={color} strokeWidth="0.5" x1="9.13017" x2="6.43759" y1="8.96121" y2="4.29752" />
                       </svg>
                     </div>
-                    <p className={`font-['Inter:Regular',_sans-serif] font-normal leading-[normal] not-italic text-[12px] text-nowrap whitespace-pre`} style={{ color: isSelected ? "white" : "#11ff00" }}>
+                    <p className={`font-['Inter:Regular',_sans-serif] font-normal leading-[normal] not-italic text-[12px] text-nowrap whitespace-pre`} style={{ color }}>
                       {node.label}
                     </p>
                   </div>
@@ -594,16 +611,16 @@ Next steps:
                 <div className="bg-[#424242] h-[31px] overflow-clip rounded-[10px] relative w-[89px]">
                   <div className="flex h-full items-center justify-center px-[12px] relative">
                     <div className="absolute left-[12px] top-[11px]">
-                      <p className={`font-['Inter:Regular',_sans-serif] font-normal h-[9px] leading-[normal] not-italic text-[8px] w-[10px]`} style={{ color: nodeColor }}>
+                      <p className={`font-['Inter:Regular',_sans-serif] font-normal h-[9px] leading-[normal] not-italic text-[8px] w-[10px]`} style={{ color }}>
                         AI
                       </p>
                       <div className="h-0 mt-[2px] w-[4px]">
                         <svg className="block size-full" fill="none" viewBox="0 0 4 1">
-                          <line stroke={nodeColor} strokeWidth="0.5" x2="4" y1="0.75" y2="0.75" />
+                          <line stroke={color} strokeWidth="0.5" x2="4" y1="0.75" y2="0.75" />
                         </svg>
                       </div>
                     </div>
-                    <p className={`font-['Inter:Regular',_sans-serif] font-normal leading-[normal] ml-[21px] not-italic text-[12px] text-nowrap whitespace-pre`} style={{ color: nodeColor }}>
+                    <p className={`font-['Inter:Regular',_sans-serif] font-normal leading-[normal] ml-[21px] not-italic text-[12px] text-nowrap whitespace-pre`} style={{ color }}>
                       {node.label}
                     </p>
                   </div>
@@ -617,12 +634,12 @@ Next steps:
                     <div className="absolute left-[12px] top-[10px]">
                       <div className="h-[3px] relative w-[12px]">
                         <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 12 4">
-                          <line stroke={nodeColor} strokeWidth="0.5" x2="12" y1="3.75" y2="3.75" />
-                          <line stroke={nodeColor} strokeWidth="0.5" x2="12" y1="0.75" y2="0.75" />
+                          <line stroke={color} strokeWidth="0.5" x2="12" y1="3.75" y2="3.75" />
+                          <line stroke={color} strokeWidth="0.5" x2="12" y1="0.75" y2="0.75" />
                         </svg>
                       </div>
                     </div>
-                    <p className={`font-['Inter:Regular',_sans-serif] font-normal leading-[normal] ml-[21px] not-italic text-[12px] text-nowrap whitespace-pre`} style={{ color: nodeColor }}>
+                    <p className={`font-['Inter:Regular',_sans-serif] font-normal leading-[normal] ml-[21px] not-italic text-[12px] text-nowrap whitespace-pre`} style={{ color }}>
                       {node.label}
                     </p>
                   </div>
@@ -640,14 +657,14 @@ Next steps:
                         <line stroke="#11FF00" x1="6.60532" x2="13.6053" y1="9.69303" y2="0.69303" />
                       </svg>
                     </div>
-                    <p className={`font-['Inter:Regular',_sans-serif] font-normal leading-[normal] ml-[21px] not-italic text-[#11ff00] text-[12px] text-nowrap whitespace-pre`}>
+                    <p className={`font-['Inter:Regular',_sans-serif] font-normal leading-[normal] ml-[21px] not-italic text-${twTextColor} text-[12px] text-nowrap whitespace-pre`}>
                       {node.label}
                     </p>
                   </div>
                   <div className="absolute border border-[#11ff00] border-solid inset-0 pointer-events-none rounded-[10px]" />
                 </div>
               )}
-              <p className="font-['Inter:Regular',_sans-serif] font-normal leading-[normal] mt-1 not-italic text-[8px] text-nowrap text-white whitespace-pre">
+              <p className={`font-['Inter:Regular',_sans-serif] font-normal leading-[normal] mt-1 not-italic text-[8px] text-nowrap text-white text-${twTextColor} whitespace-pre`}>
                 Entry
               </p>
             </div>
@@ -1126,9 +1143,45 @@ Next steps:
                     </div>
                   </div>
                 );
-              })}
-              </div>
-            </div>
+               })}
+               </div>
+
+               <div className="mt-[20px] pt-[16px] border-t border-[#535353]">
+                 <h3 className="text-white text-[14px] font-medium mb-[8px]">
+                   Meeting Creation
+                 </h3>
+                 <div
+                   className={`cursor-pointer h-[37px] overflow-clip relative rounded-[10px] transition-colors hover:bg-[#4a4a4a] ${selectedNodeData.reviewConfig!.meetingConfirmed ? 'bg-[#494949]' : 'bg-[#3d3d3d]'}`}
+                   onClick={toggleMeetingConfirmation}
+                 >
+                   <div className="flex h-full items-center px-[15px] relative">
+                     <div className="flex items-center">
+                       <div className="mr-[13px] size-[18px]">
+                         <svg className="block size-full" fill="none" viewBox="0 0 18 18">
+                           <rect x="1" y="3" width="16" height="12" rx="2" stroke={selectedNodeData.reviewConfig!.meetingConfirmed ? "white" : "#999999"} strokeWidth="1" />
+                           <line x1="1" y1="7" x2="17" y2="7" stroke={selectedNodeData.reviewConfig!.meetingConfirmed ? "white" : "#999999"} strokeWidth="1" />
+                           <line x1="5" y1="11" x2="13" y2="11" stroke={selectedNodeData.reviewConfig!.meetingConfirmed ? "white" : "#999999"} strokeWidth="1" />
+                           <line x1="5" y1="13" x2="11" y2="13" stroke={selectedNodeData.reviewConfig!.meetingConfirmed ? "white" : "#999999"} strokeWidth="1" />
+                         </svg>
+                       </div>
+                       <p className={`font-['Inter:Bold',_sans-serif] font-bold leading-[normal] not-italic text-[16px] text-nowrap whitespace-pre`} style={{ color: selectedNodeData.reviewConfig!.meetingConfirmed ? "white" : "#999999" }}>
+                         Create Meeting
+                       </p>
+                     </div>
+                     <div className="absolute right-[15px] rounded-[2px] size-[9px]">
+                       <div className={`border ${selectedNodeData.reviewConfig!.meetingConfirmed ? 'border-white' : 'border-[#999999]'} border-solid inset-0 rounded-[2px]`}>
+                         {selectedNodeData.reviewConfig!.meetingConfirmed && (
+                           <svg className="block size-full" fill="none" viewBox="0 0 7 6" style={{ transform: 'translate(1px, 2px) scale(0.8)' }}>
+                             <line stroke="white" x1="0.299998" x2="2.96666" y1="3.6" y2="5.59997" />
+                             <line stroke="white" x1="2.2719" x2="6.16078" y1="5.693" y2="0.693011" />
+                           </svg>
+                         )}
+                       </div>
+                     </div>
+                   </div>
+                 </div>
+               </div>
+             </div>
           ) : null}
         </div>
       </div>
