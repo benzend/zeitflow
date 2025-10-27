@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 import { ArrowLeft } from 'lucide-react';
 import Link from "next/link";
-import WorkflowBuilder from "@/components/WorkflowBuilder";
+import WorkflowBuilderReactFlow from "@/components/WorkflowBuilderReactFlow";
 import { NodeData, Connection } from '@/lib/workflow-types';
 
 interface Workflow {
@@ -203,7 +203,7 @@ export default function WorkflowBuilderPage() {
 
       {/* Workflow Builder */}
       <div className="pt-16">
-        <WorkflowBuilder
+        <WorkflowBuilderReactFlow
           initialNodes={nodes}
           initialConnections={connections}
           onSave={handleSave}
