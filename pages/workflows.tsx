@@ -17,6 +17,25 @@ interface Workflow {
 }
 
 const WorkflowCard = ({ workflow, onDelete }: { workflow: Workflow; onDelete: (id: number) => void }) => {
+  const runWorkflow = async () => {
+    try {
+      const response = await fetch(`/api/workflow/${workflow.id}/execute`, {
+        method: "POST",
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // TODO: Show success message
+      } else {
+        // TODO: Show error message
+      }
+    } catch (err) {
+      // TODO: Show error message
+      console.error(err);
+    }
+  };
+  
   return (
     <div className="border-[#a3e635] border-1 rounded-lg shadow hover:shadow-md transition duration-200 bg-foreground-light overflow-hidden">
       <div className="p-4">
@@ -52,10 +71,13 @@ const WorkflowCard = ({ workflow, onDelete }: { workflow: Workflow; onDelete: (i
             <Settings size={14} />
             Edit
           </Link>
-          <button className="flex items-center gap-1 bg-primary text-[#18181b] py-1 px-3 rounded hover:bg-primary-light cursor-pointer transition duration-200 text-sm">
+          <button className="flex items-center gap-1 bg-primary text-[#18181b] py-1 px-3 rounded hover:bg-primary-light cursor-pointer transition duration-200 text-sm" onClick={runWorkflow}>
             <Play size={14} />
             Run
           </button>
+          <Link className="flex items-center gap-1 bg-primary text-[#18181b] py-1 px-3 rounded hover:bg-primary-light cursor-pointer transition duration-200 text-sm" href={`/workflow/${workflow.id}/view`}>
+            View 
+          </Link>
         </div>
         <button
           onClick={() => onDelete(workflow.id)}

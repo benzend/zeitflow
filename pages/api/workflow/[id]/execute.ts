@@ -14,48 +14,63 @@ export default async function handler(
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const session = await getServerSession(req, res, authOptions);
-  if (!session?.user?.email) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-
-  const user = await db.select()
-    .from(usersTable)
-    .where(eq(usersTable.email, session.user.email))
-    .limit(1);
-
-  if (user.length === 0) {
-    return res.status(401).json({ error: 'User not found' });
-  }
-
-  const userId = user[0].id;
   const workflowId = parseInt(req.query.id as string, 10);
 
   if (isNaN(workflowId)) {
     return res.status(400).json({ error: 'Invalid workflow ID' });
   }
 
-  // Verify workflow exists and belongs to user
+  // Get workflow nodes and connections
+  const nodes = await db
+    .select()
+    .from(workflowNodesTable)
+    .where(eq(workflowNodesTable.workflowId, workflowId));
+
+  if (nodes.length === 0) {
+    return res.status(404).json({ error: 'Invalid workflow. No nodes found' });
+  }
+
+    // Verify workflow exists and belongs to user
   const [workflow] = await db
     .select()
     .from(workflowsTable)
-    .where(and(
+    .where(
       eq(workflowsTable.id, workflowId),
-      eq(workflowsTable.userId, userId)
-    ))
+    )
     .limit(1);
 
   if (!workflow) {
     return res.status(404).json({ error: 'Workflow not found' });
   }
 
+  let userId: number | null = null;
+
+  if (nodes[0].type === 'endpoint') {
+    userId = workflow.userId; // we'll need to authenticate endpoints differently in the future
+  } else {
+    const session = await getServerSession(req, res, authOptions);
+    if (!session?.user?.email) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const user = await db.select()
+      .from(usersTable)
+      .where(eq(usersTable.email, session.user.email))
+      .limit(1);
+
+    if (user.length === 0) {
+      return res.status(401).json({ error: 'User not found' });
+    }
+
+    userId = user[0].id;
+  }
+
+  if (workflow.userId !== userId) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
   try {
     // Get workflow nodes and connections
-    const nodes = await db
-      .select()
-      .from(workflowNodesTable)
-      .where(eq(workflowNodesTable.workflowId, workflowId));
-
     const connections = await db
       .select()
       .from(workflowConnectionsTable)

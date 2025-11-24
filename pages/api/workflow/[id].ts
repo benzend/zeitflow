@@ -163,8 +163,8 @@ export default async function handler(
             id: node.id,
             workflowId,
             type: node.type,
-            positionX: node.x,
-            positionY: node.y,
+            positionX: Math.round(node.x),
+            positionY: Math.round(node.y),
             label: node.label,
             config: JSON.stringify({
               fields: node.fields,
