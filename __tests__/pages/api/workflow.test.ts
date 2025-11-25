@@ -119,10 +119,10 @@ describe('/api/workflow/[id]', () => {
           nodes: [
             {
               id: 'node-1',
-              type: 'endpoint',
+              type: 'entry',
               x: 100,
               y: 100,
-              label: 'Test Endpoint',
+              label: 'Test Entry',
               fields: [{ id: 'field-1', key: 'Name', type: 'text' }]
             },
             {
@@ -287,10 +287,10 @@ describe('/api/workflow/[id]', () => {
             {
               id: 'node-1',
               workflowId: 123,
-              type: 'endpoint',
+              type: 'entry',
               positionX: 100,
               positionY: 100,
-              label: 'Test Endpoint',
+              label: 'Test Entry',
               config: JSON.stringify({
                 fields: [{ id: 'field-1', key: 'Name', type: 'text' }]
               })

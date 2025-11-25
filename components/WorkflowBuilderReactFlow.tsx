@@ -1,11 +1,10 @@
 import { useState, useCallback, useMemo } from 'react';
-import { 
-  ReactFlow, 
-  addEdge, 
-  useNodesState, 
-  useEdgesState, 
-  Controls, 
-  MiniMap, 
+import {
+  ReactFlow,
+  addEdge,
+  useNodesState,
+  useEdgesState,
+  Controls,
   Background,
   BackgroundVariant,
   NodeTypes,
@@ -13,15 +12,16 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
-import { Plus, Workflow as WorkflowIcon, User, Trash2 } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import { NodeData, Connection as WorkflowConnection } from '@/lib/workflow-types';
 import { generateNodeId } from '@/lib/workflow-utils';
 import { convertToReactFlow, convertFromReactFlow, ReactFlowNodeData } from '@/lib/reactflow-types';
 
-import EndpointNode from './reactflow-nodes/EndpointNode';
+import EntryNode from './reactflow-nodes/EntryNode';
 import AINode from './reactflow-nodes/AINode';
 import SchedulerNode from './reactflow-nodes/SchedulerNode';
 import ReviewNode from './reactflow-nodes/ReviewNode';
+import Dropdown, { DropdownOption } from './Dropdown';
 
 interface WorkflowBuilderProps {
   initialNodes?: NodeData[];
@@ -30,11 +30,37 @@ interface WorkflowBuilderProps {
 }
 
 const nodeTypes: NodeTypes = {
-  endpoint: EndpointNode,
+  entry: EntryNode,
   ai: AINode,
   scheduler: SchedulerNode,
   review: ReviewNode,
 };
+
+const FIELD_TYPE_OPTIONS: DropdownOption[] = [
+  { value: 'text', label: 'Text' },
+  { value: 'email', label: 'Email' },
+  { value: 'number', label: 'Number' },
+  { value: 'tel', label: 'Phone' },
+  { value: 'url', label: 'URL' },
+  { value: 'date', label: 'Date' },
+  { value: 'textarea', label: 'Textarea' },
+  { value: 'calendar slot', label: 'Calendar Slot' },
+  { value: 'file', label: 'File Upload' },
+];
+
+const ENTRY_TYPE_OPTIONS: DropdownOption[] = [
+  { value: 'endpoint', label: 'Endpoint' },
+  { value: 'webhook', label: 'Webhook' },
+  { value: 'api', label: 'API' },
+  { value: 'form', label: 'Form' },
+  { value: 'trigger', label: 'Trigger' },
+];
+
+const NODE_TYPE_OPTIONS: DropdownOption[] = [
+  { value: 'entry', label: 'Entry' },
+  { value: 'ai', label: 'AI Model' },
+  { value: 'scheduler', label: 'Scheduler' },
+];
 
 export default function WorkflowBuilderReactFlow({
   initialNodes = [],
@@ -51,6 +77,7 @@ export default function WorkflowBuilderReactFlow({
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialFlowData.edges);
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [newPersonName, setNewPersonName] = useState('');
+  const [showAddDropdown, setShowAddDropdown] = useState(false);
 
   // Handle new connections
   const onConnect = useCallback(
@@ -66,10 +93,11 @@ export default function WorkflowBuilderReactFlow({
   // Handle canvas click (deselect)
   const onPaneClick = useCallback(() => {
     setSelectedNode(null);
+    setShowAddDropdown(false);
   }, []);
 
   // Add new node
-  const addNode = useCallback((type: 'endpoint' | 'ai' | 'scheduler' | 'review') => {
+  const addNode = useCallback((type: 'entry' | 'ai' | 'scheduler' | 'review') => {
     const newNode = {
       id: generateNodeId(),
       type,
@@ -80,8 +108,8 @@ export default function WorkflowBuilderReactFlow({
       data: {
         id: generateNodeId(),
         type,
-        label: type === 'endpoint' ? 'Endpoint' : type === 'ai' ? 'AI Model' : type === 'scheduler' ? 'Scheduler' : 'Review',
-        ...(type === 'endpoint' ? { fields: [] } :
+        label: type === 'entry' ? 'Entry' : type === 'ai' ? 'AI Model' : type === 'scheduler' ? 'Scheduler' : 'Review',
+        ...(type === 'entry' ? { fields: [], entryType: 'endpoint' } :
           type === 'ai' ? {
             aiConfig: {
               systemPrompt: '',
@@ -124,9 +152,31 @@ export default function WorkflowBuilderReactFlow({
   // Save workflow
   const handleSave = useCallback(() => {
     if (onSave) {
-      const { nodes: workflowNodes, connections: workflowConnections } = 
+      const { nodes: workflowNodes, connections: workflowConnections } =
         convertFromReactFlow(nodes, edges);
-      onSave(workflowNodes, workflowConnections);
+
+      // Validate connections before saving
+      const nodeIds = new Set(workflowNodes.map(node => node.id));
+      const validConnections = workflowConnections
+        .filter(conn => {
+          // Remove connections that reference non-existent nodes
+          if (!nodeIds.has(conn.from) || !nodeIds.has(conn.to)) {
+            console.warn(`Filtering out invalid connection: ${conn.from} -> ${conn.to}`);
+            return false;
+          }
+          // Remove self-referencing connections
+          if (conn.from === conn.to) {
+            console.warn(`Filtering out self-referencing connection: ${conn.from} -> ${conn.to}`);
+            return false;
+          }
+          return true;
+        })
+        // Remove duplicate connections
+        .filter((conn, index, arr) =>
+          arr.findIndex(c => c.from === conn.from && c.to === conn.to) === index
+        );
+
+      onSave(workflowNodes, validConnections);
     }
   }, [nodes, edges, onSave]);
 
@@ -242,30 +292,34 @@ export default function WorkflowBuilderReactFlow({
   const selectedNodeData = nodes.find(n => n.id === selectedNode)?.data;
 
   return (
-    <div className="bg-gradient-to-b from-[#2b2b2b] to-[#3c3c3c] h-screen flex">
+    <div className="bg-gradient-to-b from-[#2b2b2b] to-[#3c3c3c] h-[calc(100vh-64px)] flex">
       {/* Left Sidebar - Node Palette */}
       <div className="w-16 bg-[#424242] border-r border-[#535353] flex flex-col gap-2 p-2 z-10">
-        <button
-          onClick={() => addNode('endpoint')}
-          className="h-10 hover:bg-[#535353] flex items-center justify-center rounded transition-colors"
-          title="Add Endpoint"
-        >
-          <Plus className="text-white" size={20} />
-        </button>
-        <button
-          onClick={() => addNode('ai')}
-          className="h-10 hover:bg-[#535353] flex items-center justify-center rounded transition-colors"
-          title="Add AI Model"
-        >
-          <WorkflowIcon className="text-white" size={20} />
-        </button>
-        <button
-          onClick={() => addNode('scheduler')}
-          className="h-10 hover:bg-[#535353] flex items-center justify-center rounded transition-colors"
-          title="Add Scheduler"
-        >
-          <User className="text-white" size={20} />
-        </button>
+        <div className="relative">
+          <button
+            onClick={() => setShowAddDropdown(!showAddDropdown)}
+            className="h-10 w-full hover:bg-[#535353] flex items-center justify-center rounded transition-colors"
+            title="Add Node"
+          >
+            <Plus className="text-white" size={20} />
+          </button>
+          {showAddDropdown && (
+            <div className="absolute left-full top-0 ml-2 bg-[#424242] border border-[#535353] rounded shadow-lg z-100 min-w-[120px]">
+              {NODE_TYPE_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => {
+                    addNode(option.value as 'entry' | 'ai' | 'scheduler');
+                    setShowAddDropdown(false);
+                  }}
+                  className="w-full text-left px-3 py-2 text-white hover:bg-[#535353] text-sm transition-colors first:rounded-t last:rounded-b"
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
         <div className="flex-1" />
         <button
           onClick={() => addNode('review')}
@@ -280,7 +334,7 @@ export default function WorkflowBuilderReactFlow({
         {onSave && (
           <button
             onClick={handleSave}
-            className="bg-[#a3e635] text-[#18181b] px-2 py-1 rounded text-xs hover:bg-[#8bc329] transition-colors"
+            className="bg-[#a3e635] text-[#18181b] px-2 py-1 rounded text-xs hover:bg-[#8bc329] transition-colors cursor-pointer"
             title="Save Workflow"
           >
             Save
@@ -290,10 +344,6 @@ export default function WorkflowBuilderReactFlow({
 
       {/* Main Canvas */}
       <div className="flex-1 relative">
-        <div className="absolute top-4 left-4 z-10 pointer-events-none">
-          <h1 className="text-white text-2xl font-['Inter']">Automatic Jump Scheduler</h1>
-        </div>
-        
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -306,21 +356,9 @@ export default function WorkflowBuilderReactFlow({
           fitView
           style={{ background: 'transparent' }}
         >
-          <Controls 
+          <Controls
             className="bg-[#424242] border border-[#535353]"
             showInteractive={false}
-          />
-          <MiniMap 
-            className="bg-[#424242]"
-            nodeColor={(node) => {
-              switch(node.type) {
-                case 'endpoint': return '#ffdcb8';
-                case 'ai': return '#f2ffb8';
-                case 'scheduler': return '#b8ebff';
-                case 'review': return '#c3ffb8';
-                default: return '#666';
-              }
-            }}
           />
           <Background 
             variant={BackgroundVariant.Dots} 
@@ -332,23 +370,28 @@ export default function WorkflowBuilderReactFlow({
       </div>
 
       {/* Right Sidebar - Properties Panel */}
+      { selectedNodeData ? (
       <div className="w-80 bg-[#424242] border-l border-[#535353] overflow-y-auto">
         <div className="h-full overflow-clip relative w-80">
           {/* Header */}
           <div className="border-[#535353] border-b-[0.5px] h-[49px] left-0 top-0 w-80 z-10">
             <div className="flex h-[49px] items-center justify-between overflow-clip px-[16px] relative w-80">
               <div className="flex gap-2 items-center">
-                {selectedNodeData?.type === 'endpoint' ? (
+                {selectedNodeData?.type === 'entry' ? (
                   <>
-                    <div className="border-[0.5px] border-solid border-white h-[18px] w-[15px]">
-                      <div className="flex flex-col gap-[3px] h-full items-center justify-center">
-                        <div className="bg-white h-px w-[7px]" />
-                        <div className="bg-white h-px w-[9px]" />
-                        <div className="bg-white h-px w-[7px]" />
-                      </div>
+                    <div className="w-4 h-3">
+                      <svg className="w-full h-full" fill="none" viewBox="0 0 15 13">
+                        <circle cx="13" cy="2" r="1.75" stroke="white" strokeWidth="0.5" />
+                        <circle cx="10" cy="10" r="1.75" stroke="white" strokeWidth="0.5" />
+                        <circle cx="5" cy="3" r="1.75" stroke="white" strokeWidth="0.5" />
+                        <circle cx="2" cy="11" r="1.75" stroke="white" strokeWidth="0.5" />
+                        <line stroke="white" strokeWidth="0.5" x1="2.76788" x2="4.76788" y1="9.90715" y2="4.90715" />
+                        <line stroke="white" strokeWidth="0.5" x1="10.7679" x2="12.7679" y1="8.90715" y2="3.90715" />
+                        <line stroke="white" strokeWidth="0.5" x1="9.13017" x2="6.43759" y1="8.96121" y2="4.29752" />
+                      </svg>
                     </div>
                     <p className="font-['Inter:Regular',_sans-serif] font-normal leading-[normal] not-italic text-[20px] text-nowrap text-white whitespace-pre">
-                      Form
+                      Entry
                     </p>
                   </>
                 ) : selectedNodeData?.type === 'ai' ? (
@@ -400,56 +443,73 @@ export default function WorkflowBuilderReactFlow({
                     </p>
                   </>
                 ) : null}
+                {selectedNodeData?.type === 'entry' ? (
+                  <>
+                    <div className="bg-[#ffdcb8] py-[3px] overflow-clip rounded-[10px] w-auto px-[7px]">
+                      <p className="font-['Inter:Regular',_sans-serif] font-normal leading-[normal] not-italic text-[6px] text-black text-nowrap whitespace-pre">
+                        {ENTRY_TYPE_OPTIONS.find(opt => opt.value === selectedNodeData.entryType)?.label || 'Entry'}
+                      </p>
+                    </div>
+                  </>
+                ) : selectedNodeData?.type === 'ai' ? (
+                  <div className="bg-[#f2ffb8] py-[3px] overflow-clip rounded-[10px] w-[49px]">
+                    <p className="font-['Inter:Regular',_sans-serif] font-normal leading-[normal] not-italic text-[6px] text-black text-nowrap top-px whitespace-pre">
+                      Transformer
+                    </p>
+                  </div>
+                ) : selectedNodeData?.type === 'scheduler' ? (
+                  <div className="bg-[#b8ebff] py-[3px] overflow-clip rounded-[10px] w-[36px]">
+                    <p className="font-['Inter:Regular',_sans-serif] font-normal leading-[normal] not-italic text-[6px] text-black text-nowrap top-px whitespace-pre">
+                      Planner
+                    </p>
+                  </div>
+                ) : selectedNodeData?.type === 'review' ? (
+                  <div className="bg-[#c3ffb8] py-[3px] overflow-clip rounded-[10px] w-[42px]">
+                    <p className="font-['Inter:Regular',_sans-serif] font-normal leading-[normal] not-italic text-[6px] text-black text-nowrap top-px whitespace-pre">
+                      Validation
+                    </p>
+                  </div>
+                ) : null}
               </div>
               <button
                 onClick={removeSelectedNode}
-                className="bg-[#424242] flex h-[23px] hover:bg-[#535353] items-center justify-center rounded-[10px] transition-colors w-[29px]"
+                className="bg-[#424242] flex h-[23px] hover:bg-[#535353] items-center justify-center rounded-[10px] transition-colors w-[29px] cursor-pointer"
+                title="Remove Node"
               >
                 <Trash2 className="text-red-500" size={13} />
               </button>
             </div>
-            {selectedNodeData?.type === 'endpoint' ? (
-              <>
-                <div className="absolute bg-[#ffdcb8] h-[10px] left-[104px] overflow-clip rounded-[10px] top-[21px] w-[30px]">
-                  <p className="font-['Inter:Regular',_sans-serif] font-normal leading-[normal] px-[7px] not-italic text-[6px] text-black text-nowrap whitespace-pre">
-                    Entry
-                  </p>
-                </div>
-                <p className="absolute font-['Inter:Regular',_sans-serif] font-normal leading-[normal] left-[50px] not-italic text-[#979797] text-[6px] text-nowrap top-[36px] whitespace-pre">
-                  https://jjoist.com/47ab85qub63z28z89
-                </p>
-              </>
-            ) : selectedNodeData?.type === 'ai' ? (
-              <div className="absolute bg-[#f2ffb8] h-[10px] left-[120px] overflow-clip rounded-[10px] top-[21px] w-[49px]">
-                <p className="font-['Inter:Regular',_sans-serif] font-normal leading-[normal] left-[7px] not-italic text-[6px] text-black text-nowrap top-px whitespace-pre">
-                  Transformer
-                </p>
-              </div>
-            ) : selectedNodeData?.type === 'scheduler' ? (
-              <div className="absolute bg-[#b8ebff] h-[10px] left-[154px] overflow-clip rounded-[10px] top-[21px] w-[36px]">
-                <p className="font-['Inter:Regular',_sans-serif] font-normal leading-[normal] left-[7px] not-italic text-[6px] text-black text-nowrap top-px whitespace-pre">
-                  Planner
-                </p>
-              </div>
-            ) : selectedNodeData?.type === 'review' ? (
-              <div className="absolute bg-[#c3ffb8] h-[10px] left-[129px] overflow-clip rounded-[10px] top-[21px] w-[42px]">
-                <p className="font-['Inter:Regular',_sans-serif] font-normal leading-[normal] left-[7px] not-italic text-[6px] text-black text-nowrap top-px whitespace-pre">
-                  Validation
-                </p>
-              </div>
-            ) : null}
+
           </div>
 
           {/* Content based on node type */}
-          {selectedNodeData?.type === 'endpoint' ? (
-            <div className="mt-[70px] px-[20px] pb-[20px]">
+          {selectedNodeData?.type === 'entry' ? (
+            <div className="mt-[20px] px-[20px] pb-[20px]">
               <div className="mb-[20px]">
                 <h2 className="text-white text-[18px] font-bold mb-[4px]">
-                  Form Fields
+                  Endpoint Configuration
                 </h2>
                 <p className="text-[#959595] text-[12px] leading-relaxed">
-                  Configure the input fields for this endpoint
+                  Configure the entry type and input fields
                 </p>
+              </div>
+
+              <div className="mb-[20px]">
+                <label className="block text-[#CCCCCC] text-[14px] font-medium mb-[8px]">
+                  Entry Type
+                </label>
+                 <Dropdown
+                   value={selectedNodeData.entryType || 'endpoint'}
+                   onChange={(value) => updateNodeData(selectedNode!, { entryType: value })}
+                   options={ENTRY_TYPE_OPTIONS}
+                   className="h-[32px]"
+                 />
+              </div>
+
+              <div className="mb-[12px]">
+                <h3 className="text-white text-[16px] font-bold mb-[4px]">
+                  Fields
+                </h3>
               </div>
 
               <div className="space-y-[16px]">
@@ -474,15 +534,12 @@ export default function WorkflowBuilderReactFlow({
                           className="bg-transparent h-full w-full px-[12px] text-[12px] text-white placeholder-[#999] outline-none"
                         />
                       </div>
-                      <div className="bg-[#484848] border-[#5a5a5a] border-[0.5px] h-[32px] rounded-[8px] overflow-hidden">
-                        <input
-                          type="text"
-                          value={field.type}
-                          onChange={(e) => updateField(field.id, { type: e.target.value })}
-                          placeholder="text, email, number..."
-                          className="bg-transparent h-full w-full px-[12px] text-[12px] text-white placeholder-[#999] outline-none"
-                        />
-                      </div>
+                       <Dropdown
+                        value={field.type}
+                        onChange={(value) => updateField(field.id, { type: value })}
+                        options={FIELD_TYPE_OPTIONS}
+                        className="h-[32px]"
+                      />
                     </div>
                     <button
                       onClick={() => removeField(field.id)}
@@ -511,7 +568,7 @@ export default function WorkflowBuilderReactFlow({
               </button>
             </div>
           ) : selectedNodeData?.type === 'ai' && selectedNodeData.aiConfig ? (
-            <div className="mt-[70px] px-[20px] pb-[20px]">
+            <div className="mt-[20px] px-[20px] pb-[20px]">
               <div className="mb-[20px]">
                 <h2 className="text-white text-[18px] font-bold mb-[4px]">
                   AI Configuration
@@ -611,7 +668,7 @@ export default function WorkflowBuilderReactFlow({
               </div>
             </div>
           ) : selectedNodeData?.type === 'scheduler' && selectedNodeData.schedulerConfig ? (
-            <div className="mt-[70px] px-[20px] pb-[20px]">
+            <div className="mt-[20px] px-[20px] pb-[20px]">
               <div className="mb-[20px]">
                 <h2 className="text-white text-[18px] font-bold mb-[4px]">
                   Scheduler Settings
@@ -700,7 +757,7 @@ export default function WorkflowBuilderReactFlow({
               </div>
             </div>
           ) : selectedNodeData?.type === 'review' && selectedNodeData.reviewConfig ? (
-            <div className="mt-[70px] px-[20px] pb-[20px]">
+            <div className="mt-[20px] px-[20px] pb-[20px]">
               <div className="mb-[20px]">
                 <h2 className="text-white text-[18px] font-bold mb-[4px]">
                   Review Checklist
@@ -729,7 +786,7 @@ export default function WorkflowBuilderReactFlow({
                     >
                       <div className="flex h-full items-center px-[15px] relative">
                         <div className="flex items-center">
-                          {node.data.type === 'endpoint' ? (
+                          {node.data.type === 'entry' ? (
                             <div className="h-[18px] mr-[13px] w-[15px]">
                               <svg className="block size-full" fill="none" viewBox="0 0 15 18">
                                 <line stroke={isValidated ? "white" : "#999999"} strokeWidth="0.5" x1="10.4614" x2="3.18514" y1="4.25" y2="4.25" />
@@ -765,7 +822,7 @@ export default function WorkflowBuilderReactFlow({
                             </div>
                           ) : null}
                           <p className={`font-['Inter:Bold',_sans-serif] font-bold leading-[normal] not-italic text-[16px] text-nowrap whitespace-pre`} style={{ color: isValidated ? "white" : "#999999" }}>
-                            {node.data.type === 'endpoint' ? 'Form' : node.data.label}
+                            {node.data.type === 'entry' ? 'Form' : node.data.label}
                           </p>
                         </div>
                         <div className="absolute right-[15px] rounded-[2px] size-[9px]">
@@ -828,12 +885,13 @@ export default function WorkflowBuilderReactFlow({
               </div>
             </div>
           ) : !selectedNodeData && (
-            <div className="mt-[70px] px-[20px] pb-[20px]">
+            <div className="mt-[20px] px-[20px] pb-[20px]">
               <p className="text-gray-400 text-sm">Select a node to configure its properties</p>
             </div>
           )}
         </div>
       </div>
+      ) : null}
     </div>
   );
 }

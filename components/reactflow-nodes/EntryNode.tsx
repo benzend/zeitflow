@@ -2,12 +2,12 @@ import { memo } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import { ReactFlowNodeData } from '@/lib/reactflow-types';
 
-interface EndpointNodeProps {
+interface EntryNodeProps {
   data: ReactFlowNodeData;
   selected: boolean;
 }
 
-const EndpointNode = memo(({ data, selected }: EndpointNodeProps) => {
+const EntryNode = memo(({ data, selected }: EntryNodeProps) => {
   const color = selected ? '#11FF00' : '#FFFFFF';
 
   return (
@@ -29,10 +29,17 @@ const EndpointNode = memo(({ data, selected }: EndpointNodeProps) => {
         <span className="text-xs text-white whitespace-nowrap">{data.label}</span>
       </div>
       
-      <div className="text-xs text-gray-400 mt-1 text-center">Entry</div>
+       <div className="text-xs text-gray-400 mt-1 text-center">
+         {data.entryType === 'endpoint' ? 'Endpoint' :
+          data.entryType === 'webhook' ? 'Webhook' :
+          data.entryType === 'api' ? 'API' :
+          data.entryType === 'form' ? 'Form' :
+          data.entryType === 'trigger' ? 'Trigger' :
+          data.entryType || 'Entry'}
+       </div>
     </div>
   );
 });
 
-EndpointNode.displayName = 'EndpointNode';
-export default EndpointNode;
+EntryNode.displayName = 'EntryNode';
+export default EntryNode;

@@ -159,6 +159,7 @@ export default async function handler(
             aiConfig?: unknown;
             schedulerConfig?: unknown;
             reviewConfig?: unknown;
+            entryType?: string;
           }) => ({
             id: node.id,
             workflowId,
@@ -171,7 +172,8 @@ export default async function handler(
               aiConfig: node.aiConfig,
               schedulerConfig: node.schedulerConfig,
               reviewConfig: node.reviewConfig
-            })
+            }),
+            entryType: node.entryType
           }));
 
           await tx.insert(workflowNodesTable).values(nodeInserts);

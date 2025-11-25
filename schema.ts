@@ -245,12 +245,13 @@ export const workflowNodesTable = pgTable("workflow_nodes", {
   workflowId: integer("workflow_id")
     .notNull()
     .references(() => workflowsTable.id, { onDelete: "cascade" }),
-  type: text("type").notNull(), // endpoint, ai, scheduler, review
+  type: text("type").notNull(), // entry, ai, scheduler, review
   positionX: integer("position_x").notNull(),
   positionY: integer("position_y").notNull(),
   label: text("label").notNull(),
   config: text("config"), // JSON string containing node-specific configuration
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  entryType: text("entry_type"),
   updatedAt: timestamp("updated_at")
     .notNull()
     .$onUpdateFn(() => new Date()),

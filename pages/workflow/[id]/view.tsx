@@ -2,10 +2,8 @@ import { useState, useEffect } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
-import { ArrowLeft } from 'lucide-react';
 import Link from "next/link";
-import WorkflowBuilderReactFlow from "@/components/WorkflowBuilderReactFlow";
-import { NodeData, Connection } from '@/lib/workflow-types';
+import { NodeData } from '@/lib/workflow-types';
 
 interface Workflow {
   id: number;
@@ -22,11 +20,8 @@ export default function WorkflowBuilderPage() {
   const { id } = router.query;
   const [workflow, setWorkflow] = useState<Workflow | null>(null);
   const [nodes, setNodes] = useState<NodeData[]>([]);
-  const [connections, setConnections] = useState<Connection[]>([]);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
   const authHeaders = {
     'Content-Type': 'application/json',
@@ -77,17 +72,7 @@ export default function WorkflowBuilderPage() {
           };
         });
 
-        // Parse connections from database format
-        const parsedConnections = data.connections.map((conn: {
-          fromNodeId: string;
-          toNodeId: string;
-        }) => ({
-          from: conn.fromNodeId,
-          to: conn.toNodeId,
-        }));
-
         setNodes(parsedNodes);
-        setConnections(parsedConnections);
       } else {
         setError(data.message || "Failed to fetch workflow");
       }
@@ -99,41 +84,9 @@ export default function WorkflowBuilderPage() {
     }
   };
 
-  const entryNode = nodes.find(n => n.type === 'endpoint');
+  const entryNode = nodes.find(n => n.type === 'entry');
 
-  const handleSave = async (updatedNodes: NodeData[], updatedConnections: Connection[]) => {
-    if (!workflow) return;
 
-    try {
-      setSaving(true);
-      const response = await fetch(`/api/workflow/${workflow.id}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          nodes: updatedNodes,
-          connections: updatedConnections,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setNodes(updatedNodes);
-        setConnections(updatedConnections);
-        setLastSaved(new Date());
-        setError("");
-      } else {
-        setError(data.message || "Failed to save workflow");
-      }
-    } catch (err) {
-      setError("An error occurred while saving the workflow");
-      console.error(err);
-    } finally {
-      setSaving(false);
-    }
-  };
 
   if (status === "loading" || loading) {
     return (
@@ -170,14 +123,14 @@ export default function WorkflowBuilderPage() {
       <div className="flex justify-center items-center min-h-screen">
         {entryNode ? (
           <div className="flex justify-center items-center min-h-screen">
-          {entryNode.type === 'endpoint' ? (
+          {entryNode.type === 'entry' ? (
             <div className="flex justify-center items-center min-h-screen">
               <div className="max-w-md w-full">
                 <p>
                   URL: {window.location.origin}/api/workflow/{workflow.id}/execute
                 </p>
                 <p>
-                  Method: 'POST'
+                  Method: &apos;POST&apos;
                 </p>
                 <p>
                   Headers: {JSON.stringify(authHeaders)}

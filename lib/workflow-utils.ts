@@ -11,7 +11,7 @@ export const snapToGrid = (value: number, gridSize: number = 20): number => {
  * Gets the width of a node based on its type
  */
 export const getNodeWidth = (type: string): number => {
-  if (type === 'endpoint') return 98;
+  if (type === 'entry') return 98;
   if (type === 'ai') return 89;
   if (type === 'scheduler') return 103;
   return 89; // review
@@ -21,7 +21,7 @@ export const getNodeWidth = (type: string): number => {
  * Gets the icon name for a node type
  */
 export const getNodeIcon = (node: NodeData): string => {
-  if (node.type === 'endpoint') {
+  if (node.type === 'entry') {
     return 'Form';
   } else if (node.type === 'ai') {
     return 'AI';
@@ -45,3 +45,6 @@ export const generateNodeId = (): string => {
 export const generateFieldId = (): string => {
   return crypto.randomUUID();
 };
+
+export const chat = () => {
+}

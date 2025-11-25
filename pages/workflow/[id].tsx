@@ -58,6 +58,7 @@ export default function WorkflowBuilderPage() {
           positionY: number;
           label: string;
           config: string;
+          entryType?: string;
         }) => {
           const config = JSON.parse(node.config || '{}');
           return {
@@ -70,6 +71,7 @@ export default function WorkflowBuilderPage() {
             aiConfig: config.aiConfig,
             schedulerConfig: config.schedulerConfig,
             reviewConfig: config.reviewConfig,
+            entryType: node.entryType
           };
         });
 

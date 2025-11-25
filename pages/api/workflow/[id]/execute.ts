@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../auth/[...nextauth]";
 import { db } from "@/lib/db";
 import { workflowsTable, workflowNodesTable, workflowConnectionsTable, workflowExecutionsTable, usersTable } from "@/schema";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { CalendarService } from "@/lib/calendar";
 
 export default async function handler(
@@ -45,7 +45,7 @@ export default async function handler(
 
   let userId: number | null = null;
 
-  if (nodes[0].type === 'endpoint') {
+  if (nodes[0].type === 'entry') {
     userId = workflow.userId; // we'll need to authenticate endpoints differently in the future
   } else {
     const session = await getServerSession(req, res, authOptions);

@@ -29,8 +29,8 @@ describe('Workflow Utils', () => {
   });
 
   describe('getNodeWidth', () => {
-    it('should return correct width for endpoint nodes', () => {
-      expect(getNodeWidth('endpoint')).toBe(98);
+    it('should return correct width for entry nodes', () => {
+      expect(getNodeWidth('entry')).toBe(98);
     });
 
     it('should return correct width for ai nodes', () => {
@@ -51,10 +51,10 @@ describe('Workflow Utils', () => {
   });
 
   describe('getNodeIcon', () => {
-    it('should return correct icon for endpoint nodes', () => {
+    it('should return correct icon for entry nodes', () => {
       const node: NodeData = {
         id: '1',
-        type: 'endpoint',
+        type: 'entry',
         x: 0,
         y: 0,
         label: 'Test'

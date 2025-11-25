@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import WorkflowBuilder from '@/components/WorkflowBuilder';
 import WorkflowBuilderReactFlow from '@/components/WorkflowBuilderReactFlow';
 import { NodeData, Connection } from '@/lib/workflow-types';
 
@@ -7,7 +6,7 @@ import { NodeData, Connection } from '@/lib/workflow-types';
 const sampleNodes: NodeData[] = [
   {
     id: '1',
-    type: 'endpoint',
+    type: 'entry',
     x: 100,
     y: 100,
     label: 'Meeting Notes',
@@ -51,7 +50,6 @@ const sampleConnections: Connection[] = [
 ];
 
 export default function TestWorkflowPage() {
-  const [useReactFlow, setUseReactFlow] = useState(false);
   const [savedData, setSavedData] = useState<{ nodes: NodeData[], connections: Connection[] } | null>(null);
 
   const handleSave = (nodes: NodeData[], connections: Connection[]) => {
@@ -64,18 +62,7 @@ export default function TestWorkflowPage() {
       <div className="p-4 bg-gray-800 border-b border-gray-700">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-white text-xl font-bold">Workflow Builder Migration Demo</h1>
-            <div className="flex items-center gap-4">
-              <span className="text-gray-300 text-sm">
-                {useReactFlow ? '✅ React Flow Version' : '🔧 Original Version'}
-              </span>
-              <button
-                onClick={() => setUseReactFlow(!useReactFlow)}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition-colors"
-              >
-                Switch to {useReactFlow ? 'Original' : 'React Flow'}
-              </button>
-            </div>
+            <h1 className="text-white text-xl font-bold">Workflow Builder Test</h1>
           </div>
           
           <div className="grid grid-cols-3 gap-4 text-sm">
@@ -90,13 +77,13 @@ export default function TestWorkflowPage() {
               </ul>
             </div>
             <div className="bg-gray-700 p-3 rounded">
-              <h3 className="text-white font-semibold mb-2">Migration Status</h3>
+              <h3 className="text-white font-semibold mb-2">Features</h3>
               <ul className="text-gray-300 space-y-1">
                 <li>✅ Custom node components</li>
-                <li>✅ Data conversion utilities</li>
                 <li>✅ Properties panel</li>
-                <li>✅ All interactions preserved</li>
-                <li>✅ Tests passing</li>
+                <li>✅ Field type dropdown</li>
+                <li>✅ Add button functionality</li>
+                <li>✅ Reusable components</li>
               </ul>
             </div>
             <div className="bg-gray-700 p-3 rounded">
@@ -116,19 +103,11 @@ export default function TestWorkflowPage() {
       </div>
       
       <div className="h-screen">
-        {useReactFlow ? (
-          <WorkflowBuilderReactFlow 
-            initialNodes={sampleNodes}
-            initialConnections={sampleConnections}
-            onSave={handleSave}
-          />
-        ) : (
-          <WorkflowBuilder 
-            initialNodes={sampleNodes}
-            initialConnections={sampleConnections}
-            onSave={handleSave}
-          />
-        )}
+        <WorkflowBuilderReactFlow 
+          initialNodes={sampleNodes}
+          initialConnections={sampleConnections}
+          onSave={handleSave}
+        />
       </div>
     </div>
   );

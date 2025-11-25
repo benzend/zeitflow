@@ -29,11 +29,12 @@ export interface ReviewConfig {
 
 export interface NodeData {
   id: string;
-  type: 'endpoint' | 'ai' | 'scheduler' | 'review';
+  type: 'entry' | 'ai' | 'scheduler' | 'review';
   x: number;
   y: number;
   label: string;
   fields?: Field[];
+  entryType?: string;
   aiConfig?: AINodeConfig;
   schedulerConfig?: SchedulerConfig;
   reviewConfig?: ReviewConfig;

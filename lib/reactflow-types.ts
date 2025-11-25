@@ -4,9 +4,10 @@ import { NodeData, Connection, Field, AINodeConfig, SchedulerConfig, ReviewConfi
 // React Flow node data type (without x, y since those are handled by React Flow)
 export interface ReactFlowNodeData extends Record<string, unknown> {
   id: string;
-  type: 'endpoint' | 'ai' | 'scheduler' | 'review';
+  type: 'entry' | 'ai' | 'scheduler' | 'review';
   label: string;
   fields?: Field[];
+  entryType?: string;
   aiConfig?: AINodeConfig;
   schedulerConfig?: SchedulerConfig;
   reviewConfig?: ReviewConfig;
@@ -33,6 +34,7 @@ export const convertToReactFlow = (
         type: node.type,
         label: node.label,
         fields: node.fields,
+        entryType: node.entryType,
         aiConfig: node.aiConfig,
         schedulerConfig: node.schedulerConfig,
         reviewConfig: node.reviewConfig
@@ -60,6 +62,7 @@ export const convertFromReactFlow = (
       y: node.position.y,
       label: node.data.label,
       fields: node.data.fields,
+      entryType: node.data.entryType,
       aiConfig: node.data.aiConfig,
       schedulerConfig: node.data.schedulerConfig,
       reviewConfig: node.data.reviewConfig
