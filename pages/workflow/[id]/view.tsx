@@ -127,7 +127,7 @@ export default function WorkflowBuilderPage() {
             <div className="flex justify-center items-center min-h-screen">
               <div className="max-w-md w-full">
                 <p>
-                  URL: {window.location.origin}/api/workflow/{workflow.id}/execute
+                  URL: {workflow ? `${window.location.origin}/api/workflow/${workflow.id}/execute` : ''}
                 </p>
                 <p>
                   Method: &apos;POST&apos;
@@ -140,13 +140,7 @@ export default function WorkflowBuilderPage() {
                 </p>
               </div>
             </div>
-          ) : entryNode.type === 'webhook' ? (
-            <div className="flex justify-center items-center min-h-screen">
-              <div className="text-center">
-                Webhook URL: {router.query.url}
-              </div>
-            </div>
-          ): null}
+          ) : null}
           </div>
         ) : (
           <div className="text-center">

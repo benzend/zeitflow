@@ -1,7 +1,9 @@
 export interface Field {
   id: string;
   key: string;
+  name: string;
   type: string;
+  label?: string;
 }
 
 export interface AINodeConfig {
@@ -29,7 +31,7 @@ export interface ReviewConfig {
 
 export interface NodeData {
   id: string;
-  type: 'entry' | 'ai' | 'scheduler' | 'review';
+  type: 'entry' | 'ai' | 'scheduler' | 'review' | 'slack';
   x: number;
   y: number;
   label: string;

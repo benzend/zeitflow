@@ -288,6 +288,35 @@ export const workflowExecutionsTable = pgTable("workflow_executions", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Chat threads table for grouping conversations
+export const chatThreadsTable = pgTable("chat_threads", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => usersTable.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  lastMessageAt: timestamp("last_message_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .notNull()
+    .$onUpdateFn(() => new Date()),
+});
+
+// Chat messages table for workflow creation conversations
+export const chatMessagesTable = pgTable("chat_messages", {
+  id: serial("id").primaryKey(),
+  threadId: integer("thread_id")
+    .notNull()
+    .references(() => chatThreadsTable.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => usersTable.id, { onDelete: "cascade" }),
+  workflowId: integer("workflow_id").references(() => workflowsTable.id, { onDelete: "set null" }),
+  role: text("role").notNull(), // 'user' or 'assistant'
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export type InsertSubscriber = typeof subscribersTable.$inferInsert;
 export type InsertRateLimit = typeof rateLimitsTable.$inferInsert;
 
@@ -318,6 +347,12 @@ export type InsertWorkflowConnection = typeof workflowConnectionsTable.$inferIns
 export type SelectWorkflowConnection = typeof workflowConnectionsTable.$inferSelect;
 export type InsertWorkflowExecution = typeof workflowExecutionsTable.$inferInsert;
 export type SelectWorkflowExecution = typeof workflowExecutionsTable.$inferSelect;
+
+// Chat types
+export type InsertChatThread = typeof chatThreadsTable.$inferInsert;
+export type SelectChatThread = typeof chatThreadsTable.$inferSelect;
+export type InsertChatMessage = typeof chatMessagesTable.$inferInsert;
+export type SelectChatMessage = typeof chatMessagesTable.$inferSelect;
 
 // Add missing type for dashboard query
 export type SelectQueuedChainWithStatus = SelectQueuedChain & {

@@ -2,8 +2,8 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "./auth/[...nextauth]";
 import { db } from "@/lib/db";
-import { workflowsTable, usersTable } from "@/schema";
-import { eq } from "drizzle-orm";
+import { workflowsTable, usersTable, workflowExecutionsTable } from "@/schema";
+import { eq, sql } from "drizzle-orm";
 import { isRateLimited } from "@/lib/rate-limit";
 
 export default async function handler(
@@ -55,9 +55,18 @@ export default async function handler(
     if (req.method === "GET") {
       // Get all workflows for the user
       const workflows = await db
-        .select()
+        .select({
+          id: workflowsTable.id,
+          name: workflowsTable.name,
+          description: workflowsTable.description,
+          status: workflowsTable.status,
+          executionCount: sql<number>`cast(count(${workflowExecutionsTable.id}) as int)`,
+          createdAt: workflowsTable.createdAt,
+          updatedAt: workflowsTable.updatedAt,
+        })
         .from(workflowsTable)
         .where(eq(workflowsTable.userId, userId))
+        .groupBy(workflowsTable.id)
         .orderBy(workflowsTable.updatedAt);
 
       return res.status(200).json({ 

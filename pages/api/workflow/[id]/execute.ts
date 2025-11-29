@@ -46,7 +46,7 @@ export default async function handler(
   let userId: number | null = null;
 
   if (nodes[0].type === 'entry') {
-    userId = workflow.userId; // we'll need to authenticate endpoints differently in the future
+    userId = parseInt(workflow.userId as string, 10); // we'll need to authenticate endpoints differently in the future
   } else {
     const session = await getServerSession(req, res, authOptions);
     if (!session?.user?.email) {
@@ -62,10 +62,10 @@ export default async function handler(
       return res.status(401).json({ error: 'User not found' });
     }
 
-    userId = user[0].id;
+    userId = parseInt(user[0].id as string, 10);
   }
 
-  if (workflow.userId !== userId) {
+  if (workflow.userId !== userId.toString()) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
@@ -79,7 +79,7 @@ export default async function handler(
     // Create execution record
     const [execution] = await db.insert(workflowExecutionsTable).values({
       workflowId,
-      userId,
+      userId: userId.toString(),
       status: 'running',
       inputData: JSON.stringify(req.body.inputData || {}),
     }).returning();
@@ -100,7 +100,7 @@ export default async function handler(
           try {
             // Find available slots
             const slots = await CalendarService.findAvailableSlots(
-              userId,
+              userId.toString(),
               config.schedulerConfig.people || [],
               parseInt(config.schedulerConfig.minTimeRequirement) || 60
             );
@@ -110,7 +110,7 @@ export default async function handler(
             if (slots.length > 0) {
               const selectedSlot = slots[0];
               await CalendarService.createMeeting(
-                userId,
+                userId.toString(),
                 `Meeting from workflow: ${workflow.name}`,
                 selectedSlot.start,
                 selectedSlot.end,

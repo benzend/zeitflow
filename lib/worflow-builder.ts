@@ -40,7 +40,7 @@ class Builder {
   private endpoint: string;
   private prevResult: object | null = null;
   private expectation: WorkflowExpectation;
-  private catchAllFn: (error: Error) => Promise<WorkflowResponse>;
+  private catchAllFn: ((error: Error) => Promise<WorkflowResponse>) | null = null;
   private headers: Record<string, string> = {};
   private params: Record<string, "boolean" | "number" | "string" | "object"> = {};
 
@@ -56,7 +56,12 @@ class Builder {
       return this;
     } catch (error) {
       const err = error as Error;
-      this.catchAllFn = this.catchAll.bind(this, err);
+      // Call the catchAll function if set, otherwise rethrow
+      if (this.catchAllFn) {
+        await this.catchAllFn(err);
+      } else {
+        throw err;
+      }
       return this;
     }
   }

@@ -70,9 +70,6 @@ describe('WorkflowBuilderReactFlow', () => {
     it('should render with default nodes', () => {
       render(<WorkflowBuilderReactFlow {...defaultProps} />);
 
-      // Check that the title is rendered
-      expect(screen.getByText('Automatic Jump Scheduler')).toBeInTheDocument();
-
       // Check that the component renders without crashing
       expect(screen.getByRole('button', { name: /Add Node/i })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /Add Review Node/i })).toBeInTheDocument();

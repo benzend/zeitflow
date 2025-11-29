@@ -46,9 +46,9 @@ const EntryNode = memo(({ data, selected }: EntryNodeProps) => {
         <span className="text-xs text-white whitespace-nowrap">{data.label}</span>
       </div>
       
-       <div className="text-xs text-gray-400 mt-1 text-center">
-         {getEntryTypeLabel(data.entryType)}
-       </div>
+        <div className="text-xs text-gray-400 mt-1 text-center">
+          {getEntryTypeLabel(data.entryType || 'entry')}
+        </div>
     </div>
   );
 });

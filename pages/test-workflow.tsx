@@ -11,8 +11,8 @@ const sampleNodes: NodeData[] = [
     y: 100,
     label: 'Meeting Notes',
     fields: [
-      { id: 'f1', key: 'Notes', type: 'textarea' },
-      { id: 'f2', key: 'Attendees', type: 'text' }
+      { id: 'f1', key: 'Notes', name: 'notes', type: 'textarea' },
+      { id: 'f2', key: 'Attendees', name: 'attendees', type: 'text' }
     ]
   },
   {

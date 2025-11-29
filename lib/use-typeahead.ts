@@ -70,7 +70,6 @@ export function useTypeahead(
   }, [suggestions]);
 
   const selectSuggestion = useCallback((index: number) => {
-    debugger
     const suggestion = filteredSuggestions[index];
     if (!suggestion) return;
 

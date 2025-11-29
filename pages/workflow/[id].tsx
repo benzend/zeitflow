@@ -60,7 +60,18 @@ export default function WorkflowBuilderPage() {
           config: string;
           entryType?: string;
         }) => {
-          const config = JSON.parse(node.config || '{}');
+          let config: {
+            fields?: unknown[];
+            aiConfig?: unknown;
+            schedulerConfig?: unknown;
+            reviewConfig?: unknown;
+          } = {};
+          try {
+            config = JSON.parse(node.config || '{}');
+          } catch (error) {
+            console.error('Failed to parse node config:', error, node.config);
+            config = {};
+          }
           return {
             id: node.id,
             type: node.type,

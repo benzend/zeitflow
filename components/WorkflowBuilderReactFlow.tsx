@@ -194,6 +194,7 @@ export default function WorkflowBuilderReactFlow({
     const newField = {
       id: crypto.randomUUID(),
       key: 'New Field',
+      name: 'new_field',
       type: 'text'
     };
     const currentNode = nodes.find(n => n.id === selectedNode);

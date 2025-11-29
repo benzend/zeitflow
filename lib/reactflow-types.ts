@@ -4,7 +4,7 @@ import { NodeData, Connection, Field, AINodeConfig, SchedulerConfig, ReviewConfi
 // React Flow node data type (without x, y since those are handled by React Flow)
 export interface ReactFlowNodeData extends Record<string, unknown> {
   id: string;
-  type: 'entry' | 'ai' | 'scheduler' | 'review';
+  type: 'entry' | 'ai' | 'scheduler' | 'review' | 'slack';
   label: string;
   fields?: Field[];
   entryType?: string;
