@@ -123,11 +123,11 @@ export default function SignIn({ providers }: { providers: Provider[] }) {
 
       <Navigation />
 
-      <main className="container mx-auto px-4 py-10 mt-60 max-w-6xl">
+      <main className="container mx-auto px-4 py-10 mt-20 max-w-6xl">
         <div className="flex justify-center">
-          <div className="bg-foreground rounded-lg shadow-lg p-8 w-full max-w-md">
+          <div className="bg-background-light rounded-lg shadow-lg p-8 w-full max-w-md">
             <div className="-mt-4 mb-8">
-              <div className="px-4 py-2 bg-foreground rounded-lg">
+              <div className="px-4 py-2 rounded-lg">
                 <h1 className="text-xl font-bold text-center text-primary">
                   Sign In to jjoist
                 </h1>
@@ -140,11 +140,11 @@ export default function SignIn({ providers }: { providers: Provider[] }) {
                 {credentialsProvider && (
                   <Button
                     onClick={() => setActiveTab('credentials')}
-                    variant="tertiary"
-                    className={`flex-1 !bg-transparent !p-2 !h-auto text-sm font-medium transition-colors ${
+                    variant="secondary"
+                    className={`flex-1 rounded-none ${
                       activeTab === 'credentials'
                         ? 'text-primary border-b-2 border-primary'
-                        : 'text-primary/60 hover:text-primary'
+                        : 'text-primary/60 hover:text-primary !bg-primary/10'
                     }`}
                   >
                     Email & Password
@@ -153,11 +153,11 @@ export default function SignIn({ providers }: { providers: Provider[] }) {
                 {emailProvider && (
                   <Button
                     onClick={() => setActiveTab('magic')}
-                    variant="tertiary"
-                    className={`flex-1 !bg-transparent !p-2 !h-auto text-sm font-medium transition-colors ${
+                    variant="secondary"
+                    className={`flex-1 rounded-none ${
                       activeTab === 'magic'
                         ? 'text-primary border-b-2 border-primary'
-                        : 'text-primary/60 hover:text-primary'
+                        : 'text-primary/60 hover:text-primary !bg-primary/10'
                     }`}
                   >
                     Magic Link
@@ -193,7 +193,7 @@ export default function SignIn({ providers }: { providers: Provider[] }) {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="w-full px-3 py-2 border border-border bg-input-background text-foreground placeholder-text-placeholder rounded-lg focus:outline-none focus:ring-2 focus:ring-border-focus focus:border-border-focus"
+                    className="w-full px-3 py-2 border border-border bg-surface text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="Enter your password"
                   />
                 </div>
@@ -276,7 +276,7 @@ export default function SignIn({ providers }: { providers: Provider[] }) {
                       <div className="w-full border-t border-border"></div>
                     </div>
                     <div className="relative flex justify-center text-sm">
-                      <span className="px-2 bg-foreground text-primary/60">Or continue with</span>
+                      <span className="px-2 bg-background text-primary/60">Or continue with</span>
                     </div>
                   </div>
                 )}

@@ -91,11 +91,11 @@ export default function Register({ providers }: { providers: Provider[] }) {
 
       <Navigation />
 
-      <main className="container mx-auto px-4 py-10 mt-60 max-w-6xl">
+      <main className="container mx-auto px-4 py-10 mt-20 max-w-6xl">
         <div className="flex justify-center">
-          <div className="bg-foreground rounded-lg shadow-lg p-8 w-full max-w-md">
+          <div className="bg-background-light rounded-lg shadow-lg p-8 w-full max-w-md">
             <div className="-mt-4 mb-8">
-              <div className="px-4 py-2 bg-foreground rounded-lg">
+              <div className="px-4 py-2 rounded-lg">
                 <h1 className="text-xl font-bold text-center text-primary">
                   Create Account
                 </h1>
@@ -197,21 +197,22 @@ export default function Register({ providers }: { providers: Provider[] }) {
                       <div className="w-full border-t border-gray-600"></div>
                     </div>
                     <div className="relative flex justify-center text-sm">
-                      <span className="px-2 bg-foreground text-primary/60">Or continue with</span>
+                      <span className="px-2 bg-background text-primary/60">Or continue with</span>
                     </div>
                   </div>
                 )}
                 <div className="space-y-4">
                   {otherProviders.map((provider: Provider) => (
                     <div key={provider.name}>
-                      <button
+                      <Button
+                        variant="secondary"
                         onClick={() =>
                           signIn(provider.id, { callbackUrl: '/dashboard' })
                         }
-                        className="w-full bg-primary text-[#18181b] py-3 px-4 rounded-lg hover:bg-primary-light transition duration-200 font-medium cursor-pointer"
+                        className="w-full"
                       >
                         Sign up with {provider.name}
-                      </button>
+                      </Button>
                     </div>
                   ))}
                 </div>
