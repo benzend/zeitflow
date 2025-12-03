@@ -1,34 +1,36 @@
-import Link from "next/link";
+import { Button } from "./Button";
 
 export const Footer = () => (
 
-  <footer className="bg-[#18181b] border-t border-[#27272a] py-6 mt-12">
+  <footer className="bg-surface border-t border-border py-6 mt-12">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="flex flex-col items-center space-y-3">
         <div className="flex justify-center space-x-6">
-          <Link
+          <Button
             href="/privacy"
-            className="text-[#d4d4d8] hover:text-[#a3e635] transition-colors text-sm"
+            variant="tertiary"
+            className="!bg-transparent !p-0 text-text-muted hover:text-primary transition-colors text-sm"
           >
             Privacy Policy
-          </Link>
-          <Link
+          </Button>
+          <Button
             href="/terms"
-            className="text-[#d4d4d8] hover:text-[#a3e635] transition-colors text-sm"
+            variant="tertiary"
+            className="!bg-transparent !p-0 text-text-muted hover:text-primary transition-colors text-sm"
           >
             Terms of Service
-          </Link>
+          </Button>
         </div>
-        <div className="text-[#71717a] text-xs">
+        <div className="text-text-muted text-xs">
           @madeunlinked
         </div>
       </div>
     </div>
 
 
-    <div className="flex flex-col items-center gap-2 mt-4 text-sm text-[#71717a] animate-slide-up-fade delay-500">
+    <div className="flex flex-col items-center gap-2 mt-4 text-sm text-text-muted animate-slide-up-fade delay-500">
       <span>
-        Made with <span className="text-[#a3e635] animate-pulse">♥</span>{' '}
+        Made with <span className="text-primary animate-pulse">♥</span>{' '}
         for prompt chain enthusiasts
       </span>
     </div>

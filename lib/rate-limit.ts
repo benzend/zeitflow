@@ -1,6 +1,7 @@
 import { db } from './db';
 import { rateLimitsTable, subscriptionsTable, usersTable } from '@/schema';
 import { eq, lt } from 'drizzle-orm';
+import { GODMODE_EMAILS } from './constants';
 import { SUBSCRIPTION_PLANS } from './stripe';
 
 interface RateLimitOptions {
@@ -119,7 +120,7 @@ export async function isRateLimitedWithSubscription(
     }
   }
 
-  if (['benjamin.scottt.dev@gmail.com', 'benn.jscott@gmail.com', 'benn.jscott+dev@gmail.com'].includes(user[0].email)) {
+  if (GODMODE_EMAILS.includes(user[0].email)) {
     maxRequests = 10000;
     tier = 'GODMODE';
   }

@@ -40,8 +40,8 @@ export const convertToReactFlow = (
         reviewConfig: node.reviewConfig
       }
     })),
-    edges: connections.map(conn => ({
-      id: `${conn.from}-${conn.to}`,
+    edges: connections.map((conn, index) => ({
+      id: `${conn.from}-${conn.to}-${index}`,
       source: conn.from,
       target: conn.to,
       type: 'smoothstep' // Curved connections like your current implementation

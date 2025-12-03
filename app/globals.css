@@ -1,43 +1,101 @@
 @import "tailwindcss";
 
 :root {
+  /* Light theme colors */
+  --background: #cad3d0;
+  --background-light: #e5e7eb;
+  --background-dark: #d1d5db;
+  --foreground: #1a1a1a;
+  --surface: #eff0f0;
+  --surface-hover: #b2bcb8;
+  --border: #e5e7eb;
+  --border-hover: #d1d5db;
+  --border-focus: #a3e635;
+  --text-muted: #6b7280;
+  --text-muted-hover: #4b5563;
+  --text-placeholder: #9ca3af;
+  --input-background: #ffffff;
+  --input-disabled: #f9fafb;
+
+  /* Brand colors */
+  --primary: #005a1a;
+  --primary-dark: #00350f;
+  --primary-light: #008b28;
+  --primary-invert: #ffffff; /* Contrast with primary */
+  --secondary: #f0f9f3;
+  --secondary-dark: #d9e3e8;
+  --accent: #4a5568;
+
+  /* Semantic colors */
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --info: #3b82f6;
+}
+
+[data-theme="dark"] {
+  /* Dark theme colors */
   --background: #2b2b2b;
-  --foreground: #434343;
+  --background-light: #3c3c3c;
+  --background-dark: #1a1a1a;
+  --foreground: #f5f5f5;
+  --surface: #1a1a1a;
+  --surface-hover: #2a2a2a;
+  --border: #404040;
+  --border-hover: #525252;
+  --border-focus: #a3e635;
+  --text-muted: #a3a3a3;
+  --text-muted-hover: #d4d4d4;
+  --text-placeholder: #6b7280;
+  --input-background: #1a1a1a;
+  --input-disabled: #2a2a2a;
+
+  /* Brand colors stay the same */
+  --primary: #a3e635;
+  --primary-dark: #7cb322;
+  --primary-light: #d9f1d6;
+  --primary-invert: #000000; /* Contrast with primary */
+  --secondary: #f0f9f3;
+  --secondary-dark: #d9e3e8;
+  --accent: #4a5568;
+
+  /* Semantic colors */
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --info: #3b82f6;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-background-dark: var(--background-dark);
+  --color-background-light: var(--background-light);
   --color-foreground: var(--foreground);
-  --color-primary: #a3e635;
-  --color-primary-dark: #7cb322;
-  --color-primary-light: #d9f1d6;
-  --color-secondary: #f0f9f3;
-  --color-secondary-dark: #d9e3e8;
-  --color-accent: #4a5568;
-  --color-background: #2b2b2b;
-  --color-foreground: #434343;
-  --color-foreground-light: #4e4e4e;
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-border: var(--border);
+  --color-border-hover: var(--border-hover);
+  --color-text-muted: var(--text-muted);
+  --color-text-muted-hover: var(--text-muted-hover);
+  --color-primary: var(--primary);
+  --color-primary-dark: var(--primary-dark);
+  --color-primary-light: var(--primary-light);
+  --color-primary-invert: var(--primary-invert);
+  --color-secondary: var(--secondary);
+  --color-secondary-dark: var(--secondary-dark);
+  --color-accent: var(--accent);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+  --color-info: var(--info);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #2b2b2b;
-    --foreground: #434343;
-    --color-primary: #a3e635;
-    --color-primary-dark: #7cb322;
-    --color-primary-light: #d9f1d6;
-    --color-secondary: #f0f9f3;
-    --color-secondary-dark: #d9e3e8;
-    --color-accent: #4a5568;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
 
 /* Custom Animations */
@@ -65,14 +123,16 @@ body {
 }
 
 .prose code {
-  background-color: rgba(0, 0, 0, 0.2);
+  background-color: var(--surface-hover);
+  color: var(--foreground);
   padding: 0.125em 0.25em;
   border-radius: 0.25em;
   font-size: 0.875em;
 }
 
 .prose pre {
-  background-color: rgba(0, 0, 0, 0.2);
+  background-color: var(--surface-hover);
+  color: var(--foreground);
   padding: 0.75em;
   border-radius: 0.375em;
   overflow-x: auto;
@@ -82,6 +142,7 @@ body {
 .prose pre code {
   background: none;
   padding: 0;
+  color: inherit;
 }
 
 .prose ul, .prose ol {
@@ -94,7 +155,7 @@ body {
 }
 
 .prose blockquote {
-  border-left: 3px solid #a3e635;
+  border-left: 3px solid var(--primary);
   padding-left: 0.75em;
   margin: 0.5em 0;
   font-style: italic;

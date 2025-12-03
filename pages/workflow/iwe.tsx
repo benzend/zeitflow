@@ -3,7 +3,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 import { ArrowLeft, SendHorizontal, Workflow as WorkflowIcon, Files, Plus, Loader2, MessageSquare } from 'lucide-react';
-import Link from "next/link";
+import { Button } from "@/components/Button";
 import { parseWorkflowFromText, ParsedWorkflow } from "@/lib/workflow-parser";
 import { marked } from 'marked';
 
@@ -55,30 +55,13 @@ export default function WorkflowBuilderPage() {
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
-  const openSidePanel = (panel: 'workflows' | 'files') => {
+  const openSidePanel = (panel: 'workflows' | 'files' | 'chats') => {
     setSidePanel(panel);
   }
 
-  useEffect(() => {
-    if (status === "loading") return;
 
-    if (!session) {
-      router.push("/auth/signin");
-      return;
-    }
 
-    fetchWorkflows();
-    fetchChatThreads();
-  }, [session, status, router]);
 
-  // Fetch messages when current thread changes
-  useEffect(() => {
-    if (currentThreadId) {
-      fetchChatHistory(currentThreadId);
-    } else {
-      setChatHistory([]);
-    }
-  }, [currentThreadId]);
 
   // Auto-scroll to bottom when new messages are added
   useEffect(() => {
@@ -87,7 +70,7 @@ export default function WorkflowBuilderPage() {
     }
   }, [chatHistory, isTyping]);
 
-  const fetchWorkflows = async () => {
+  const fetchWorkflows = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch("/api/workflows");
@@ -104,7 +87,7 @@ export default function WorkflowBuilderPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const fetchChatThreads = useCallback(async () => {
     try {
@@ -158,6 +141,15 @@ export default function WorkflowBuilderPage() {
       console.error("Failed to fetch chat history:", err);
     }
   }, [currentThreadId]);
+
+  // Fetch messages when current thread changes
+  useEffect(() => {
+    if (currentThreadId) {
+      fetchChatHistory(currentThreadId);
+    } else {
+      setChatHistory([]);
+    }
+  }, [currentThreadId, fetchChatHistory]);
 
   const handleCreateWorkflow = async (parsedWorkflow: ParsedWorkflow, messageId?: number) => {
     try {
@@ -303,6 +295,18 @@ workflow:
     }
   }
 
+  useEffect(() => {
+    if (status === "loading") return;
+
+    if (!session) {
+      router.push("/auth/signin");
+      return;
+    }
+
+    fetchWorkflows();
+    fetchChatThreads();
+  }, [session, status, router, fetchWorkflows, fetchChatThreads]);
+
   return (
     <div>
       <Head>
@@ -312,69 +316,71 @@ workflow:
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className="bg-[#3A3A3A] bg-gradient-to-b from-[#2B2B2B] to-[#3C3C3C] h-screen">
-        <header className="flex items-center justify-between h-8 px-2 bg-[#424242] border-b border-[#4C4C4C]">
-          <Link href="/workflows">
-            <ArrowLeft className="text-white hover:text-[#a3e635] transition-colors p-1" />
-          </Link>
+      <main className="bg-background bg-gradient-to-b from-surface to-surface-hover h-screen">
+        <header className="flex items-center justify-between h-8 px-2 bg-surface border-b border-border">
+          <Button href="/workflows" variant="tertiary" className="!bg-transparent !p-0">
+            <ArrowLeft className="text-foreground hover:text-primary transition-colors p-1" />
+          </Button>
         </header>
         <div className="h-[calc(100vh-4rem)] flex">
           {/* sidebar */}
-          <div className="bg-[#424242] border-r border-[#4C4C4C] h-full w-10 flex flex-col items-center justify-start gap-2 py-2">
-            <button onClick={() => openSidePanel('workflows')} className="cursor-pointer bg-[#424242] hover:bg-[#515151] transition-colors p-1 rounded-md">
-              <WorkflowIcon className="text-white" />
-            </button>
-            <button onClick={() => openSidePanel('files')} className="cursor-pointer bg-[#424242] hover:bg-[#515151] transition-colors p-1 rounded-md">
-              <Files className="text-white" />
-            </button>
-            <button onClick={() => openSidePanel('chats')} className="cursor-pointer bg-[#424242] hover:bg-[#515151] transition-colors p-1 rounded-md">
-              <MessageSquare className="text-white" />
-            </button>
+          <div className="bg-surface border-r border-border h-full w-10 flex flex-col items-center justify-start gap-2 py-2">
+            <Button onClick={() => openSidePanel('workflows')} variant="tertiary" className="!bg-surface hover:!bg-surface-hover !p-1">
+              <WorkflowIcon className="text-foreground" />
+            </Button>
+            <Button onClick={() => openSidePanel('files')} variant="tertiary" className="!bg-surface hover:!bg-surface-hover !p-1">
+              <Files className="text-foreground" />
+            </Button>
+            <Button onClick={() => openSidePanel('chats')} variant="tertiary" className="!bg-surface hover:!bg-surface-hover !p-1">
+              <MessageSquare className="text-foreground" />
+            </Button>
           </div>
 
           {/* navigation */}
-          <div className="flex flex-col h-full bg-[#424242] border-r border-[#3C3C3C] w-5/12">
-            <nav className="flex h-8 bg-[#3C3C3C]">
-              <button onClick={() => openSidePanel('workflows')} className={`px-4 ${sidePanel === 'workflows' ? 'bg-[#424242] text-white' : 'bg-[#3C3C3C] text-gray-400 cursor-pointer'}`}>Workflows</button>
-              <button onClick={() => openSidePanel('files')} className={`px-4 ${sidePanel === 'files' ? 'bg-[#424242] text-white' : 'bg-[#3C3C3C] text-gray-400 cursor-pointer'}`}>Files</button>
-              <button onClick={() => openSidePanel('chats')} className={`px-4 ${sidePanel === 'chats' ? 'bg-[#424242] text-white' : 'bg-[#3C3C3C] text-gray-400 cursor-pointer'}`}>Chats</button>
+          <div className="flex flex-col h-full bg-surface border-r border-border w-5/12">
+            <nav className="flex h-8 bg-surface-hover">
+              <Button onClick={() => openSidePanel('workflows')} variant="tertiary" className={`!bg-transparent !p-0 px-4 ${sidePanel === 'workflows' ? 'bg-surface text-foreground' : 'bg-surface-hover text-text-muted'}`}>Workflows</Button>
+              <Button onClick={() => openSidePanel('files')} variant="tertiary" className={`!bg-transparent !p-0 px-4 ${sidePanel === 'files' ? 'bg-surface text-foreground' : 'bg-surface-hover text-text-muted'}`}>Files</Button>
+              <Button onClick={() => openSidePanel('chats')} variant="tertiary" className={`!bg-transparent !p-0 px-4 ${sidePanel === 'chats' ? 'bg-surface text-foreground' : 'bg-surface-hover text-text-muted'}`}>Chats</Button>
             </nav>
 
             <div className="flex flex-col gap-2 p-2 h-full overflow-y-auto">
               {sidePanel === 'workflows' && workflows.map((workflow, index) => (
-                <Link href={`/workflow/${workflow.id}`}
-                  key={index} className="flex flex-col justify-between h-24 p-2 bg-[#424242] border border-[#4C4C4C] rounded-md">
-                  <h1 className="text-white font-semibold text-lg truncate">{workflow.name}</h1>
-                  <p className="text-sm text-gray-400 truncate">{workflow.description || "Type to insert a description..."}</p>
+                <Button href={`/workflow/${workflow.id}`}
+                  key={index} variant="clear" className="!bg-surface !p-2 flex flex-col justify-start items-start h-24 border border-border rounded-md text-left">
+                  <h1 className="text-foreground font-semibold text-lg truncate">{workflow.name}</h1>
+                  <p className="text-sm text-text-muted truncate">{workflow.description || "Type to insert a description..."}</p>
                   <div className="flex items-center gap-2">
                     <div>
                       {workflow.executionCount}
                     </div>
                   </div>
-                </Link>
+                </Button>
               ))}
 
               {sidePanel === 'chats' && (
                 <>
-                  <button
+                  <Button
                     onClick={() => setCurrentThreadId(null)}
-                    className="flex items-center gap-2 p-1 pl-2 text-sm w-28 bg-[#a3e635] text-black rounded-md hover:bg-[#8bc329] transition-colors cursor-pointer"
+                    variant="primary"
+                    className="w-28"
+                    size="sm"
                   >
                     <Plus className="w-3 h-3" />
                     New Chat
-                  </button>
+                  </Button>
                   {chatThreads.map((thread, index) => (
                     <button
                       key={index}
                       onClick={() => setCurrentThreadId(thread.id)}
                       className={`flex flex-col justify-between h-18 text-left p-2 border rounded-md transition-colors cursor-pointer ${
                         currentThreadId === thread.id
-                          ? 'bg-[#424242] text-white border-[#a3e635]'
-                          : 'bg-[#424242] text-white border-[#4C4C4C] hover:bg-[#515151]'
+                          ? 'bg-surface text-foreground border-primary'
+                          : 'bg-surface text-foreground border-border hover:bg-surface-hover'
                       }`}
                     >
                       <h1 className="text-md truncate">{thread.title}</h1>
-                      <p className="text-sm text-gray-400">
+                      <p className="text-sm text-text-muted">
                         {new Date(thread.lastMessageAt).toLocaleDateString()}
                       </p>
                     </button>
@@ -392,30 +398,31 @@ workflow:
                 <div key={index} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                   <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
                     message.role === 'user'
-                      ? 'bg-[#a3e635] text-black'
-                      : 'bg-[#424242] text-white'
+                      ? 'bg-primary text-primary-invert'
+                      : 'bg-surface text-foreground'
                   }`}>
                     <div
-                      className="text-sm prose prose-sm max-w-none prose-invert"
+                      className="text-sm prose prose-sm max-w-none"
                       dangerouslySetInnerHTML={{
                         __html: marked(message.content, { breaks: true })
                       }}
                     />
-                    <div className={`text-xs ${message.role === 'assistant' ? 'text-gray-400' : 'text-gray-600'}`}>
+                    <div className={`text-xs ${message.role === 'assistant' ? 'text-text-muted' : 'text-text-muted'}`}>
                       {message.timestamp.toLocaleTimeString([], {
                         hour: '2-digit',
                         minute: '2-digit'
                       })}
                     </div>
                      {message.parsedWorkflow && (
-                       <div className="mt-3 pt-3 border-t border-gray-600">
-                         <button
+                       <div className="mt-3 pt-3 border-t border-border">
+                         <Button
                            onClick={() => handleCreateWorkflow(message.parsedWorkflow!, message.id)}
-                           className="flex items-center gap-2 bg-[#a3e635] text-black px-3 py-1 rounded text-xs hover:bg-[#8bc329] transition-colors cursor-pointer"
+                           variant="primary"
+                           size="sm"
                          >
                            <Plus className="w-3 h-3" />
                            Create Workflow
-                         </button>
+                         </Button>
                        </div>
                      )}
                   </div>
@@ -425,10 +432,10 @@ workflow:
               {/* Typing indicator */}
               {isTyping && (
                 <div className="flex justify-start">
-                  <div className="max-w-xs lg:max-w-md px-4 py-2 rounded-lg bg-[#424242] text-white">
+                  <div className="max-w-xs lg:max-w-md px-4 py-2 rounded-lg bg-surface text-foreground">
                     <div className="flex items-center gap-2">
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      <span className="text-sm text-gray-400">Assistant is typing...</span>
+                      <span className="text-sm text-text-muted">Assistant is typing...</span>
                     </div>
                   </div>
                 </div>
@@ -436,11 +443,11 @@ workflow:
             </div>
 
             {/* input */}
-            <div className="flex items-center justify-between h-16 m-2 px-4 bg-[#424242] border border-[#4C4C4C] rounded-md">
+            <div className="flex items-center justify-between h-16 m-2 px-4 bg-surface border border-border rounded-md">
               <form className="flex items-center gap-4 w-full" onSubmit={handleChatSend}>
                  <input
                    name="prompt"
-                   className="w-full h-10 px-4 bg-transparent text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                   className="w-full h-10 px-4 bg-transparent text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
                    placeholder={
                      isLoading
                        ? "Processing..."
@@ -451,12 +458,12 @@ workflow:
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="cursor-pointer bg-[#424242] hover:bg-[#515151] disabled:opacity-50 disabled:cursor-not-allowed transition-colors p-3 rounded-md"
+                  className="cursor-pointer bg-surface hover:bg-surface-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors p-3 rounded-md"
                 >
                   {isLoading ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
                   ) : (
-                    <SendHorizontal color="#fff" className="w-5 h-5"/>
+                    <SendHorizontal color="currentColor" className="w-5 h-5 text-foreground"/>
                   )}
                 </button>
               </form>
@@ -465,7 +472,7 @@ workflow:
             </div>
           </div>
         </div>
-        <footer className="flex items-center justify-between h-8 px-2 bg-[#424242] border-t border-[#4C4C4C]">
+        <footer className="flex items-center justify-between h-8 px-2 bg-surface border-t border-border">
         </footer>
       </main>
     </div>

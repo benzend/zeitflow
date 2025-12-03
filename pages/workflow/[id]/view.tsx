@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
-import Link from "next/link";
+import { Button } from "@/components/Button";
 import { NodeData } from '@/lib/workflow-types';
 
 interface Workflow {
@@ -101,12 +101,13 @@ export default function WorkflowBuilderPage() {
       <div className="min-h-screen bg-gradient-to-b from-[#2b2b2b] to-[#3c3c3c] flex items-center justify-center">
         <div className="text-center">
           <div className="text-red-400 text-lg mb-4">{error}</div>
-          <Link
+          <Button
             href="/workflows"
-            className="text-primary underline hover:text-primary-light transition duration-200"
+            variant="tertiary"
+            className="!bg-transparent !p-0 underline hover:text-primary-light"
           >
             Back to Workflows
-          </Link>
+          </Button>
         </div>
       </div>
     );
@@ -146,12 +147,13 @@ export default function WorkflowBuilderPage() {
           <div className="text-center">
             <div className="text-red-400 text-lg mb-4">No entry node found</div>
             {JSON.stringify(nodes)}
-            <Link
+            <Button
               href="/workflows"
-              className="text-primary underline hover:text-primary-light transition duration-200"
+              variant="tertiary"
+              className="!bg-transparent !p-0 underline hover:text-primary-light"
             >
               Back to Workflows
-            </Link>
+            </Button>
           </div>
         )
         }

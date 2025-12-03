@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
-import Link from "next/link";
+import { Button } from "@/components/Button";
 
 type QueuedChainStepWithDetails = {
   id: number;
@@ -35,7 +35,7 @@ type QueuedChainVariables = {
 };
 
 const StepSkeleton = () => (
-  <div className="border border-primary/20 rounded-lg p-6 bg-foreground-light animate-pulse">
+  <div className="border border-primary/20 rounded-lg p-6 bg-background-light animate-pulse">
     <div className="flex justify-between items-center mb-4">
       <div className="h-6 w-24 bg-primary/20 rounded"></div>
       <div className="h-5 w-20 bg-primary/20 rounded"></div>
@@ -128,7 +128,7 @@ const StepCard = ({ step }: { step: QueuedChainStepWithDetails }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <div className="border border-primary/20 rounded-lg bg-foreground-light hover:shadow-md transition duration-200">
+    <div className="border border-primary/20 rounded-lg bg-background-light hover:shadow-md transition duration-200">
       <div className="p-6">
         <div className="flex justify-between items-start mb-4">
           <div className="flex items-center gap-4">
@@ -162,7 +162,7 @@ const StepCard = ({ step }: { step: QueuedChainStepWithDetails }) => {
           </div>
         </div>
 
-        <div className="bg-foreground p-4 rounded border text-primary/90 mb-4 whitespace-pre-wrap">
+        <div className="bg-background-light p-4 rounded border text-primary/90 mb-4 whitespace-pre-wrap">
           {step.prompt}
         </div>
 
@@ -176,7 +176,7 @@ const StepCard = ({ step }: { step: QueuedChainStepWithDetails }) => {
                   </h4>
                   <CopyButton text={step.response} />
                 </div>
-                <div className="bg-foreground p-4 rounded border text-primary/90 whitespace-pre-wrap">
+                <div className="bg-background-light p-4 rounded border text-primary/90 whitespace-pre-wrap">
                   {step.response}
                 </div>
               </div>
@@ -309,11 +309,9 @@ export default function Results() {
           <nav className="mb-10 flex justify-between items-center">
             <ul className="flex gap-4">
               <li>
-                <Link href="/dashboard">
-                  <span className="text-primary underline hover:text-primary-light transition duration-200">
-                    Dashboard
-                  </span>
-                </Link>
+                <Button href="/dashboard" variant="tertiary" className="!bg-transparent !p-0 underline hover:text-primary-light">
+                  Dashboard
+                </Button>
               </li>
               <li>
                 <span className="text-gray-400">/</span>
@@ -364,11 +362,9 @@ export default function Results() {
         <nav className="mb-10 flex justify-between items-center">
           <ul className="flex gap-4">
             <li>
-              <Link href="/dashboard">
-                <span className="text-primary underline hover:text-primary-light transition duration-200">
-                  Dashboard
-                </span>
-              </Link>
+              <Button href="/dashboard" variant="tertiary" className="!bg-transparent !p-0 underline hover:text-primary-light">
+                Dashboard
+              </Button>
             </li>
             <li>
               <span className="text-gray-400">/</span>
@@ -435,11 +431,9 @@ export default function Results() {
         </div>
 
         <div className="mt-8 flex justify-center">
-          <Link href="/dashboard">
-            <button className="bg-primary text-[#18181b] py-2 px-6 rounded-lg hover:bg-primary-light transition duration-200">
-              Back to Dashboard
-            </button>
-          </Link>
+          <Button href="/dashboard" variant="primary">
+            Back to Dashboard
+          </Button>
         </div>
       </main>
     </div>

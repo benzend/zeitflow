@@ -1,5 +1,5 @@
 import Head from "next/head";
-import Link from "next/link";
+import { Button } from "@/components/Button";
 
 type ReleaseNote = {
   version: string;
@@ -280,11 +280,9 @@ export default function ReleaseNotes() {
         <nav className="mb-10 flex justify-between items-center">
           <ul className="flex gap-4">
             <li>
-              <Link href="/dashboard">
-                <span className="text-primary underline hover:text-primary-light transition duration-200">
-                  Dashboard
-                </span>
-              </Link>
+              <Button href="/dashboard" variant="tertiary" className="!bg-transparent !p-0 underline hover:text-primary-light">
+                Dashboard
+              </Button>
             </li>
             <li>
               <span className="text-gray-400">/</span>

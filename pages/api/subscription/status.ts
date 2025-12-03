@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '../auth/[...nextauth]';
 import { db } from '@/lib/db';
+import { GODMODE_EMAILS } from '@/lib/constants';
 import { subscriptionsTable, usersTable } from '@/schema';
 import { eq } from 'drizzle-orm';
 
@@ -34,7 +35,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .where(eq(subscriptionsTable.userId, user[0].id))
       .limit(1);
 
-    if (['benjamin.scottt.dev@gmail.com', 'benn.jscott@gmail.com', 'benn.jscott+dev@gmail.com'].includes(user[0].email)) {
+    if (GODMODE_EMAILS.includes(user[0].email)) {
       return res.json({
         hasSubscription: false,
         tier: 'GODMODE',
@@ -73,7 +74,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         queueLimit = 20;
     }
 
-    if (['benjamin.scottt.dev@gmail.com', 'benn.jscott@gmail.com', 'benn.jscott+dev@gmail.com'].includes(user[0].email)) {
+    if (GODMODE_EMAILS.includes(user[0].email)) {
       tier = 'GODMODE';
       queueLimit = 10000;
     }

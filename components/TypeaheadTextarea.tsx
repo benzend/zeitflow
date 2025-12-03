@@ -125,16 +125,12 @@ export default function TypeaheadTextarea({
             <button
               key={suggestionName}
               type="button"
-              className={`w-full text-left px-3 py-2 text-sm transition duration-200 flex items-center gap-2 ${
+              className={`w-full cursor-pointer text-left px-3 py-4 text-sm transition duration-200 flex justify-start items-center gap-2 ${
                 index === selectedIndex
-                  ? "bg-primary/10 text-primary"
-                  : "text-primary hover:bg-primary/5"
+                  ? "bg-primary/50 text-primary"
+                  : "text-primary hover:bg-primary/50"
               }`}
               onClick={() => selectSuggestion(index)}
-              onMouseEnter={() => {
-                // Update selected index on hover
-                // We can't directly call setState here, so we'll rely on mouse events
-              }}
             >
               <span className="bg-[#a3e635]/20 rounded px-1 py-0.5 text-xs font-mono text-[#a3e635]">
                 {suggestionName}
@@ -146,8 +142,8 @@ export default function TypeaheadTextarea({
                 <span className="text-xs text-gray-400">
                   {suggestionDescription}
                 </span>
-              )}
-            </button>
+               )}
+             </button>
           )})}
           {filteredSuggestions.length === 0 && (
             <div className="px-3 py-2 text-sm text-gray-400">

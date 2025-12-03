@@ -92,18 +92,18 @@ export default function Pricing() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#18181b]">
+    <div className="min-h-screen bg-background">
       <Navigation />
-      
+
       <div className="pt-24 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="text-center mb-16 animate-slide-up-fade">
-            <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
+            <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6">
               Choose Your
-              <span className="text-[#a3e635] ml-3">Plan</span>
+              <span className="text-primary ml-3">Plan</span>
             </h1>
-            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+            <p className="text-xl text-text-muted max-w-2xl mx-auto">
               Scale your AI chain processing with flexible pricing that grows with your needs
             </p>
           </div>
@@ -113,35 +113,35 @@ export default function Pricing() {
             {plans.map((plan, index) => (
               <div
                 key={plan.name}
-                className={`relative bg-[#27272a] rounded-2xl p-8 border ${
-                  plan.popular 
-                    ? 'border-[#a3e635] shadow-lg shadow-[#a3e635]/20' 
-                    : 'border-[#404040]'
-                } hover:border-[#a3e635] transition-all duration-300 animate-slide-up-fade`}
+                className={`relative bg-surface rounded-2xl p-8 border ${
+                  plan.popular
+                    ? 'border-primary shadow-lg shadow-primary/20'
+                    : 'border-border'
+                } hover:border-primary transition-all duration-300 animate-slide-up-fade`}
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 {plan.popular && (
                   <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-[#a3e635] text-[#18181b] px-4 py-1 rounded-full text-sm font-medium">
+                    <span className="bg-primary text-foreground px-4 py-1 rounded-full text-sm font-medium">
                       Most Popular
                     </span>
                   </div>
                 )}
 
                 <div className="text-center mb-8">
-                  <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
-                  <p className="text-gray-400 mb-4">{plan.description}</p>
+                  <h3 className="text-2xl font-bold text-foreground mb-2">{plan.name}</h3>
+                  <p className="text-text-muted mb-4">{plan.description}</p>
                   <div className="flex items-baseline justify-center">
-                    <span className="text-4xl font-bold text-white">{plan.price}</span>
-                    <span className="text-gray-400 ml-1">{plan.period}</span>
+                    <span className="text-4xl font-bold text-foreground">{plan.price}</span>
+                    <span className="text-text-muted ml-1">{plan.period}</span>
                   </div>
                 </div>
 
                 <ul className="space-y-4 mb-8">
                   {plan.features.map((feature, featureIndex) => (
-                    <li key={featureIndex} className="flex items-center text-gray-300">
+                    <li key={featureIndex} className="flex items-center text-text-muted">
                       <svg
-                        className="w-5 h-5 text-[#a3e635] mr-3 flex-shrink-0"
+                        className="w-5 h-5 text-primary mr-3 flex-shrink-0"
                         fill="currentColor"
                         viewBox="0 0 20 20"
                       >
@@ -171,31 +171,31 @@ export default function Pricing() {
 
           {/* FAQ Section */}
           <div className="mt-20 max-w-3xl mx-auto animate-slide-up-fade delay-400">
-            <h2 className="text-3xl font-bold text-white text-center mb-12">
+            <h2 className="text-3xl font-bold text-foreground text-center mb-12">
               Frequently Asked Questions
             </h2>
             <div className="space-y-6">
-              <div className="bg-[#27272a] rounded-lg p-6 border border-[#404040]">
-                <h3 className="text-lg font-semibold text-white mb-2">
+              <div className="bg-surface rounded-lg p-6 border border-border">
+                <h3 className="text-lg font-semibold text-foreground mb-2">
                   What are AI chain requests?
                 </h3>
-                <p className="text-gray-400">
+                <p className="text-text-muted">
                   Each AI chain request processes a sequence of AI prompts. The number of steps in your chain determines how many requests are consumed.
                 </p>
               </div>
-              <div className="bg-[#27272a] rounded-lg p-6 border border-[#404040]">
-                <h3 className="text-lg font-semibold text-white mb-2">
+              <div className="bg-surface rounded-lg p-6 border border-border">
+                <h3 className="text-lg font-semibold text-foreground mb-2">
                   Can I change my plan anytime?
                 </h3>
-                <p className="text-gray-400">
+                <p className="text-text-muted">
                   Yes, you can upgrade or downgrade your plan at any time. Changes will be reflected in your next billing cycle.
                 </p>
               </div>
-              <div className="bg-[#27272a] rounded-lg p-6 border border-[#404040]">
-                <h3 className="text-lg font-semibold text-white mb-2">
+              <div className="bg-surface rounded-lg p-6 border border-border">
+                <h3 className="text-lg font-semibold text-foreground mb-2">
                   What happens if I exceed my request limit?
                 </h3>
-                <p className="text-gray-400">
+                <p className="text-text-muted">
                   Your requests will be queued until the next hour when your limit resets. Consider upgrading for higher limits and priority processing.
                 </p>
               </div>

@@ -23,7 +23,7 @@ const Logo: React.FC<LogoProps> = ({ className = '', size = 32 }) => {
         stroke="#a3e635"
         strokeWidth="4"
         fill="none"
-        className="animate-spin-slow"
+        className="animate-spin-slow stroke-primary"
       />
 
       {/* Inner Circle */}
@@ -34,7 +34,7 @@ const Logo: React.FC<LogoProps> = ({ className = '', size = 32 }) => {
         stroke="#a3e635"
         strokeWidth="2"
         fill="none"
-        className="animate-spin-slow"
+        className="animate-spin-slow stroke-primary"
         style={{ animationDirection: 'reverse' }}
       />
 
@@ -43,13 +43,13 @@ const Logo: React.FC<LogoProps> = ({ className = '', size = 32 }) => {
         d="M50 15 L50 85"
         stroke="#a3e635"
         strokeWidth="2"
-        className="animate-pulse-glow"
+        className="animate-pulse-glow stroke-primary"
       />
       <path
         d="M15 50 L85 50"
         stroke="#a3e635"
         strokeWidth="2"
-        className="animate-pulse-glow"
+        className="animate-pulse-glow stroke-primary"
       />
 
       {/* Decorative Dots */}
@@ -58,28 +58,28 @@ const Logo: React.FC<LogoProps> = ({ className = '', size = 32 }) => {
         cy="15"
         r="3"
         fill="#a3e635"
-        className="animate-pulse-glow"
+        className="animate-pulse-glow fill-primary"
       />
       <circle
         cx="50"
         cy="85"
         r="3"
         fill="#a3e635"
-        className="animate-pulse-glow"
+        className="animate-pulse-glow fill-primary"
       />
       <circle
         cx="15"
         cy="50"
         r="3"
         fill="#a3e635"
-        className="animate-pulse-glow"
+        className="animate-pulse-glow fill-primary"
       />
       <circle
         cx="85"
         cy="50"
         r="3"
         fill="#a3e635"
-        className="animate-pulse-glow"
+        className="animate-pulse-glow fill-primary"
       />
 
       {/* Center Dot */}
@@ -88,7 +88,7 @@ const Logo: React.FC<LogoProps> = ({ className = '', size = 32 }) => {
         cy="50"
         r="8"
         fill="#a3e635"
-        className="animate-pulse-glow"
+        className="animate-pulse-glow fill-primary"
       />
     </svg>
   );

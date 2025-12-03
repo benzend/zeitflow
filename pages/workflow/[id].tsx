@@ -3,7 +3,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 import { ArrowLeft } from 'lucide-react';
-import Link from "next/link";
+import { Button } from "@/components/Button";
 import WorkflowBuilderReactFlow from "@/components/WorkflowBuilderReactFlow";
 import { NodeData, Connection } from '@/lib/workflow-types';
 
@@ -145,7 +145,7 @@ export default function WorkflowBuilderPage() {
   if (status === "loading" || loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#2b2b2b] to-[#3c3c3c] flex items-center justify-center">
-        <div className="text-white text-lg">Loading workflow...</div>
+        <div className="text-foreground text-lg">Loading workflow...</div>
       </div>
     );
   }
@@ -155,12 +155,13 @@ export default function WorkflowBuilderPage() {
       <div className="min-h-screen bg-gradient-to-b from-[#2b2b2b] to-[#3c3c3c] flex items-center justify-center">
         <div className="text-center">
           <div className="text-red-400 text-lg mb-4">{error}</div>
-          <Link
+          <Button
             href="/workflows"
-            className="text-primary underline hover:text-primary-light transition duration-200"
+            variant="tertiary"
+            className="!bg-transparent !p-0 underline hover:text-primary-light"
           >
             Back to Workflows
-          </Link>
+          </Button>
         </div>
       </div>
     );
@@ -176,21 +177,16 @@ export default function WorkflowBuilderPage() {
       </Head>
 
       {/* Header bar */}
-      <div className="absolute top-0 left-0 right-0 bg-[#424242] border-b border-[#535353] z-20 h-16">
-        <div className="flex items-center justify-between h-full px-6">
+      <div className="absolute top-0 left-0 right-0 bg-surface border-b border-border z-20 h-16">
+        <div className="flex items-center justify-between h-full px-4">
+          <Button href="/workflows" variant="tertiary" className="!bg-transparent !p-0">
+            <ArrowLeft className="text-foreground hover:text-primary transition-colors p-1" />
+          </Button>
           <div className="flex items-center gap-4">
-            <Link
-              href="/workflows"
-              className="text-white hover:text-[#a3e635] transition-colors p-1"
-            >
-              <ArrowLeft size={20} />
-            </Link>
-            <div>
-              <h1 className="text-white font-semibold">{workflow?.name}</h1>
-              {workflow?.description && (
-                <p className="text-sm text-gray-400">{workflow.description}</p>
-              )}
-            </div>
+            <h1 className="text-foreground font-semibold">{workflow?.name}</h1>
+            {workflow?.description && (
+              <p className="text-sm text-text-muted">{workflow.description}</p>
+            )}
           </div>
 
           <div className="flex items-center gap-4">
@@ -206,7 +202,7 @@ export default function WorkflowBuilderPage() {
             )}
             <div className="flex items-center gap-2">
               <div className={`w-2 h-2 rounded-full ${saving ? 'bg-yellow-400' : 'bg-green-400'}`} />
-              <span className="text-sm text-white">
+              <span className="text-sm text-foreground">
                 {saving ? 'Saving...' : 'Saved'}
               </span>
             </div>

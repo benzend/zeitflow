@@ -160,7 +160,7 @@ describe('WorkflowBuilderReactFlow', () => {
             { from: 'non-existent-node', to: 'valid-node-2' }, // Invalid: from node doesn't exist
             { from: 'valid-node-1', to: 'non-existent-node' }, // Invalid: to node doesn't exist
             { from: 'valid-node-1', to: 'valid-node-1' }, // Invalid: self-reference
-            { from: 'valid-node-1', to: 'valid-node-2' } // Duplicate: should be filtered out
+            { from: 'valid-node-1', to: 'valid-node-2' } // Duplicate: should be filtered out (same content but different object)
           ]}
         />
       );

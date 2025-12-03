@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
-import Link from "next/link";
+import { Button } from "@/components/Button";
 import ProfileDropdown from "@/components/ProfileDropdown";
 import SubscriptionModal from "@/components/SubscriptionCard";
 
@@ -100,11 +100,9 @@ export default function Settings() {
         <nav className="mb-10 flex justify-between items-center">
           <ul className="flex gap-4">
             <li>
-              <Link href="/dashboard">
-                <span className="text-primary hover:underline hover:text-primary-light transition duration-200">
-                  Back to Dashboard
-                </span>
-              </Link>
+              <Button href="/dashboard" variant="tertiary" className="!bg-transparent !p-0 hover:underline hover:text-primary-light">
+                Back to Dashboard
+              </Button>
             </li>
           </ul>
 

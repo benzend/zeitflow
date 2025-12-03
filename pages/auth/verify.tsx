@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Navigation from '@/components/Navigation';
-import Link from 'next/link';
+import { Button } from '@/components/Button';
 
 export default function VerifyEmail() {
   const router = useRouter();
@@ -69,12 +69,13 @@ export default function VerifyEmail() {
                   <div className="text-green-500 text-4xl mb-4">✓</div>
                   <h2 className="text-lg font-semibold text-primary mb-4">Email Verified!</h2>
                   <p className="text-primary/80 mb-6">{message}</p>
-                  <Link
+                  <Button
                     href="/auth/signin"
-                    className="w-full bg-primary text-[#18181b] py-3 px-4 rounded-lg hover:bg-primary-light transition duration-200 font-medium inline-block"
+                    variant="primary"
+                    className="w-full"
                   >
                     Sign In to Your Account
-                  </Link>
+                  </Button>
                 </div>
               )}
 
@@ -84,18 +85,20 @@ export default function VerifyEmail() {
                   <h2 className="text-lg font-semibold text-primary mb-4">Verification Failed</h2>
                   <p className="text-red-500 mb-6">{message}</p>
                   <div className="space-y-3">
-                    <Link
+                    <Button
                       href="/auth/register"
-                      className="w-full bg-primary text-[#18181b] py-3 px-4 rounded-lg hover:bg-primary-light transition duration-200 font-medium inline-block"
+                      variant="primary"
+                      className="w-full"
                     >
                       Try Again
-                    </Link>
-                    <Link
+                    </Button>
+                    <Button
                       href="/auth/signin"
-                      className="block text-primary hover:text-primary-light transition duration-200 text-sm"
+                      variant="tertiary"
+                      className="!bg-transparent !p-0 block text-primary hover:text-primary-light transition duration-200 text-sm"
                     >
                       Already have an account? Sign in
-                    </Link>
+                    </Button>
                   </div>
                 </div>
               )}

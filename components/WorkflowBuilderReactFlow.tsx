@@ -13,6 +13,7 @@ import {
 import '@xyflow/react/dist/style.css';
 
 import { Plus, Trash2 } from 'lucide-react';
+import { Button } from './Button';
 import { NodeData, Connection as WorkflowConnection } from '@/lib/workflow-types';
 import { generateNodeId } from '@/lib/workflow-utils';
 import { convertToReactFlow, convertFromReactFlow, ReactFlowNodeData } from '@/lib/reactflow-types';
@@ -297,49 +298,51 @@ export default function WorkflowBuilderReactFlow({
       {/* Left Sidebar - Node Palette */}
       <div className="w-16 bg-[#424242] border-r border-[#535353] flex flex-col gap-2 p-2 z-10">
         <div className="relative">
-          <button
+          <Button
             onClick={() => setShowAddDropdown(!showAddDropdown)}
-            className="h-10 w-full hover:bg-[#535353] flex items-center justify-center rounded transition-colors"
-            title="Add Node"
+            variant="tertiary"
+            className="!bg-transparent h-10 w-full hover:!bg-[#535353] flex items-center justify-center rounded transition-colors"
           >
             <Plus className="text-white" size={20} />
-          </button>
+          </Button>
           {showAddDropdown && (
             <div className="absolute left-full top-0 ml-2 bg-[#424242] border border-[#535353] rounded shadow-lg z-100 min-w-[120px]">
               {NODE_TYPE_OPTIONS.map((option) => (
-                <button
+                <Button
                   key={option.value}
                   onClick={() => {
                     addNode(option.value as 'entry' | 'ai' | 'scheduler');
                     setShowAddDropdown(false);
                   }}
-                  className="w-full text-left px-3 py-2 text-white hover:bg-[#535353] text-sm transition-colors first:rounded-t last:rounded-b"
+                  variant="tertiary"
+                  className="!bg-transparent w-full !p-2 text-white hover:!bg-[#535353] text-sm transition-colors first:rounded-t last:rounded-b text-left"
                 >
                   {option.label}
-                </button>
+                </Button>
               ))}
             </div>
           )}
         </div>
         <div className="flex-1" />
-        <button
+        <Button
           onClick={() => addNode('review')}
-          className="h-10 hover:bg-[#535353] flex items-center justify-center rounded transition-colors"
-          title="Add Review Node"
+          variant="tertiary"
+          className="!bg-transparent h-10 hover:!bg-[#535353] flex items-center justify-center rounded transition-colors"
         >
           <svg className="text-white" width="16" height="16" viewBox="0 0 16 16" fill="none">
             <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="0.8" fill="none" />
             <path d="M5 8l2 2 4-4" stroke="currentColor" strokeWidth="0.8" fill="none" />
           </svg>
-        </button>
+        </Button>
         {onSave && (
-          <button
+          <Button
             onClick={handleSave}
-            className="bg-[#a3e635] text-[#18181b] px-2 py-1 rounded text-xs hover:bg-[#8bc329] transition-colors cursor-pointer"
-            title="Save Workflow"
+            variant="primary"
+            size="sm"
+            className="text-xs"
           >
             Save
-          </button>
+          </Button>
         )}
       </div>
 
@@ -472,13 +475,13 @@ export default function WorkflowBuilderReactFlow({
                   </div>
                 ) : null}
               </div>
-              <button
+              <Button
                 onClick={removeSelectedNode}
-                className="bg-[#424242] flex h-[23px] hover:bg-[#535353] items-center justify-center rounded-[10px] transition-colors w-[29px] cursor-pointer"
-                title="Remove Node"
+                variant="tertiary"
+                className="!bg-[#424242] flex h-[23px] hover:!bg-[#535353] items-center justify-center rounded-[10px] transition-colors w-[29px]"
               >
                 <Trash2 className="text-red-500" size={13} />
-              </button>
+              </Button>
             </div>
 
           </div>
@@ -542,22 +545,24 @@ export default function WorkflowBuilderReactFlow({
                         className="h-[32px]"
                       />
                     </div>
-                    <button
+                    <Button
                       onClick={() => removeField(field.id)}
-                      className="flex h-[8px] hover:opacity-70 items-center justify-end transition-opacity w-full"
+                      variant="tertiary"
+                      className="!bg-transparent flex h-[8px] hover:opacity-70 items-center justify-end transition-opacity w-full !p-0"
                     >
                       <svg className="text-[#d9d9d9]" width="10" height="10" viewBox="0 0 10 10" fill="none">
                         <line x1="1" y1="1" x2="9" y2="9" stroke="currentColor" strokeWidth="0.5" />
                         <line x1="9" y1="1" x2="1" y2="9" stroke="currentColor" strokeWidth="0.5" />
                       </svg>
-                    </button>
+                    </Button>
                   </div>
                 ))}
               </div>
 
-              <button
+              <Button
                 onClick={addField}
-                className="border-[#f7f7f7] border-[0.5px] flex gap-3 h-[36px] hover:bg-[#535353] items-center mt-[16px] px-[16px] rounded-[8px] transition-colors w-full"
+                variant="tertiary"
+                className="!bg-transparent border-[#f7f7f7] border-[0.5px] flex gap-3 h-[36px] hover:!bg-[#535353] items-center mt-[16px] px-[16px] rounded-[8px] transition-colors w-full"
               >
                 <div className="flex h-[12px] items-center justify-center w-[12px]">
                   <div className="bg-[#d9d9d9] h-[1px] w-[12px]" />
@@ -566,7 +571,7 @@ export default function WorkflowBuilderReactFlow({
                 <p className="text-[12px] text-white font-medium">
                   Add Field
                 </p>
-              </button>
+              </Button>
             </div>
           ) : selectedNodeData?.type === 'ai' && selectedNodeData.aiConfig ? (
             <div className="mt-[20px] px-[20px] pb-[20px]">
@@ -608,12 +613,13 @@ export default function WorkflowBuilderReactFlow({
               </div>
 
               <div className="flex gap-2 items-center justify-end mt-[4px]">
-                <button
+                <Button
                   onClick={toggleTemplate}
-                  className="font-['Inter:Regular',_sans-serif] font-normal hover:text-white leading-[normal] not-italic text-[8px] text-[#959595] text-nowrap transition-colors whitespace-pre"
+                  variant="tertiary"
+                  className="!bg-transparent !p-0 font-['Inter:Regular',_sans-serif] font-normal hover:text-white leading-[normal] not-italic text-[8px] text-[#959595] text-nowrap transition-colors whitespace-pre"
                 >
                   {selectedNodeData.aiConfig.hasTemplate ? 'Remove Template' : 'Add Template'}
-                </button>
+                </Button>
               </div>
 
               <div className="mt-[20px]">
@@ -692,9 +698,10 @@ export default function WorkflowBuilderReactFlow({
                       <p className="font-['Inter:Regular',_sans-serif] font-normal leading-[normal] not-italic text-[8px] text-black text-nowrap whitespace-pre">
                         {person}
                       </p>
-                      <button
+                      <Button
                         onClick={() => removePerson(person)}
-                        className="absolute hover:opacity-70 right-[7px] top-[7px] transition-opacity"
+                        variant="tertiary"
+                        className="!bg-transparent !p-0 absolute hover:opacity-70 right-[7px] top-[7px] transition-opacity"
                       >
                         <div className="flex h-[calc(1px*5.488)] items-center justify-center rotate-45 w-[calc(1px*5.488)]">
                           <div className="bg-black h-[0.5px] w-[5.488px]" />
@@ -702,7 +709,7 @@ export default function WorkflowBuilderReactFlow({
                         <div className="absolute flex h-[calc(1px*5.345)] items-center justify-center left-0 rotate-[135deg] top-0 w-[calc(1px*5.345)]">
                           <div className="bg-black h-[0.5px] w-[5.345px]" />
                         </div>
-                      </button>
+                      </Button>
                     </div>
                   ))}
                   <div className="bg-transparent border-[#f7f7f7] border-[0.5px] flex gap-1 h-[16px] items-center overflow-clip px-[8px] rounded-[10px]">
@@ -719,10 +726,10 @@ export default function WorkflowBuilderReactFlow({
                       placeholder="Add"
                       className="bg-transparent font-['Inter:Regular',_sans-serif] font-normal leading-[normal] not-italic outline-none text-[7px] text-white w-[30px]"
                     />
-                    <button onClick={addPerson} className="flex h-[5px] items-center justify-center w-[5px]">
+                    <Button onClick={addPerson} variant="tertiary" className="!bg-transparent !p-0 flex h-[5px] items-center justify-center w-[5px]">
                       <div className="bg-[#d9d9d9] h-px rotate-90 w-[5px]" />
                       <div className="absolute bg-[#d9d9d9] h-px w-[5px]" />
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>

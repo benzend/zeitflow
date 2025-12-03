@@ -12,7 +12,7 @@ export function highlightVariables(text: string): React.ReactNode[] {
       return (
         <span
           key={index}
-          className="bg-[#a3e635]/20 rounded-lg px-2 py-1 text-xs font-semibold text-[#a3e635]"
+          className="bg-primary/20 rounded-lg px-2 py-1 text-xs font-semibold text-primary-dark"
           title="Variable"
         >
           {part.slice(2, -2)}

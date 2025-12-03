@@ -2,8 +2,8 @@ import { getProviders, signIn, getSession } from 'next-auth/react';
 import { GetServerSideProps } from 'next';
 import Head from 'next/head';
 import Navigation from '@/components/Navigation';
+import { Button } from '@/components/Button';
 import { Provider } from 'next-auth/providers/index';
-import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 
@@ -136,30 +136,32 @@ export default function SignIn({ providers }: { providers: Provider[] }) {
 
             {/* Tab Navigation */}
             {(credentialsProvider || emailProvider) && (
-              <div className="flex mb-6 border-b border-gray-600">
+              <div className="flex mb-6 border-b border-border">
                 {credentialsProvider && (
-                  <button
+                  <Button
                     onClick={() => setActiveTab('credentials')}
-                    className={`flex-1 py-2 px-4 text-sm font-medium transition-colors ${
+                    variant="tertiary"
+                    className={`flex-1 !bg-transparent !p-2 !h-auto text-sm font-medium transition-colors ${
                       activeTab === 'credentials'
                         ? 'text-primary border-b-2 border-primary'
                         : 'text-primary/60 hover:text-primary'
                     }`}
                   >
                     Email & Password
-                  </button>
+                  </Button>
                 )}
                 {emailProvider && (
-                  <button
+                  <Button
                     onClick={() => setActiveTab('magic')}
-                    className={`flex-1 py-2 px-4 text-sm font-medium transition-colors ${
+                    variant="tertiary"
+                    className={`flex-1 !bg-transparent !p-2 !h-auto text-sm font-medium transition-colors ${
                       activeTab === 'magic'
                         ? 'text-primary border-b-2 border-primary'
                         : 'text-primary/60 hover:text-primary'
                     }`}
                   >
                     Magic Link
-                  </button>
+                  </Button>
                 )}
               </div>
             )}
@@ -177,7 +179,7 @@ export default function SignIn({ providers }: { providers: Provider[] }) {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="w-full px-3 py-2 border border-gray-600 bg-background text-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full px-3 py-2 border border-border bg-surface text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="Enter your email"
                   />
                 </div>
@@ -185,13 +187,13 @@ export default function SignIn({ providers }: { providers: Provider[] }) {
                   <label htmlFor="password" className="block text-sm font-medium text-primary mb-2">
                     Password
                   </label>
-                  <input
+                   <input
                     type="password"
                     id="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="w-full px-3 py-2 border border-gray-600 bg-background text-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full px-3 py-2 border border-border bg-input-background text-foreground placeholder-text-placeholder rounded-lg focus:outline-none focus:ring-2 focus:ring-border-focus focus:border-border-focus"
                     placeholder="Enter your password"
                   />
                 </div>
@@ -208,23 +210,25 @@ export default function SignIn({ providers }: { providers: Provider[] }) {
                         {verificationMessage}
                       </p>
                     )}
-                    <button
+                    <Button
                       type="button"
                       onClick={handleResendVerification}
                       disabled={verificationLoading}
-                      className="text-sm text-primary hover:text-primary-light underline disabled:opacity-50"
+                      variant="tertiary"
+                      className="!bg-transparent !p-0 text-sm underline disabled:opacity-50"
                     >
                       {verificationLoading ? 'Sending...' : 'Resend verification email'}
-                    </button>
+                    </Button>
                   </div>
                 )}
-                <button
+                <Button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full bg-primary text-[#18181b] py-3 px-4 rounded-lg hover:bg-primary-light transition duration-200 font-medium disabled:opacity-50"
+                  variant="primary"
+                  className="w-full"
                 >
                   {isLoading ? 'Signing in...' : 'Sign in'}
-                </button>
+                </Button>
               </form>
             )}
 
@@ -235,15 +239,15 @@ export default function SignIn({ providers }: { providers: Provider[] }) {
                   <label htmlFor="magic-email" className="block text-sm font-medium text-primary mb-2">
                     Email
                   </label>
-                  <input
-                    type="email"
-                    id="magic-email"
-                    value={magicLinkEmail}
-                    onChange={(e) => setMagicLinkEmail(e.target.value)}
-                    required
-                    className="w-full px-3 py-2 border border-gray-600 bg-background text-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                    placeholder="Enter your email"
-                  />
+                   <input
+                     type="email"
+                     id="magic-email"
+                     value={magicLinkEmail}
+                     onChange={(e) => setMagicLinkEmail(e.target.value)}
+                     required
+                     className="w-full px-3 py-2 border border-border bg-input-background text-foreground placeholder-text-placeholder rounded-lg focus:outline-none focus:ring-2 focus:ring-border-focus focus:border-border-focus"
+                     placeholder="Enter your email"
+                   />
                 </div>
                 {magicLinkError && (
                   <p className="text-red-500 text-sm">{magicLinkError}</p>
@@ -253,13 +257,14 @@ export default function SignIn({ providers }: { providers: Provider[] }) {
                     <p className="text-green-800 text-sm">{magicLinkSuccess}</p>
                   </div>
                 )}
-                <button
+                <Button
                   type="submit"
                   disabled={magicLinkLoading}
-                  className="w-full bg-primary text-[#18181b] py-3 px-4 rounded-lg hover:bg-primary-light transition duration-200 font-medium disabled:opacity-50"
+                  variant="primary"
+                  className="w-full"
                 >
                   {magicLinkLoading ? 'Sending magic link...' : 'Send magic link'}
-                </button>
+                </Button>
               </form>
             )}
 
@@ -268,7 +273,7 @@ export default function SignIn({ providers }: { providers: Provider[] }) {
                 {(credentialsProvider || emailProvider) && (
                   <div className="relative mb-6">
                     <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-gray-600"></div>
+                      <div className="w-full border-t border-border"></div>
                     </div>
                     <div className="relative flex justify-center text-sm">
                       <span className="px-2 bg-foreground text-primary/60">Or continue with</span>
@@ -278,14 +283,15 @@ export default function SignIn({ providers }: { providers: Provider[] }) {
                 <div className="space-y-4">
                   {otherProviders.map((provider: Provider) => (
                     <div key={provider.name}>
-                      <button
+                      <Button
                         onClick={() =>
                           signIn(provider.id, { callbackUrl: '/dashboard' })
                         }
-                        className="w-full bg-primary text-[#18181b] py-3 px-4 rounded-lg hover:bg-primary-light transition duration-200 font-medium cursor-pointer"
+                        variant="primary"
+                        className="w-full"
                       >
                         Sign in with {provider.name}
-                      </button>
+                      </Button>
                     </div>
                   ))}
                 </div>
@@ -294,17 +300,18 @@ export default function SignIn({ providers }: { providers: Provider[] }) {
 
             <div className="mt-8 text-center">
               <p className="text-primary/60 text-sm">
-                By signing in, you agree to our <Link href="/terms" className="underline text-primary">terms of service</Link> and{' '}
-                <Link href="/privacy" className="underline text-primary">privacy policy</Link>.
+                By signing in, you agree to our <Button href="/terms" variant="tertiary" className="!bg-transparent !p-0 underline text-primary">terms of service</Button> and{' '}
+                <Button href="/privacy" variant="tertiary" className="!bg-transparent !p-0 underline text-primary">privacy policy</Button>.
               </p>
               <p className="mt-2 text-primary/60 text-sm">
                 Don&apos;t have an account?{' '}
-                <Link
+                <Button
                   href="/auth/register"
-                  className="text-primary hover:text-primary-light transition duration-200"
+                  variant="tertiary"
+                  className="!bg-transparent !p-0 text-primary hover:text-primary-light transition duration-200"
                 >
                   Create one
-                </Link>
+                </Button>
               </p>
             </div>
           </div>

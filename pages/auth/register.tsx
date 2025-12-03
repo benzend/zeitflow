@@ -2,8 +2,8 @@ import { getProviders, signIn, getSession } from 'next-auth/react';
 import { GetServerSideProps } from 'next';
 import Head from 'next/head';
 import Navigation from '@/components/Navigation';
+import { Button } from '@/components/Button';
 import { Provider } from 'next-auth/providers/index';
-import Link from 'next/link';
 import { useState } from 'react';
 
 export default function Register({ providers }: { providers: Provider[] }) {
@@ -152,13 +152,14 @@ export default function Register({ providers }: { providers: Provider[] }) {
                 {success && (
                   <p className="text-green-500 text-sm">{success}</p>
                 )}
-                <button
+                <Button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full bg-primary text-[#18181b] py-3 px-4 rounded-lg hover:bg-primary-light transition duration-200 font-medium disabled:opacity-50"
+                  variant="primary"
+                  className="w-full"
                 >
                   {isLoading ? 'Creating account...' : 'Create account'}
-                </button>
+                </Button>
               </form>
             )}
 
@@ -176,13 +177,14 @@ export default function Register({ providers }: { providers: Provider[] }) {
                   {success && (
                     <p className="text-primary text-sm">{success}</p>
                   )}
-                  <button
+                  <Button
                     onClick={handleResendVerification}
                     disabled={isLoading}
-                    className="text-sm text-primary hover:text-primary-light underline disabled:opacity-50"
+                    variant="tertiary"
+                    className="!bg-transparent !p-0 text-sm underline disabled:opacity-50"
                   >
                     {isLoading ? 'Sending...' : 'Resend verification email'}
-                  </button>
+                  </Button>
                 </div>
               </div>
             )}
@@ -218,17 +220,18 @@ export default function Register({ providers }: { providers: Provider[] }) {
 
             <div className="mt-8 text-center">
               <p className="text-primary/60 text-sm">
-                By creating an account, you agree to our <Link href="/terms" className="underline text-primary">terms of service</Link> and{' '}
-                <Link href="/privacy" className="underline text-primary">privacy policy</Link>.
+                By creating an account, you agree to our <Button href="/terms" variant="tertiary" className="!bg-transparent !p-0 underline text-primary">terms of service</Button> and{' '}
+                <Button href="/privacy" variant="tertiary" className="!bg-transparent !p-0 underline text-primary">privacy policy</Button>.
               </p>
               <p className="mt-2 text-primary/60 text-sm">
                 Already have an account?{' '}
-                <Link
+                <Button
                   href="/auth/signin"
-                  className="text-primary hover:text-primary-light transition duration-200"
+                  variant="tertiary"
+                  className="!bg-transparent !p-0 text-primary hover:text-primary-light transition duration-200"
                 >
                   Sign in
-                </Link>
+                </Button>
               </p>
             </div>
           </div>

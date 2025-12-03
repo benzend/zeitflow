@@ -3,7 +3,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 import { Plus, Workflow as WorkflowIcon, Settings, Play, Trash2 } from 'lucide-react';
-import Link from "next/link";
+import { Button } from "@/components/Button";
 import ProfileDropdown from "@/components/ProfileDropdown";
 import SubscriptionCard from "@/components/SubscriptionCard";
 
@@ -37,11 +37,11 @@ const WorkflowCard = ({ workflow, onDelete }: { workflow: Workflow; onDelete: (i
   };
   
   return (
-    <div className="border-[#a3e635] border-1 rounded-lg shadow hover:shadow-md transition duration-200 bg-foreground-light overflow-hidden">
+    <div className="border-primary border-1 rounded-lg shadow hover:shadow-md transition duration-200 bg-surface overflow-hidden">
       <div className="p-4">
         <div className="flex justify-between items-start">
           <div className="flex-1">
-            <h3 className="text-md text-[#a3e635] font-semibold mb-2">{workflow.name}</h3>
+            <h3 className="text-md text-primary font-semibold mb-2">{workflow.name}</h3>
             {workflow.description && (
               <p className="text-sm text-gray-400 mb-3">{workflow.description}</p>
             )}
@@ -62,36 +62,39 @@ const WorkflowCard = ({ workflow, onDelete }: { workflow: Workflow; onDelete: (i
           </div>
         </div>
       </div>
-      <div className="flex justify-between items-center p-4 bg-foreground border-t border-primary/10">
+      <div className="flex justify-between items-center p-4 border-t border-primary/10">
         <div className="flex gap-2">
-          <Link
+          <Button
             href={`/workflow/${workflow.id}`}
-            className="flex items-center gap-1 border-primary border-1 text-primary py-1 px-3 rounded hover:border-primary-light hover:text-primary-light cursor-pointer transition duration-200 text-sm"
+            variant="tertiary"
+            size="sm"
+            className="border-primary border-1 text-primary hover:border-primary-light hover:text-primary-light"
           >
             <Settings size={14} />
             Edit
-          </Link>
-          <button className="flex items-center gap-1 bg-primary text-[#18181b] py-1 px-3 rounded hover:bg-primary-light cursor-pointer transition duration-200 text-sm" onClick={runWorkflow}>
+          </Button>
+          <Button variant="primary" size="sm" onClick={runWorkflow}>
             <Play size={14} />
             Run
-          </button>
-          <Link className="flex items-center gap-1 bg-primary text-[#18181b] py-1 px-3 rounded hover:bg-primary-light cursor-pointer transition duration-200 text-sm" href={`/workflow/${workflow.id}/view`}>
-            View 
-          </Link>
+          </Button>
+          <Button variant="primary" size="sm" href={`/workflow/${workflow.id}/view`}>
+            View
+          </Button>
         </div>
-        <button
+        <Button
           onClick={() => onDelete(workflow.id)}
-          className="text-red-500 hover:text-red-700 transition-colors p-1"
+          variant="tertiary"
+          className="!bg-transparent !p-1 text-red-500 hover:text-red-700"
         >
           <Trash2 size={16} />
-        </button>
+        </Button>
       </div>
     </div>
   );
 };
 
 const WorkflowSkeleton = () => (
-  <div className="border-primary border-1 rounded-lg shadow p-4 bg-foreground-light animate-pulse">
+  <div className="border-primary border-1 rounded-lg shadow p-4 bg-surface animate-pulse">
     <div className="h-6 w-32 bg-primary/20 rounded mb-2"></div>
     <div className="h-4 w-48 bg-primary/20 rounded mb-3"></div>
     <div className="flex gap-2">
@@ -217,16 +220,12 @@ export default function Workflows() {
         {/* Navigation */}
         <nav className="mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
           <div className="flex items-center gap-6">
-            <Link href="/dashboard">
-              <span className="text-primary underline hover:text-primary-light transition duration-200">
-                Dashboard
-              </span>
-            </Link>
-            <Link href="/workflows">
-              <span className="text-primary underline hover:text-primary-light transition duration-200 text-lg font-semibold">
-                Workflows
-              </span>
-            </Link>
+            <Button href="/dashboard" variant="tertiary" className="!bg-transparent !p-0 underline hover:text-primary-light">
+              Dashboard
+            </Button>
+            <Button href="/workflows" variant="tertiary" className="!bg-transparent !p-0 underline hover:text-primary-light text-lg font-semibold">
+              Workflows
+            </Button>
           </div>
 
           <div className="flex gap-4 items-center">
@@ -238,12 +237,13 @@ export default function Workflows() {
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 text-sm">
             {error}
-            <button 
-              onClick={() => setError("")} 
-              className="float-right text-red-700 hover:text-red-900"
+            <Button
+              onClick={() => setError("")}
+              variant="tertiary"
+              className="!bg-transparent !p-0 float-right text-red-700 hover:text-red-900"
             >
               ×
-            </button>
+            </Button>
           </div>
         )}
 
@@ -253,13 +253,13 @@ export default function Workflows() {
             <h1 className="text-3xl font-bold text-primary mb-2">Workflows</h1>
             <p className="text-gray-400">Create and manage your automation workflows</p>
           </div>
-          <button
+          <Button
             onClick={() => setShowCreateModal(true)}
-            className="flex items-center gap-2 bg-primary text-[#18181b] px-4 py-2 rounded-lg hover:bg-primary-light transition duration-200 font-medium"
+            variant="primary"
           >
             <Plus size={20} />
             Create Workflow
-          </button>
+          </Button>
         </div>
 
         {/* Workflows Grid */}
@@ -275,12 +275,12 @@ export default function Workflows() {
               <WorkflowIcon size={64} className="mx-auto text-gray-400 mb-4" />
               <h3 className="text-xl font-medium text-gray-300 mb-2">No workflows yet</h3>
               <p className="text-gray-400 mb-6">Create your first automation workflow to get started</p>
-              <button
+              <Button
                 onClick={() => setShowCreateModal(true)}
-                className="bg-primary text-[#18181b] px-6 py-3 rounded-lg hover:bg-primary-light transition duration-200 font-medium"
+                variant="primary"
               >
                 Create Your First Workflow
-              </button>
+              </Button>
             </div>
           ) : (
             workflows.map((workflow) => (
@@ -300,12 +300,13 @@ export default function Workflows() {
           <div className="bg-foreground p-6 rounded-lg shadow-lg max-w-md w-full">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-primary">Create New Workflow</h2>
-              <button
+              <Button
                 onClick={() => setShowCreateModal(false)}
-                className="text-gray-400 hover:text-gray-600 transition duration-200"
+                variant="tertiary"
+                className="!bg-transparent !p-0 text-gray-400 hover:text-gray-600"
               >
                 ✕
-              </button>
+              </Button>
             </div>
             <form onSubmit={handleCreateWorkflow}>
               <div className="mb-4">
@@ -320,7 +321,7 @@ export default function Workflows() {
                   id="workflowName"
                   value={newWorkflowName}
                   onChange={(e) => setNewWorkflowName(e.target.value)}
-                  className="w-full p-3 bg-foreground-light border border-primary/20 rounded-lg focus:outline-none focus:border-primary transition duration-200 text-primary"
+                  className="w-full p-3 bg-input-background border border-border rounded-lg focus:outline-none focus:border-border-focus focus:ring-2 focus:ring-border-focus transition duration-200 text-foreground placeholder-text-placeholder"
                   placeholder="Enter workflow name..."
                   required
                 />
@@ -337,24 +338,25 @@ export default function Workflows() {
                   value={newWorkflowDescription}
                   onChange={(e) => setNewWorkflowDescription(e.target.value)}
                   rows={3}
-                  className="w-full p-3 bg-foreground-light border border-primary/20 rounded-lg focus:outline-none focus:border-primary transition duration-200 text-primary resize-none"
+                  className="w-full p-3 bg-input-background border border-border rounded-lg focus:outline-none focus:border-border-focus focus:ring-2 focus:ring-border-focus transition duration-200 text-foreground placeholder-text-placeholder resize-none"
                   placeholder="Describe what this workflow does..."
                 />
               </div>
               <div className="flex justify-end gap-4">
-                <button
+                <Button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 text-primary hover:text-primary-light transition duration-200"
+                  variant="tertiary"
+                  className="!bg-transparent"
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   type="submit"
-                  className="bg-primary text-[#18181b] py-2 px-6 rounded-lg hover:bg-primary-light transition duration-200 font-medium"
+                  variant="primary"
                 >
                   Create Workflow
-                </button>
+                </Button>
               </div>
             </form>
           </div>

@@ -3,7 +3,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 import { SelectChain, SelectQueuedChainWithStatus, SelectQueuedChainStep } from "@/schema";
-import Link from "next/link";
+import { Button } from "@/components/Button";
 
 type ChainWithStepCount = SelectChain & { stepCount: number };
 import SubscriptionModal from "@/components/SubscriptionCard";
@@ -12,7 +12,7 @@ import ProfileDropdown from "@/components/ProfileDropdown";
 
 // Add loading skeleton components
 const ChainSkeleton = () => (
-  <div className="flex justify-between items-center border-primary border-1 rounded-lg shadow p-4 bg-foreground-light animate-pulse">
+  <div className="flex justify-between items-center border-primary border-1 rounded-lg shadow p-4 bg-surface animate-pulse">
     <div className="h-6 w-32 bg-primary/20 rounded"></div>
     <div className="flex gap-4">
       <div className="h-8 w-8 bg-primary/20 rounded"></div>
@@ -22,9 +22,9 @@ const ChainSkeleton = () => (
 );
 
 const QueuedChainSkeleton = () => (
-  <div className="border-[#a3e635] border-1 rounded-lg shadow p-6 bg-foreground-light animate-pulse relative">
+  <div className="border-primary border-1 rounded-lg shadow p-6 bg-surface animate-pulse relative">
     <div className="flex justify-between items-center">
-      <div className="h-7 w-40 bg-[#a3e635]/20 rounded"></div>
+      <div className="h-7 w-40 bg-primary/20 rounded"></div>
       <div className="flex gap-4">
         <div className="h-8 w-16 bg-primary/20 rounded"></div>
         <div className="h-8 w-20 bg-primary/20 rounded"></div>
@@ -45,9 +45,9 @@ const ProgressBar = ({
 
   return (
     <div className="w-full rounded-sm overflow-hidden">
-      <div className="w-full bg-gray-200 rounded-full h-1">
+      <div className="w-full bg-surface-hover rounded-full h-1">
         <div
-          className="bg-[#a3e635] h-1 transition-all rouded-full duration-300"
+          className="bg-primary h-1 transition-all rounded-full duration-300"
           style={{ width: `${percentage}%` }}
         ></div>
       </div>
@@ -261,23 +261,20 @@ export default function Dashboard() {
         <nav className="mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-6">
-              <Link href="/dashboard">
-                <span className="text-primary underline hover:text-primary-light transition duration-200 text-lg font-semibold">
-                  Dashboard
-                </span>
-              </Link>
-              <Link href="/workflows">
-                <span className="text-primary underline hover:text-primary-light transition duration-200">
-                  Workflows
-                </span>
-              </Link>
+              <Button href="/dashboard" variant="clear" className="underline hover:text-primary-light text-lg font-semibold">
+                Dashboard
+              </Button>
+              <Button href="/workflows" variant="clear" className="underline hover:text-primary-light">
+                Workflows
+              </Button>
             </div>
-            <button
-              className="sm:hidden text-primary p-2 rounded-lg cursor-pointer text-xl"
+            <Button
+              className="sm:hidden text-primary p-2 rounded-lg text-xl"
+              variant="tertiary"
               onClick={() => setShowAddChainModal(true)}
             >
               +
-            </button>
+            </Button>
           </div>
 
           <div className="flex gap-4 items-center">
@@ -294,52 +291,56 @@ export default function Dashboard() {
 
         {/* Mobile Tab Navigation */}
         <div className="sm:hidden mb-6">
-          <div className="flex bg-foreground rounded-lg p-1">
-            <button
+          <div className="flex bg-background-light rounded-lg p-1">
+            <Button
               onClick={() => setActiveTab('chains')}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+              variant="tertiary"
+              className={`flex-1 !bg-transparent !p-2 !h-auto rounded-md text-sm font-medium transition-colors ${
                 activeTab === 'chains'
-                  ? 'bg-primary text-[#18181b]'
+                  ? 'bg-primary text-foreground'
                   : 'text-primary hover:text-primary-light'
               }`}
             >
               Chains ({chains.length})
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => setActiveTab('in-progress')}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+              variant="tertiary"
+              className={`flex-1 !bg-transparent !p-2 !h-auto rounded-md text-sm font-medium transition-colors ${
                 activeTab === 'in-progress'
-                  ? 'bg-primary text-[#18181b]'
+                  ? 'bg-primary text-foreground'
                   : 'text-primary hover:text-primary-light'
-              }`}
+               }`}
             >
               In Progress ({inProgressChains.length})
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => setActiveTab('completed')}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+              variant="tertiary"
+              className={`flex-1 !bg-transparent !p-2 !h-auto rounded-md text-sm font-medium transition-colors ${
                 activeTab === 'completed'
-                  ? 'bg-primary text-[#18181b]'
+                  ? 'bg-primary text-foreground'
                   : 'text-primary hover:text-primary-light'
               }`}
             >
               Completed ({completedChains.length})
-            </button>
+            </Button>
           </div>
         </div>
 
         {/* Desktop Layout */}
         <div className="hidden sm:flex gap-6 w-full">
           {/* Prompt Chains Column */}
-          <section className="flex-1 flex flex-col bg-foreground rounded-lg p-4 h-[70vh]">
+          <section className="flex-1 flex flex-col bg-background-light rounded-lg p-4 h-[70vh]">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-bold text-primary">Prompt Chains</h2>
-              <button
-                className="text-primary p-2 rounded-lg cursor-pointer"
+              <Button
+                variant="tertiary"
+                className="!bg-transparent text-primary p-2 rounded-lg"
                 onClick={() => setShowAddChainModal(true)}
               >
                 +
-              </button>
+              </Button>
             </div>
             <div className="overflow-y-auto">
               <div className="flex flex-col gap-4 flex-1">
@@ -351,25 +352,28 @@ export default function Dashboard() {
                   </>
                 ) : (
                   chains.map((chain) => (
-                    <Card
-                      key={chain.id}
-                      name={chain.name || ""}
-                      actions={
-                        <>
-                          <Link
-                            href={`/chain/${chain.id}`}
-                            className="border-primary border-1 text-primary py-1 px-2 rounded hover:border-primary-light hover:text-primary-light cursor-pointer transition duration-200 text-sm"
-                          >
-                            Edit
-                          </Link>
-                          <button
-                            onClick={() => handleAddChainToQueue(chain.id)}
-                            className="bg-primary text-[#18181b] py-1 px-2 rounded hover:bg-primary-light cursor-pointer transition duration-200 text-sm"
-                          >
-                            Run
-                          </button>
-                        </>
-                      }
+                     <Card
+                       key={chain.id}
+                       name={chain.name || ""}
+                       actions={
+                         <>
+                           <Button
+                             href={`/chain/${chain.id}`}
+                             variant="tertiary"
+                             size="sm"
+                             className="border-primary border-1 text-primary hover:border-primary-light hover:text-primary-light"
+                           >
+                             Edit
+                           </Button>
+                           <Button
+                             onClick={() => handleAddChainToQueue(chain.id)}
+                             variant="primary"
+                             size="sm"
+                           >
+                             Run
+                           </Button>
+                         </>
+                       }
                       stepsCount={chain.stepCount}
                       stepsCompletedCount={0}
                       showProgress={false}
@@ -381,7 +385,7 @@ export default function Dashboard() {
           </section>
 
           {/* In Progress Column */}
-          <section className="flex-1 flex flex-col bg-foreground rounded-lg p-4 h-[70vh]">
+          <section className="flex-1 flex flex-col bg-background-light rounded-lg p-4 h-[70vh]">
             <h2 className="text-lg font-bold text-primary py-2 mb-4">
               In Progress
             </h2>
@@ -400,39 +404,45 @@ export default function Dashboard() {
                     );
                     if (!chain) return null;
                     return (
-                      <Card
-                        key={queuedChain.id}
-                        name={chain.name || ""}
-                        actions={
-                          <>
-                            <Link
-                              href={`/results/${queuedChain.id}`}
-                              className="border-primary border-1 text-primary py-1 px-2 rounded hover:border-primary-light hover:text-primary-light cursor-pointer transition duration-200 text-sm"
-                            >
-                              View
-                            </Link>
-                            {queuedChain.status === "processing" && (
-                              <button
-                                className="bg-red-500 text-white py-1 px-2 rounded hover:bg-red-600 cursor-pointer transition duration-200 text-sm"
-                                onClick={() =>
-                                  handleStopChain(queuedChain.id)
-                                }
-                              >
-                                Stop
-                              </button>
-                            )}
-                            {queuedChain.status === "stopped" && (
-                              <button
-                                className="bg-red-500 text-white py-1 px-2 rounded hover:bg-red-600 cursor-pointer transition duration-200 text-sm"
-                                onClick={() =>
-                                  handleResumeChain(queuedChain.id)
-                                }
-                              >
-                                Resume
-                              </button>
-                            )}
-                          </>
-                        }
+                       <Card
+                         key={queuedChain.id}
+                         name={chain.name || ""}
+                         actions={
+                           <>
+                             <Button
+                               href={`/results/${queuedChain.id}`}
+                               variant="tertiary"
+                               size="sm"
+                               className="border-primary border-1 text-primary hover:border-primary-light hover:text-primary-light"
+                             >
+                               View
+                             </Button>
+                             {queuedChain.status === "processing" && (
+                               <Button
+                                 variant="tertiary"
+                                 size="sm"
+                                 className="!bg-red-500 !text-white hover:!bg-red-600"
+                                 onClick={() =>
+                                   handleStopChain(queuedChain.id)
+                                 }
+                               >
+                                 Stop
+                               </Button>
+                              )}
+                             {queuedChain.status === "stopped" && (
+                               <Button
+                                 variant="tertiary"
+                                 size="sm"
+                                 className="!bg-red-500 !text-white hover:!bg-red-600"
+                                 onClick={() =>
+                                   handleResumeChain(queuedChain.id)
+                                 }
+                               >
+                                 Resume
+                               </Button>
+                             )}
+                           </>
+                         }
                         stepsCount={queuedChain.steps?.length || 0}
                         stepsCompletedCount={
                           queuedChain.steps?.filter(
@@ -449,7 +459,7 @@ export default function Dashboard() {
           </section>
 
           {/* Completed Column */}
-          <section className="flex-1 flex flex-col bg-foreground rounded-lg p-4 h-[70vh]">
+          <section className="flex-1 flex flex-col bg-background-light rounded-lg p-4 h-[70vh]">
             <h2 className="text-lg font-bold text-primary py-2 mb-4">
               Completed
             </h2>
@@ -468,19 +478,20 @@ export default function Dashboard() {
                     );
                     if (!chain) return null;
                     return (
-                      <Card
-                        key={queuedChain.id}
-                        name={chain.name || ""}
-                        actions={
-                          <>
-                            <Link
-                              href={`/results/${queuedChain.id}`}
-                              className="bg-primary text-[#18181b] py-1 px-2 rounded hover:bg-primary-light cursor-pointer transition duration-200 text-sm"
-                            >
-                              View Results
-                            </Link>
-                          </>
-                        }
+                       <Card
+                         key={queuedChain.id}
+                         name={chain.name || ""}
+                         actions={
+                           <>
+                             <Button
+                               href={`/results/${queuedChain.id}`}
+                               variant="primary"
+                               size="sm"
+                             >
+                               View Results
+                             </Button>
+                           </>
+                         }
                         stepsCount={queuedChain.steps?.length || 0}
                         stepsCompletedCount={
                           queuedChain.steps?.filter(
@@ -501,15 +512,16 @@ export default function Dashboard() {
         <div className="sm:hidden">
           {/* Prompt Chains Section */}
           {activeTab === 'chains' && (
-            <section className="bg-foreground rounded-lg p-4">
+            <section className="bg-background-light rounded-lg p-4">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg font-bold text-primary">Prompt Chains</h2>
-                <button
-                  className="text-primary p-2 rounded-lg cursor-pointer"
+                <Button
+                  variant="tertiary"
+                  className="!bg-transparent text-primary p-2 rounded-lg"
                   onClick={() => setShowAddChainModal(true)}
                 >
                   +
-                </button>
+                </Button>
               </div>
               <div className="flex flex-col gap-4">
                 {loading ? (
@@ -525,15 +537,17 @@ export default function Dashboard() {
                       name={chain.name || ""}
                       actions={
                         <>
-                          <Link
+                          <Button
                             href={`/chain/${chain.id}`}
-                            className="border-primary border-1 text-primary py-1 px-2 rounded hover:border-primary-light hover:text-primary-light cursor-pointer transition duration-200 text-sm"
+                            variant="tertiary"
+                            size="sm"
+                            className="border-primary border-1 text-primary hover:border-primary-light hover:text-primary-light"
                           >
                             Edit
-                          </Link>
+                          </Button>
                           <button
                             onClick={() => handleAddChainToQueue(chain.id)}
-                            className="bg-primary text-[#18181b] py-1 px-2 rounded hover:bg-primary-light cursor-pointer transition duration-200 text-sm"
+                            className="bg-primary text-foreground py-1 px-2 rounded hover:bg-primary-light cursor-pointer transition duration-200 text-sm"
                           >
                             Run
                           </button>
@@ -551,7 +565,7 @@ export default function Dashboard() {
 
           {/* In Progress Section */}
           {activeTab === 'in-progress' && (
-            <section className="bg-foreground rounded-lg p-4">
+            <section className="bg-background-light rounded-lg p-4">
               <h2 className="text-lg font-bold text-primary py-2 mb-4">
                 In Progress
               </h2>
@@ -574,12 +588,14 @@ export default function Dashboard() {
                         name={chain.name || ""}
                         actions={
                           <>
-                            <Link
+                            <Button
                               href={`/results/${queuedChain.id}`}
-                              className="border-primary border-1 text-primary py-1 px-2 rounded hover:border-primary-light hover:text-primary-light cursor-pointer transition duration-200 text-sm"
+                              variant="tertiary"
+                              size="sm"
+                              className="border-primary border-1 text-primary hover:border-primary-light hover:text-primary-light"
                             >
                               View
-                            </Link>
+                            </Button>
                             {queuedChain.status === "processing" && (
                               <button
                                 className="bg-red-500 text-white py-1 px-2 rounded hover:bg-red-600 cursor-pointer transition duration-200 text-sm"
@@ -619,7 +635,7 @@ export default function Dashboard() {
 
           {/* Completed Section */}
           {activeTab === 'completed' && (
-            <section className="bg-foreground rounded-lg p-4">
+            <section className="bg-background-light rounded-lg p-4">
               <h2 className="text-lg font-bold text-primary py-2 mb-4">
                 Completed
               </h2>
@@ -640,16 +656,17 @@ export default function Dashboard() {
                       <MobileCard
                         key={queuedChain.id}
                         name={chain.name || ""}
-                        actions={
-                          <>
-                            <Link
-                              href={`/results/${queuedChain.id}`}
-                              className="bg-primary text-[#18181b] py-1 px-2 rounded hover:bg-primary-light cursor-pointer transition duration-200 text-sm"
-                            >
-                              View Results
-                            </Link>
-                          </>
-                        }
+                         actions={
+                           <>
+                             <Button
+                               href={`/results/${queuedChain.id}`}
+                               variant="primary"
+                               size="sm"
+                             >
+                               View Results
+                             </Button>
+                           </>
+                         }
                         stepsCount={queuedChain.steps?.length || 0}
                         stepsCompletedCount={
                           queuedChain.steps?.filter(
@@ -669,15 +686,16 @@ export default function Dashboard() {
 
       {showAddChainModal && (
         <div className="fixed inset-0 bg-black/50 flex justify-center items-center p-4 z-50">
-          <div className="bg-foreground p-6 rounded-lg shadow-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-background-light p-6 rounded-lg shadow-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-primary">Add New Chain</h2>
-              <button
+              <Button
                 onClick={() => setShowAddChainModal(false)}
-                className="text-gray-400 hover:text-gray-600 transition duration-200"
+                variant="tertiary"
+                className="!bg-transparent !p-0 text-gray-400 hover:text-gray-600"
               >
                 ✕
-              </button>
+              </Button>
             </div>
             <form onSubmit={handleCreateChain}>
               <div className="mb-6">
@@ -692,24 +710,25 @@ export default function Dashboard() {
                   id="chainName"
                   value={newChainName}
                   onChange={(e) => setNewChainName(e.target.value)}
-                  className="w-full p-3 bg-foreground-light border border-primary/20 rounded-lg focus:outline-none focus:border-primary transition duration-200 text-primary"
+                  className="w-full p-3 bg-background-light border border-primary/20 rounded-lg focus:outline-none focus:border-primary transition duration-200 text-primary"
                   placeholder="Enter chain name..."
                 />
               </div>
               <div className="flex justify-end gap-4">
-                <button
+                <Button
                   type="button"
                   onClick={() => setShowAddChainModal(false)}
-                  className="px-4 py-2 text-primary hover:text-primary-light transition duration-200"
+                  variant="tertiary"
+                  className="!bg-transparent"
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   type="submit"
-                  className="bg-primary text-[#18181b] py-2 px-4 rounded-lg hover:bg-primary-light transition duration-200"
+                  variant="primary"
                 >
                   Add Chain
-                </button>
+                </Button>
               </div>
             </form>
           </div>
@@ -744,12 +763,12 @@ const Card = ({
   showProgress?: boolean;
 }) => {
   return (
-    <div className="border-[#a3e635] border-1 rounded-lg shadow hover:shadow-md transition duration-200 bg-foreground-light overflow-hidden">
+    <div className="border-primary border-1 rounded-lg shadow hover:shadow-md transition duration-200 bg-background-light overflow-hidden">
       <div className="p-4">
         <div>
-          <h3 className="text-md text-[#a3e635] font-semibold">{name}</h3>
-          <div className="text-sm text-gray-400 mt-1">
-            {error && <span className="text-red-400 ml-2">(Error)</span>}
+          <h3 className="text-md text-primary font-semibold">{name}</h3>
+          <div className="text-sm text-text-muted mt-1">
+            {error && <span className="text-error ml-2">(Error)</span>}
           </div>
         </div>
       </div>
@@ -789,13 +808,13 @@ const MobileCard = ({
   showProgress?: boolean;
 }) => {
   return (
-    <div className="border-[#a3e635] border-1 rounded-lg shadow hover:shadow-md transition duration-200 bg-foreground-light overflow-hidden">
+    <div className="border-primary border-1 rounded-lg shadow hover:shadow-md transition duration-200 bg-background-light overflow-hidden">
       <div className="p-4">
         <div className="flex justify-between items-start mb-3">
           <div className="flex-1">
-            <h3 className="text-md text-[#a3e635] font-semibold">{name}</h3>
-            <div className="text-sm text-gray-400 mt-1">
-              {error && <span className="text-red-400">(Error)</span>}
+            <h3 className="text-md text-primary font-semibold">{name}</h3>
+            <div className="text-sm text-text-muted mt-1">
+              {error && <span className="text-error">(Error)</span>}
             </div>
           </div>
           <div className="flex gap-2 flex-wrap">{actions}</div>

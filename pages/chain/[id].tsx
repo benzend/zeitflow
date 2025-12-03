@@ -6,6 +6,7 @@ import VariablesModal from "@/components/VariablesModal";
 import { HighlightedText } from "@/lib/highlight-variables";
 import { extractVariablesFromChainSteps } from "@/lib/variables-client";
 import TypeaheadTextarea from "@/components/TypeaheadTextarea";
+import { Button } from "@/components/Button";
 import {
   DndContext,
   closestCenter,
@@ -28,15 +29,15 @@ import { Tooltip } from "react-tippy";
 // Add skeleton components
 const ChainInfoSkeleton = () => (
   <div className="rounded-lg mb-8 animate-pulse">
-    <div className="h-10 w-64 bg-[#a3e635]/20 rounded mb-4"></div>
+    <div className="h-10 w-64 bg-foreground/20 rounded mb-4"></div>
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div className="bg-foreground border border-primary/20 p-4 rounded-lg">
+      <div className="bg-background-light border border-primary/20 p-4 rounded-lg">
         <div className="h-6 w-32 bg-primary/20 rounded"></div>
       </div>
-      <div className="bg-foreground border border-primary/20 p-4 rounded-lg">
+      <div className="bg-background-light border border-primary/20 p-4 rounded-lg">
         <div className="h-6 w-40 bg-primary/20 rounded"></div>
       </div>
-      <div className="bg-foreground border border-primary/20 p-4 rounded-lg">
+      <div className="bg-background-light border border-primary/20 p-4 rounded-lg">
         <div className="h-6 w-24 bg-primary/20 rounded"></div>
       </div>
     </div>
@@ -44,7 +45,7 @@ const ChainInfoSkeleton = () => (
 );
 
 const ChainStepSkeleton = () => (
-  <div className="bg-foreground-light border border-primary/20 p-4 rounded-lg mb-4 animate-pulse">
+  <div className="bg-background-light border border-primary/20 p-4 rounded-lg mb-4 animate-pulse">
     <div className="h-6 w-16 bg-primary/20 rounded mb-2"></div>
     <div className="h-6 w-full bg-primary/20 rounded"></div>
   </div>
@@ -104,7 +105,7 @@ const SortableStep = ({
     <div
       ref={setNodeRef}
       style={style}
-      className="bg-foreground-light border border-primary/20 rounded-lg mb-4"
+      className="bg-background-light border border-primary/20 rounded-lg mb-4"
     >
       {editingStepId === step.id ? (
         <div className="p-4">
@@ -116,18 +117,19 @@ const SortableStep = ({
                 Note: Use {"{{"}variableName{"}}"} to create a variable
               </span>
             </h4>
-            <button
+            <Button
               onClick={onCancelEditStep}
+              variant="clear"
               className="text-gray-400 hover:text-gray-600 transition duration-200"
             >
               ✕
-            </button>
+            </Button>
           </div>
           <TypeaheadTextarea
             value={editStepPrompt}
             onChange={setEditStepPrompt}
             suggestions={getEditStepSuggestions()}
-            className="w-full p-3 bg-foreground border border-primary/20 rounded-lg focus:outline-none focus:border-primary transition duration-200 text-primary min-h-[100px] mb-4"
+            className="w-full p-3 bg-background-light border border-primary/20 rounded-lg focus:outline-none focus:border-primary transition duration-200 text-primary min-h-[100px] mb-4"
             placeholder="Enter step prompt..."
           />
 
@@ -144,18 +146,18 @@ const SortableStep = ({
           </div>
 
           <div className="flex justify-end gap-2">
-            <button
+            <Button
               onClick={onCancelEditStep}
               className="px-3 py-1 text-primary hover:text-primary-light transition duration-200"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => onUpdateStep(step.id)}
               className="bg-primary text-[#18181b] py-1 px-3 rounded hover:bg-primary-light transition duration-200"
             >
               Save
-            </button>
+            </Button>
           </div>
         </div>
       ) : (
@@ -166,13 +168,13 @@ const SortableStep = ({
           <button onClick={() => onEditStep(step)} className="w-full text-left cursor-pointer my-4 mr-4" title="Click to edit step">
             <HighlightedText
               text={step.prompt}
-              className="text-primary whitespace-pre-wrap block"
+              className="text-foreground whitespace-pre-wrap block"
             />
           </button>
           <div className="self-start mt-4 mr-4">
-            <button onClick={() => onDeleteStep(step.id)} className="text-red-500 hover:text-red-600 transition duration-200 text-sm cursor-pointer" title="Delete step">
+            <Button onClick={() => onDeleteStep(step.id)} variant="tertiary" className="!text-red-500 hover:!text-red-600" title="Delete step">
               Delete
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -509,7 +511,7 @@ export default function ChainDetail() {
         <div className="container mx-auto px-4 pb-8 pt-20 max-w-4xl">
           <main className="min-h-[80vh] py-8">
             <div className="flex justify-between items-center mb-8">
-              <div className="h-10 w-32 bg-[#a3e635]/20 rounded"></div>
+              <div className="h-10 w-32 bg-foreground/20 rounded"></div>
               <div className="flex space-x-2">
                 <div className="h-10 w-20 bg-blue-500/20 rounded"></div>
                 <div className="h-10 w-20 bg-red-500/20 rounded"></div>
@@ -518,7 +520,7 @@ export default function ChainDetail() {
 
             <ChainInfoSkeleton />
 
-            <div className="bg-foreground border border-primary/20 rounded-lg shadow-lg p-6">
+            <div className="bg-background-light border border-primary/20 rounded-lg shadow-lg p-6">
               <div className="flex justify-between items-center mb-6">
                 <div className="h-7 w-32 bg-primary/20 rounded"></div>
                 <div className="h-10 w-32 bg-primary/20 rounded"></div>
@@ -529,7 +531,7 @@ export default function ChainDetail() {
               <ChainStepSkeleton />
 
               <div className="flex justify-end mt-6">
-                <div className="h-10 w-32 bg-[#a3e635]/20 rounded"></div>
+                <div className="h-10 w-32 bg-primary/20 rounded"></div>
               </div>
             </div>
           </main>
@@ -545,12 +547,13 @@ export default function ChainDetail() {
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4">
             {error}
           </div>
-          <button
+          <Button
             onClick={handleBackToDashboard}
             className="py-2 px-4"
+            variant="clear"
           >
             Back to Dashboard
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -560,14 +563,15 @@ export default function ChainDetail() {
     return (
       <div>
         <div className="container mx-auto px-4 py-8 max-w-4xl">
-          <p className="text-center text-primary">Chain not found</p>
+          <p className="text-center text-error">Chain not found</p>
           <div className="text-center mt-4">
-            <button
+            <Button
               onClick={handleBackToDashboard}
               className="py-2 px-4"
+              variant="clear"
             >
               Back to Dashboard
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -585,49 +589,50 @@ export default function ChainDetail() {
       <div className="container mx-auto px-4 pb-8 pt-20 max-w-4xl">
         <main className="min-h-[80vh] py-8">
           <div className="flex justify-between items-center mb-8">
-            <button
+            <Button
               onClick={handleBackToDashboard}
-              className="text-[#a3e635] cursor-pointer hover:text-[#bef264] transition duration-200 hover:underline"
+              className="text-foreground-light cursor-pointer hover:text-foreground transition duration-200 hover:underline"
+              variant="clear"
             >
               Back to Dashboard
-            </button>
+            </Button>
             <div className="flex space-x-2">
               {!editMode && (
-                <button
+                <Button
                   onClick={() => setEditMode(true)}
                   className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition duration-200"
                 >
                   Edit
-                </button>
+                </Button>
               )}
-              <button
+              <Button
                 onClick={handleDeleteChain}
                 className="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 transition duration-200"
               >
                 Delete
-              </button>
+              </Button>
             </div>
           </div>
 
           {editMode ? (
-            <div className="bg-foreground rounded-lg shadow-lg p-6 mb-8">
+            <div className="bg-background-light rounded-lg shadow-lg p-6 mb-8">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold text-primary">Edit Chain</h2>
-                <button
+                <h2 className="text-xl font-bold text-foreground-light">Edit Chain</h2>
+                <Button
                   onClick={() => {
                     setEditMode(false);
                     setChainName(chain.name || "");
                   }}
-                  className="text-gray-400 hover:text-gray-600 transition duration-200"
+                  className="text-foreground-light hover:text-gray-600 transition duration-200"
                 >
                   ✕
-                </button>
+                </Button>
               </div>
               <form onSubmit={handleUpdateChain}>
                 <div className="mb-6">
                   <label
                     htmlFor="chainName"
-                    className="block text-sm font-medium text-primary mb-2"
+                    className="block text-sm font-medium text-foreground-light mb-2"
                   >
                     Chain Name
                   </label>
@@ -641,7 +646,7 @@ export default function ChainDetail() {
                   />
                 </div>
                 <div className="flex justify-end gap-4">
-                  <button
+                  <Button
                     type="button"
                     onClick={() => {
                       setEditMode(false);
@@ -650,34 +655,34 @@ export default function ChainDetail() {
                     className="px-4 py-2 text-primary hover:text-primary-light transition duration-200"
                   >
                     Cancel
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="submit"
                     className="bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-light transition duration-200"
                   >
                     Save Changes
-                  </button>
+                  </Button>
                 </div>
               </form>
             </div>
           ) : (
             <div className="rounded-lg mb-8">
-              <h1 className="text-3xl font-bold text-[#a3e635] mb-4">
+              <h1 className="text-3xl font-bold text-foreground mb-4">
                 {chain.name}
               </h1>
             </div>
           )}
 
-          <div className="bg-foreground border border-primary/20 rounded-lg shadow-lg p-6">
+          <div className="bg-background-light border border-primary/20 rounded-lg shadow-lg p-6">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-primary">Chain Steps</h2>
+              <h2 className="text-xl font-bold text-foreground">Chain Steps</h2>
               {!addChainStep && (
-                <button
+                <Button
                   className="bg-primary text-[#18181b] py-2 px-4 rounded-lg hover:bg-primary-light transition duration-200"
                   onClick={() => setAddChainStep(true)}
                 >
                   Add Chain Step
-                </button>
+                </Button>
               )}
             </div>
 
@@ -718,7 +723,7 @@ export default function ChainDetail() {
                   <h3 className="text-lg font-bold text-primary">
                     Add New Step
                   </h3>
-                  <button
+                  <Button
                     onClick={() => {
                       setAddChainStep(false);
                       setNewStepPrompt("");
@@ -726,7 +731,7 @@ export default function ChainDetail() {
                     className="text-gray-400 hover:text-gray-600 transition duration-200"
                   >
                     ✕
-                  </button>
+                  </Button>
                 </div>
                 <form onSubmit={handleAddChainStep}>
                   <div className="mb-6">
@@ -748,7 +753,7 @@ export default function ChainDetail() {
 
                   </div>
                   <div className="flex justify-end gap-4">
-                    <button
+                    <Button
                       type="button"
                       onClick={() => {
                         setAddChainStep(false);
@@ -757,13 +762,13 @@ export default function ChainDetail() {
                       className="px-4 py-2 text-primary hover:text-primary-light transition duration-200"
                     >
                       Cancel
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="submit"
                       className="bg-primary text-[#18181b] py-2 px-4 rounded-lg hover:bg-primary-light transition duration-200"
                     >
                       Add Step
-                    </button>
+                    </Button>
                   </div>
 
                 </form>
@@ -777,20 +782,20 @@ export default function ChainDetail() {
                 trigger="mouseenter"
                 placement="bottom"
               >
-                <button
-                  className="bg-[#a3e635] text-[#18181b] py-2 px-4 rounded-lg hover:bg-[#bef264] transition duration-200 opacity-50 cursor-not-allowed"
+                <Button
+                  className="bg-primary text-[#18181b] py-2 px-4 rounded-lg hover:bg-[#bef264] transition duration-200 opacity-50 cursor-not-allowed"
                   disabled
                 >
                   {runChain ? "Running..." : "Run Chain"}
-                </button>
+                </Button>
               </Tooltip>
             ) : (
-              <button
-                className="bg-[#a3e635] text-[#18181b] py-2 px-4 rounded-lg hover:bg-[#bef264] transition duration-200"
+              <Button
+                className="bg-primary text-[#18181b] py-2 px-4 rounded-lg hover:bg-[#bef264] transition duration-200"
                 onClick={() => handleRunChain()}
               >
                 {runChain ? "Running..." : "Run Chain"}
-              </button>
+              </Button>
             )}
           </div>
         </main>

@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 
+import { Button } from "./Button";
+
 interface SubscriptionStatus {
   hasSubscription: boolean;
   tier: 'FREE' | 'PRO' | 'UNLIMITED' | 'GODMODE';
@@ -101,9 +103,10 @@ export default function SubscriptionModal({ onSubscriptionChange }: Subscription
   return (
     <>
       {/* Subscription Button */}
-      <button
+      <Button
         onClick={openModal}
-        className="text-primary py-2 px-4 rounded-lg hover:underline cursor-pointer"
+        variant="tertiary"
+        className="!bg-transparent text-primary py-2 px-4 rounded-lg hover:underline"
       >
         {loading ? (
           'Subscription'
@@ -112,7 +115,7 @@ export default function SubscriptionModal({ onSubscriptionChange }: Subscription
         ) : (
           'Subscription'
         )}
-      </button>
+      </Button>
 
       {/* Modal */}
       {isOpen && (
@@ -120,12 +123,13 @@ export default function SubscriptionModal({ onSubscriptionChange }: Subscription
           <div className="bg-foreground p-8 rounded-lg shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-primary">Subscription Management</h2>
-              <button
+              <Button
                 onClick={() => setIsOpen(false)}
-                className="text-gray-400 hover:text-gray-600 transition duration-200 text-2xl"
+                variant="tertiary"
+                className="!bg-transparent !p-0 text-gray-400 hover:text-gray-600 transition duration-200 text-2xl"
               >
                 ✕
-              </button>
+              </Button>
             </div>
 
             {loading ? (
@@ -191,13 +195,15 @@ export default function SubscriptionModal({ onSubscriptionChange }: Subscription
                         {subscription.tier === 'PRO' ? (
                           <span className="text-sm text-green-500">Current Plan</span>
                         ) : (
-                          <button
+                          <Button
                             onClick={() => handleUpgrade(process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID!)}
                             disabled={actionLoading}
-                            className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 text-sm mt-1"
+                            variant="primary"
+                            size="sm"
+                            className="mt-1"
                           >
                             {subscription.tier === 'UNLIMITED' ? 'Downgrade' : 'Upgrade'}
-                          </button>
+                          </Button>
                         )}
                       </div>
                     </div>
@@ -216,13 +222,15 @@ export default function SubscriptionModal({ onSubscriptionChange }: Subscription
                         {subscription.tier === 'UNLIMITED' ? (
                           <span className="text-sm text-green-500">Current Plan</span>
                         ) : (
-                          <button
+                          <Button
                             onClick={() => handleUpgrade(process.env.NEXT_PUBLIC_STRIPE_UNLIMITED_PRICE_ID!)}
                             disabled={actionLoading}
-                            className="px-3 py-1 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50 text-sm mt-1"
+                            variant="primary"
+                            size="sm"
+                            className="mt-1"
                           >
                             Upgrade
-                          </button>
+                          </Button>
                         )}
                       </div>
                     </div>
@@ -232,13 +240,14 @@ export default function SubscriptionModal({ onSubscriptionChange }: Subscription
                 {/* Cancel Section */}
                 {subscription.hasSubscription && !subscription.cancelAtPeriodEnd && (
                   <div className="border-t border-primary/20 pt-4">
-                    <button
+                    <Button
                       onClick={handleCancel}
                       disabled={actionLoading}
-                      className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50 text-sm"
+                      variant="tertiary"
+                      className="!bg-red-600 !text-white hover:!bg-red-700 text-sm"
                     >
                       Cancel Subscription
-                    </button>
+                    </Button>
                     <p className="text-xs text-gray-400 mt-2">
                       Your subscription will remain active until the end of your billing period.
                     </p>
