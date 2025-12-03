@@ -132,7 +132,7 @@ export default function Home() {
                 >
                   {plan.popular && (
                     <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                      <span className="bg-primary text-foreground px-3 py-1 rounded-full text-sm font-medium">
+                      <span className="bg-primary text-primary-invert px-3 py-1 rounded-full text-sm font-medium">
                         Popular
                       </span>
                     </div>
