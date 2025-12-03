@@ -287,7 +287,7 @@ export default function SignIn({ providers }: { providers: Provider[] }) {
                         onClick={() =>
                           signIn(provider.id, { callbackUrl: '/dashboard' })
                         }
-                        variant="primary"
+                        variant="secondary"
                         className="w-full"
                       >
                         Sign in with {provider.name}
