@@ -132,7 +132,7 @@ const StepCard = ({ step }: { step: QueuedChainStepWithDetails }) => {
             <span className={getStatusBadge(step.status)}>{step.status}</span>
           </div>
           <div className="flex items-center gap-4">
-            <CopyButton text={step.response} />
+            {step.response && <CopyButton text={step.response} />}
             <button
               onClick={() => setIsExpanded(!isExpanded)}
               className="p-1 hover:bg-primary/10 rounded transition-colors duration-200 cursor-pointer"

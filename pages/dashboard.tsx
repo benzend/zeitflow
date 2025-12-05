@@ -661,11 +661,11 @@ export default function Dashboard() {
                         name={chain.name || ""}
                          actions={
                            <>
-                             <Button
-                               href={`/results/${queuedChain.id}`}
-                               variant="foreground"
-                               size="sm"
-                             >
+                              <Button
+                                href={`/results/${queuedChain.id}`}
+                                variant="outline"
+                                size="sm"
+                              >
                                View Results
                              </Button>
                            </>

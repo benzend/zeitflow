@@ -139,6 +139,8 @@ export const chainStepsTable = pgTable("chain_steps", {
 
   cycleCount: integer("cycle_count").notNull(),
 
+  aiDescription: text("ai_description"),
+
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .notNull()

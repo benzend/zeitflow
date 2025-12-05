@@ -5,7 +5,7 @@ import { isRateLimited } from "@/lib/rate-limit";
 import { substituteVariables } from "@/lib/variables";
 import { and, asc, eq } from "drizzle-orm";
 import { config } from "dotenv";
-import { chat } from "./utils/openrouter";
+import { chat } from "@/lib/openrouter";
 
 config({ path: ".env.local" });
 

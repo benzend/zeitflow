@@ -4,7 +4,7 @@ import { authOptions } from "../auth/[...nextauth]";
 import { db } from "@/lib/db";
 import { usersTable, chatMessagesTable, chatThreadsTable } from "@/schema";
 import { eq, desc } from "drizzle-orm";
-import { chat } from "@/pages/api/utils/openrouter";
+import { chat } from "@/lib/openrouter";
 import { isRateLimited } from "@/lib/rate-limit";
 
 export default async function handler(

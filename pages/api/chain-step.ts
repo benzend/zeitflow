@@ -5,7 +5,7 @@ import { db } from '@/lib/db';
 import { chainStepsTable, chainsTable, SelectChainStep, usersTable } from '@/schema';
 import { isRateLimited } from '@/lib/rate-limit';
 import { eq } from 'drizzle-orm';
-import { chat } from "@/pages/api/utils/openrouter";
+import { chat } from "@/lib/openrouter";
 
 type ResponseData = {
   success: boolean;
@@ -151,7 +151,7 @@ async function handlePost(
     prompt: req.body.prompt,
     cycleCount: req.body.cycleCount || 1,
     position: req.body.position || 0,
-    ai_description: aiDescription,
+    aiDescription: aiDescription,
   }).returning({ id: chainStepsTable.id });
 
   const chainStepId = chainStepCreateResponse[0].id;
@@ -215,7 +215,7 @@ async function handlePut(
   const aiDescription = await generateAiDescription(req.body.prompt);
 
   if (aiDescription) {
-    updateData.ai_description = aiDescription;
+    updateData.aiDescription = aiDescription;
   }
 
   await db.update(chainStepsTable)
