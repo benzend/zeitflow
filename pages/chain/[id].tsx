@@ -6,6 +6,7 @@ import VariablesModal from "@/components/VariablesModal";
 import { HighlightedText } from "@/lib/highlight-variables";
 import { extractVariablesFromChainSteps } from "@/lib/variables-client";
 import TypeaheadTextarea from "@/components/TypeaheadTextarea";
+import ThemeToggle from "@/components/ThemeToggle";
 import { Button } from "@/components/Button";
 import {
   DndContext,
@@ -27,27 +28,26 @@ import { CSS } from "@dnd-kit/utilities";
 import { Tooltip } from "react-tippy";
 
 // Add skeleton components
-const ChainInfoSkeleton = () => (
+const ChainNameSkeleton = () => (
   <div className="rounded-lg mb-8 animate-pulse">
-    <div className="h-10 w-64 bg-background-light/20 rounded mb-4"></div>
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div className="bg-background-light border border-primary/20 p-4 rounded-lg">
-        <div className="h-6 w-32 bg-primary/20 rounded"></div>
-      </div>
-      <div className="bg-background-light border border-primary/20 p-4 rounded-lg">
-        <div className="h-6 w-40 bg-primary/20 rounded"></div>
-      </div>
-      <div className="bg-background-light border border-primary/20 p-4 rounded-lg">
-        <div className="h-6 w-24 bg-primary/20 rounded"></div>
-      </div>
-    </div>
+    <div className="h-10 w-64 bg-primary/20 rounded mb-4"></div>
   </div>
 );
 
 const ChainStepSkeleton = () => (
-  <div className="bg-background-light border border-primary/20 p-4 rounded-lg mb-4 animate-pulse">
-    <div className="h-6 w-16 bg-primary/20 rounded mb-2"></div>
-    <div className="h-6 w-full bg-primary/20 rounded"></div>
+  <div className="bg-background-light border border-primary/20 rounded-lg mb-4 animate-pulse">
+    <div className="flex justify-between items-center">
+      <div className="py-5 px-2 mr-4">
+        <div className="h-4 w-4 bg-primary/20 rounded"></div>
+      </div>
+      <div className="w-full my-4 mr-4">
+        <div className="h-4 bg-primary/20 rounded mb-2"></div>
+        <div className="h-4 w-3/4 bg-primary/20 rounded"></div>
+      </div>
+      <div className="self-start mt-4 mr-4">
+        <div className="h-8 w-16 bg-primary/20 rounded"></div>
+      </div>
+    </div>
   </div>
 );
 
@@ -510,7 +510,7 @@ export default function ChainDetail() {
               </div>
             </div>
 
-            <ChainInfoSkeleton />
+            <ChainNameSkeleton />
 
             <div>
               <div className="flex justify-between items-center mb-6">
@@ -589,6 +589,7 @@ export default function ChainDetail() {
               Back to Dashboard
             </Button>
             <div className="flex space-x-2">
+              <ThemeToggle />
               <Button
                 onClick={handleDeleteChain}
                 className="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 transition duration-200"

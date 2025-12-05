@@ -262,7 +262,7 @@ export async function generateAiDescription(prompt: string) {
     'gpt-3.5-turbo',
     { 
       systemPrompt:
-        'You will summarize the user provided prompt into a single short sentence'
+        'You will summarize the user provided prompt into a few words'
     }
   );
 

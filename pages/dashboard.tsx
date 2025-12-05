@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 import { SelectChain, SelectQueuedChainWithStatus, SelectQueuedChainStep } from "@/schema";
 import { Button } from "@/components/Button";
+import ThemeToggle from '@/components/ThemeToggle';
 
 type ChainWithStepCount = SelectChain & { stepCount: number };
 import SubscriptionModal from "@/components/SubscriptionCard";
@@ -278,6 +279,8 @@ export default function Dashboard() {
           </div>
 
           <div className="flex gap-4 items-center">
+
+          <ThemeToggle />
             <SubscriptionModal onSubscriptionChange={fetchChains} />
             <ProfileDropdown />
           </div>

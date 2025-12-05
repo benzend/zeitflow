@@ -6,6 +6,7 @@ import { Plus, Workflow as WorkflowIcon, Settings, Play, Trash2 } from 'lucide-r
 import { Button } from "@/components/Button";
 import ProfileDropdown from "@/components/ProfileDropdown";
 import SubscriptionCard from "@/components/SubscriptionCard";
+import ThemeToggle from "@/components/ThemeToggle";
 
 interface Workflow {
   id: number;
@@ -93,15 +94,26 @@ const WorkflowCard = ({ workflow, onDelete }: { workflow: Workflow; onDelete: (i
 };
 
 const WorkflowSkeleton = () => (
-  <div className="rounded-lg shadow p-4 bg-background-light animate-pulse flex flex-col justify-between h-50">
-    <div>
-      <div className="h-6 w-32 bg-primary/20 rounded mb-2"></div>
-      <div className="h-4 w-48 bg-primary/20 rounded mb-3"></div>
+  <div className="flex flex-col justify-between rounded-lg shadow hover:shadow-md transition duration-200 bg-background-light overflow-hidden animate-pulse">
+    <div className="p-4">
+      <div className="flex justify-between items-start">
+        <div className="flex-1">
+          <div className="h-5 w-40 bg-primary/20 rounded mb-2"></div>
+          <div className="h-4 w-56 bg-primary/20 rounded mb-3"></div>
+          <div className="flex items-center gap-2">
+            <div className="h-5 w-16 bg-primary/20 rounded"></div>
+            <div className="h-4 w-24 bg-primary/20 rounded"></div>
+          </div>
+        </div>
+      </div>
     </div>
-
-    <div className="flex gap-2">
-      <div className="h-6 w-16 bg-primary/20 rounded"></div>
-      <div className="h-6 w-24 bg-primary/20 rounded"></div>
+    <div className="flex justify-between items-center p-4 border-t border-primary/10">
+      <div className="flex gap-2">
+        <div className="h-8 w-16 bg-primary/20 rounded"></div>
+        <div className="h-8 w-14 bg-primary/20 rounded"></div>
+        <div className="h-8 w-16 bg-primary/20 rounded"></div>
+      </div>
+      <div className="h-8 w-8 bg-primary/20 rounded"></div>
     </div>
   </div>
 );
@@ -205,10 +217,6 @@ export default function Workflows() {
     }
   };
 
-  if (status === "loading") {
-    return <div>Loading...</div>;
-  }
-
   return (
     <div>
       <Head>
@@ -231,6 +239,7 @@ export default function Workflows() {
           </div>
 
           <div className="flex gap-4 items-center">
+            <ThemeToggle />
             <SubscriptionCard onSubscriptionChange={() => {}} />
             <ProfileDropdown />
           </div>
@@ -253,7 +262,7 @@ export default function Workflows() {
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-3xl font-bold text-primary mb-2">Workflows</h1>
-            <p className="text-gray-400">Create and manage your automation workflows</p>
+            <p className="text-foreground-light">Create and manage your automation workflows</p>
           </div>
           <Button
             onClick={() => setShowCreateModal(true)}
