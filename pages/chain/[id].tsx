@@ -29,7 +29,7 @@ import { Tooltip } from "react-tippy";
 // Add skeleton components
 const ChainInfoSkeleton = () => (
   <div className="rounded-lg mb-8 animate-pulse">
-    <div className="h-10 w-64 bg-foreground/20 rounded mb-4"></div>
+    <div className="h-10 w-64 bg-background-light/20 rounded mb-4"></div>
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div className="bg-background-light border border-primary/20 p-4 rounded-lg">
         <div className="h-6 w-32 bg-primary/20 rounded"></div>
@@ -109,14 +109,7 @@ const SortableStep = ({
     >
       {editingStepId === step.id ? (
         <div className="p-4">
-          <div className="flex justify-between items-center mb-4">
-            <h4 className="font-semibold text-primary">
-              Edit Step {index + 1}
-
-              <span className="text-xs text-gray-400 ml-4">
-                Note: Use {"{{"}variableName{"}}"} to create a variable
-              </span>
-            </h4>
+          <div className="flex justify-end items-center mb-4">
             <Button
               onClick={onCancelEditStep}
               variant="clear"
@@ -129,7 +122,7 @@ const SortableStep = ({
             value={editStepPrompt}
             onChange={setEditStepPrompt}
             suggestions={getEditStepSuggestions()}
-            className="w-full p-3 bg-background-light border border-primary/20 rounded-lg focus:outline-none focus:border-primary transition duration-200 text-primary min-h-[100px] mb-4"
+            className="w-full p-3 bg-background-light border border-primary/20 rounded-lg focus:outline-none focus:border-primary transition duration-200 text-foreground min-h-[100px] mb-4"
             placeholder="Enter step prompt..."
           />
 
@@ -148,13 +141,13 @@ const SortableStep = ({
           <div className="flex justify-end gap-2">
             <Button
               onClick={onCancelEditStep}
-              className="px-3 py-1 text-primary hover:text-primary-light transition duration-200"
+              variant="secondary"
             >
               Cancel
             </Button>
             <Button
               onClick={() => onUpdateStep(step.id)}
-              className="bg-primary text-[#18181b] py-1 px-3 rounded hover:bg-primary-light transition duration-200"
+              variant="primary"
             >
               Save
             </Button>
@@ -511,7 +504,7 @@ export default function ChainDetail() {
         <div className="container mx-auto px-4 pb-8 pt-20 max-w-4xl">
           <main className="min-h-[80vh] py-8">
             <div className="flex justify-between items-center mb-8">
-              <div className="h-10 w-32 bg-foreground/20 rounded"></div>
+              <div className="h-10 w-32 bg-background-light/20 rounded"></div>
               <div className="flex space-x-2">
                 <div className="h-10 w-20 bg-blue-500/20 rounded"></div>
                 <div className="h-10 w-20 bg-red-500/20 rounded"></div>
@@ -597,14 +590,6 @@ export default function ChainDetail() {
               Back to Dashboard
             </Button>
             <div className="flex space-x-2">
-              {!editMode && (
-                <Button
-                  onClick={() => setEditMode(true)}
-                  className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition duration-200"
-                >
-                  Edit
-                </Button>
-              )}
               <Button
                 onClick={handleDeleteChain}
                 className="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 transition duration-200"
@@ -615,33 +600,15 @@ export default function ChainDetail() {
           </div>
 
           {editMode ? (
-            <div className="bg-background-light rounded-lg shadow-lg p-6 mb-8">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold text-foreground-light">Edit Chain</h2>
-                <Button
-                  onClick={() => {
-                    setEditMode(false);
-                    setChainName(chain.name || "");
-                  }}
-                  className="text-foreground-light hover:text-gray-600 transition duration-200"
-                >
-                  ✕
-                </Button>
-              </div>
+            <div className="mb-8">
               <form onSubmit={handleUpdateChain}>
-                <div className="mb-6">
-                  <label
-                    htmlFor="chainName"
-                    className="block text-sm font-medium text-foreground-light mb-2"
-                  >
-                    Chain Name
-                  </label>
+                <div className="mb-4">
                   <input
                     type="text"
                     id="chainName"
                     value={chainName}
                     onChange={(e) => setChainName(e.target.value)}
-                    className="w-full p-3 bg-foreground-light border border-primary/20 rounded-lg focus:outline-none focus:border-primary transition duration-200 text-primary"
+                    className="w-full p-3 bg-background-light border border-primary/20 rounded-lg focus:outline-none focus:border-primary transition duration-200 text-foreground text-3xl font-bold"
                     required
                   />
                 </div>
@@ -652,13 +619,13 @@ export default function ChainDetail() {
                       setEditMode(false);
                       setChainName(chain.name || "");
                     }}
-                    className="px-4 py-2 text-primary hover:text-primary-light transition duration-200"
+                    variant="secondary"
                   >
                     Cancel
                   </Button>
                   <Button
                     type="submit"
-                    className="bg-primary text-white py-2 px-4 rounded-lg hover:bg-primary-light transition duration-200"
+                    variant="primary"
                   >
                     Save Changes
                   </Button>
@@ -667,15 +634,14 @@ export default function ChainDetail() {
             </div>
           ) : (
             <div className="rounded-lg mb-8">
-              <h1 className="text-3xl font-bold text-foreground mb-4">
+              <h1 className="text-3xl font-bold text-foreground mb-4" onClick={() => setEditMode(true)}>
                 {chain.name}
               </h1>
             </div>
           )}
 
-          <div className="bg-background-light border border-primary/20 rounded-lg shadow-lg p-6">
+          <div>
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-foreground">Chain Steps</h2>
               {!addChainStep && (
                 <Button
                   className="bg-primary text-[#18181b] py-2 px-4 rounded-lg hover:bg-primary-light transition duration-200"
@@ -718,7 +684,7 @@ export default function ChainDetail() {
             )}
 
             {addChainStep && (
-              <div className="bg-foreground-light border border-primary/20 rounded-lg p-6 mt-4">
+              <div className="bg-background-light border border-primary/20 rounded-lg p-6 mt-4">
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="text-lg font-bold text-primary">
                     Add New Step
@@ -747,7 +713,7 @@ export default function ChainDetail() {
                       value={newStepPrompt}
                       onChange={setNewStepPrompt}
                       suggestions={getNewStepSuggestions()}
-                      className="w-full p-3 bg-foreground border border-primary/20 rounded-lg focus:outline-none focus:border-primary transition duration-200 text-primary min-h-[100px]"
+                      className="w-full p-3 bg-background-light border border-primary/20 rounded-lg focus:outline-none focus:border-primary transition duration-200 text-primary min-h-[100px]"
                       required
                     />
 

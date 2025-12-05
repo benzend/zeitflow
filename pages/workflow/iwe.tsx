@@ -339,9 +339,9 @@ workflow:
           {/* navigation */}
           <div className="flex flex-col h-full bg-surface border-r border-border w-5/12">
             <nav className="flex h-8 bg-surface-hover">
-              <Button onClick={() => openSidePanel('workflows')} variant="tertiary" className={`!bg-transparent !p-0 px-4 ${sidePanel === 'workflows' ? 'bg-surface text-foreground' : 'bg-surface-hover text-text-muted'}`}>Workflows</Button>
-              <Button onClick={() => openSidePanel('files')} variant="tertiary" className={`!bg-transparent !p-0 px-4 ${sidePanel === 'files' ? 'bg-surface text-foreground' : 'bg-surface-hover text-text-muted'}`}>Files</Button>
-              <Button onClick={() => openSidePanel('chats')} variant="tertiary" className={`!bg-transparent !p-0 px-4 ${sidePanel === 'chats' ? 'bg-surface text-foreground' : 'bg-surface-hover text-text-muted'}`}>Chats</Button>
+              <button onClick={() => openSidePanel('workflows')} className={`px-4 cursor-pointer ${sidePanel === 'workflows' ? 'bg-surface text-foreground' : 'bg-surface-hover text-text-muted'}`}>Workflows</button>
+              <button onClick={() => openSidePanel('files')} className={`px-4 cursor-pointer ${sidePanel === 'files' ? 'bg-surface text-foreground' : 'bg-surface-hover text-text-muted'}`}>Files</button>
+              <button onClick={() => openSidePanel('chats')} className={`px-4 cursor-pointer ${sidePanel === 'chats' ? 'bg-surface text-foreground' : 'bg-surface-hover text-text-muted'}`}>Chats</button>
             </nav>
 
             <div className="flex flex-col gap-2 p-2 h-full overflow-y-auto">

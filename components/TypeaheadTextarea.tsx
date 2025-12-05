@@ -104,7 +104,7 @@ export default function TypeaheadTextarea({
       />
       
       {showHint && suggestions.length > 0 && !isOpen && (
-        <div className="absolute top-2 right-2 text-xs text-gray-400 bg-foreground px-2 py-1 rounded border border-primary/20">
+        <div className="absolute top-2 right-2 text-xs text-gray-400 bg-background-light px-2 py-1 rounded border border-primary/20">
           Type <span className="font-mono">{"{{"}{"}}"}</span> for variables
         </div>
       )}
@@ -112,10 +112,10 @@ export default function TypeaheadTextarea({
       {isOpen && filteredSuggestions.length > 0 && (
         <div
           ref={dropdownRef}
-          className="absolute z-50 w-full max-w-xs bg-foreground border border-primary/20 rounded-lg shadow-lg mt-1 max-h-48 overflow-y-auto"
+          className="absolute z-50 w-full max-w-sm bg-background-light border border-primary/20 rounded-lg shadow-lg mt-1 max-h-48 overflow-y-auto"
           style={{ top: '100%' }}
         >
-          <div className="px-3 py-2 text-xs text-gray-400 border-b border-primary/20">
+          <div className="px-3 py-2 text-xs text-foreground-light border-b border-primary/20">
             Variables {query && `matching "${query}"`}
           </div>
           {filteredSuggestions.map((suggestion, index) => {
@@ -135,18 +135,18 @@ export default function TypeaheadTextarea({
               <span className="bg-[#a3e635]/20 rounded px-1 py-0.5 text-xs font-mono text-[#a3e635]">
                 {suggestionName}
               </span>
-              <span className="text-xs text-gray-400">
+              <span className="text-xs text-foreground-light">
                 {`{{${suggestionName}}}`}
               </span>
               {suggestionDescription && (
-                <span className="text-xs text-gray-400">
+                <span className="text-xs text-foreground-light min-w-30">
                   {suggestionDescription}
                 </span>
                )}
              </button>
           )})}
           {filteredSuggestions.length === 0 && (
-            <div className="px-3 py-2 text-sm text-gray-400">
+            <div className="px-3 py-2 text-sm text-foreground-light">
               No variables found
             </div>
           )}

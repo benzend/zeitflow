@@ -56,11 +56,11 @@ export default function ProfileDropdown() {
         className="!bg-transparent flex items-center gap-2 p-2 rounded-lg hover:bg-foreground-light transition duration-200"
       >
         <ProfileIcon size={32} />
-        <span className="text-primary text-sm font-medium">
+        <span className="text-foreground text-sm font-medium">
           {session?.user?.name || session?.user?.email || "User"}
         </span>
         <svg
-          className={`w-4 h-4 text-primary transition-transform duration-200 ${
+          className={`w-4 h-4 text-foreground transition-transform duration-200 ${
             isOpen ? "rotate-180" : ""
           }`}
           fill="none"
@@ -77,13 +77,13 @@ export default function ProfileDropdown() {
       </Button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-foreground border border-primary/20 rounded-lg shadow-lg z-50">
+        <div className="absolute right-0 mt-2 w-80 bg-background-light border border-primary/20 rounded-lg shadow-lg z-50">
           {/* User Info Section */}
           <div className="p-4 border-b border-primary/10">
             <div className="flex items-center gap-3">
               <ProfileIcon size={40} />
               <div>
-                <p className="text-primary font-semibold">
+                <p className="text-foreground font-semibold">
                   {session?.user?.name || "User"}
                 </p>
                 <p className="text-gray-400 text-sm">
@@ -104,7 +104,7 @@ export default function ProfileDropdown() {
                 className="!bg-transparent flex items-center px-4 py-3 hover:bg-foreground-light transition duration-200 w-full text-left"
               >
                 <div className="flex-1">
-                  <p className="text-primary font-medium">{item.label}</p>
+                  <p className="text-foreground font-medium">{item.label}</p>
                   <p className="text-gray-400 text-xs">{item.description}</p>
                 </div>
               </Button>

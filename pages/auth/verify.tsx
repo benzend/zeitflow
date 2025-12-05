@@ -47,9 +47,9 @@ export default function VerifyEmail() {
 
       <main className="container mx-auto px-4 py-10 mt-60 max-w-6xl">
         <div className="flex justify-center">
-          <div className="bg-foreground rounded-lg shadow-lg p-8 w-full max-w-md">
+          <div className="bg-background-light rounded-lg shadow-lg p-8 w-full max-w-md">
             <div className="-mt-4 mb-8">
-              <div className="px-4 py-2 bg-foreground rounded-lg">
+              <div className="px-4 py-2 bg-background-light rounded-lg">
                 <h1 className="text-xl font-bold text-center text-primary">
                   Email Verification
                 </h1>

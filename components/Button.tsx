@@ -1,4 +1,4 @@
-type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | 'clear';
+type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | 'clear' | 'outline';
 type ButtonSize = 'sm' | 'md' | 'lg' | 'xl';
 type ButtonRounded = 'none' | 'sm' | 'md' | 'lg' | 'full';
 
@@ -93,6 +93,19 @@ export const Button = ({
           disabled={disabled}
           title={title}
           className={`${baseClasses} ${className} bg-transparent text-foreground`}
+          {...(isLink ? { href } : {})}
+        >
+          {children}
+        </Component>
+      );
+    case 'outline':
+      return (
+        <Component
+          type={type}
+          onClick={onClick}
+          disabled={disabled}
+          title={title}
+          className={`${baseClasses} ${className} border border-primary text-primary hover:bg-primary/20 hover:text-primary-light`}
           {...(isLink ? { href } : {})}
         >
           {children}

@@ -12,23 +12,23 @@ import ProfileDropdown from "@/components/ProfileDropdown";
 
 // Add loading skeleton components
 const ChainSkeleton = () => (
-  <div className="flex justify-between items-center border-primary border-1 rounded-lg shadow p-4 bg-surface animate-pulse">
-    <div className="h-6 w-32 bg-primary/20 rounded"></div>
+  <div className="flex justify-between items-center rounded-lg shadow p-4 bg-background-extra-light animate-pulse">
+    <div className="h-6 w-full bg-background-light/20 rounded"></div>
     <div className="flex gap-4">
-      <div className="h-8 w-8 bg-primary/20 rounded"></div>
-      <div className="h-8 w-20 bg-primary/20 rounded"></div>
+      <div className="h-8 w-8 bg-background-light/20 rounded"></div>
+      <div className="h-8 w-20 bg-background-light/20 rounded"></div>
     </div>
   </div>
 );
 
 const QueuedChainSkeleton = () => (
-  <div className="border-primary border-1 rounded-lg shadow p-6 bg-surface animate-pulse relative">
+  <div className="p-6 bg-background-extra-light animate-pulse relative">
     <div className="flex justify-between items-center">
-      <div className="h-7 w-40 bg-primary/20 rounded"></div>
+      <div className="h-7 w-full bg-background-light/20 rounded"></div>
       <div className="flex gap-4">
-        <div className="h-8 w-16 bg-primary/20 rounded"></div>
-        <div className="h-8 w-20 bg-primary/20 rounded"></div>
-        <div className="h-8 w-20 bg-primary/20 rounded"></div>
+        <div className="h-8 w-16 bg-background-light/20 rounded"></div>
+        <div className="h-8 w-20 bg-background-light/20 rounded"></div>
+        <div className="h-8 w-20 bg-background-light/20 rounded"></div>
       </div>
     </div>
   </div>
@@ -47,7 +47,7 @@ const ProgressBar = ({
     <div className="w-full rounded-sm overflow-hidden">
       <div className="w-full bg-surface-hover rounded-full h-1">
         <div
-          className="bg-primary h-1 transition-all rounded-full duration-300"
+          className="bg-background-light h-1 transition-all rounded-full duration-300"
           style={{ width: `${percentage}%` }}
         ></div>
       </div>
@@ -261,15 +261,15 @@ export default function Dashboard() {
         <nav className="mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-6">
-              <Button href="/dashboard" variant="clear" className="underline hover:text-primary-light text-lg font-semibold">
+              <Button href="/dashboard" variant="clear" className="underline hover:text-foreground-light text-lg font-semibold">
                 Dashboard
               </Button>
-              <Button href="/workflows" variant="clear" className="underline hover:text-primary-light">
+              <Button href="/workflows" variant="clear" className="underline hover:text-foreground-light">
                 Workflows
               </Button>
             </div>
             <Button
-              className="sm:hidden text-primary p-2 rounded-lg text-xl"
+              className="sm:hidden text-foreground p-2 rounded-lg text-xl"
               variant="tertiary"
               onClick={() => setShowAddChainModal(true)}
             >
@@ -297,8 +297,8 @@ export default function Dashboard() {
               variant="tertiary"
               className={`flex-1 !bg-transparent !p-2 !h-auto rounded-md text-sm font-medium transition-colors ${
                 activeTab === 'chains'
-                  ? 'bg-primary text-foreground'
-                  : 'text-primary hover:text-primary-light'
+                  ? 'bg-background-light text-foreground'
+                  : 'text-foreground hover:text-foreground-light'
               }`}
             >
               Chains ({chains.length})
@@ -308,8 +308,8 @@ export default function Dashboard() {
               variant="tertiary"
               className={`flex-1 !bg-transparent !p-2 !h-auto rounded-md text-sm font-medium transition-colors ${
                 activeTab === 'in-progress'
-                  ? 'bg-primary text-foreground'
-                  : 'text-primary hover:text-primary-light'
+                  ? 'bg-background-light text-foreground'
+                  : 'text-foreground hover:text-foreground-light'
                }`}
             >
               In Progress ({inProgressChains.length})
@@ -319,8 +319,8 @@ export default function Dashboard() {
               variant="tertiary"
               className={`flex-1 !bg-transparent !p-2 !h-auto rounded-md text-sm font-medium transition-colors ${
                 activeTab === 'completed'
-                  ? 'bg-primary text-foreground'
-                  : 'text-primary hover:text-primary-light'
+                  ? 'bg-background-light text-foreground'
+                  : 'text-foreground hover:text-foreground-light'
               }`}
             >
               Completed ({completedChains.length})
@@ -333,10 +333,10 @@ export default function Dashboard() {
           {/* Prompt Chains Column */}
           <section className="flex-1 flex flex-col bg-background-light rounded-lg p-4 h-[70vh]">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-bold text-primary">Prompt Chains</h2>
+              <h2 className="font-bold text-foreground">Prompt Chains</h2>
               <Button
                 variant="tertiary"
-                className="!bg-transparent text-primary p-2 rounded-lg"
+                className="!bg-transparent text-foreground p-2 rounded-lg"
                 onClick={() => setShowAddChainModal(true)}
               >
                 +
@@ -361,7 +361,7 @@ export default function Dashboard() {
                              href={`/chain/${chain.id}`}
                              variant="tertiary"
                              size="sm"
-                             className="border-primary border-1 text-primary hover:border-primary-light hover:text-primary-light"
+                             className="border-foreground border-1 text-foreground hover:border-foreground-light hover:text-foreground-light"
                            >
                              Edit
                            </Button>
@@ -386,7 +386,7 @@ export default function Dashboard() {
 
           {/* In Progress Column */}
           <section className="flex-1 flex flex-col bg-background-light rounded-lg p-4 h-[70vh]">
-            <h2 className="text-lg font-bold text-primary py-2 mb-4">
+            <h2 className="font-bold text-foreground py-2 mb-4">
               In Progress
             </h2>
             <div className="overflow-y-auto">
@@ -413,7 +413,7 @@ export default function Dashboard() {
                                href={`/results/${queuedChain.id}`}
                                variant="tertiary"
                                size="sm"
-                               className="border-primary border-1 text-primary hover:border-primary-light hover:text-primary-light"
+                               className="border-foreground border-1 text-foreground hover:border-foreground-light hover:text-foreground-light"
                              >
                                View
                              </Button>
@@ -460,7 +460,7 @@ export default function Dashboard() {
 
           {/* Completed Column */}
           <section className="flex-1 flex flex-col bg-background-light rounded-lg p-4 h-[70vh]">
-            <h2 className="text-lg font-bold text-primary py-2 mb-4">
+            <h2 className="text-lg font-bold text-foreground py-2 mb-4">
               Completed
             </h2>
             <div className="overflow-y-auto">
@@ -514,10 +514,10 @@ export default function Dashboard() {
           {activeTab === 'chains' && (
             <section className="bg-background-light rounded-lg p-4">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-bold text-primary">Prompt Chains</h2>
+                <h2 className="text-lg font-bold text-foreground">Prompt Chains</h2>
                 <Button
                   variant="tertiary"
-                  className="!bg-transparent text-primary p-2 rounded-lg"
+                  className="!bg-transparent text-foreground p-2 rounded-lg"
                   onClick={() => setShowAddChainModal(true)}
                 >
                   +
@@ -541,13 +541,13 @@ export default function Dashboard() {
                             href={`/chain/${chain.id}`}
                             variant="tertiary"
                             size="sm"
-                            className="border-primary border-1 text-primary hover:border-primary-light hover:text-primary-light"
+                            className="border-foreground border-1 text-foreground hover:border-foreground-light hover:text-foreground-light"
                           >
                             Edit
                           </Button>
                           <button
                             onClick={() => handleAddChainToQueue(chain.id)}
-                            className="bg-primary text-foreground py-1 px-2 rounded hover:bg-primary-light cursor-pointer transition duration-200 text-sm"
+                            className="bg-foreground text-foreground py-1 px-2 rounded hover:bg-background-light-light cursor-pointer transition duration-200 text-sm"
                           >
                             Run
                           </button>
@@ -566,7 +566,7 @@ export default function Dashboard() {
           {/* In Progress Section */}
           {activeTab === 'in-progress' && (
             <section className="bg-background-light rounded-lg p-4">
-              <h2 className="text-lg font-bold text-primary py-2 mb-4">
+              <h2 className="text-lg font-bold text-foreground py-2 mb-4">
                 In Progress
               </h2>
               <div className="flex flex-col gap-4">
@@ -592,7 +592,7 @@ export default function Dashboard() {
                               href={`/results/${queuedChain.id}`}
                               variant="tertiary"
                               size="sm"
-                              className="border-primary border-1 text-primary hover:border-primary-light hover:text-primary-light"
+                              className="border-foreground border-1 text-foreground hover:border-foreground-light hover:text-foreground-light"
                             >
                               View
                             </Button>
@@ -636,7 +636,7 @@ export default function Dashboard() {
           {/* Completed Section */}
           {activeTab === 'completed' && (
             <section className="bg-background-light rounded-lg p-4">
-              <h2 className="text-lg font-bold text-primary py-2 mb-4">
+              <h2 className="font-bold text-foreground py-2 mb-4">
                 Completed
               </h2>
               <div className="flex flex-col gap-4">
@@ -660,7 +660,7 @@ export default function Dashboard() {
                            <>
                              <Button
                                href={`/results/${queuedChain.id}`}
-                               variant="primary"
+                               variant="foreground"
                                size="sm"
                              >
                                View Results
@@ -688,7 +688,7 @@ export default function Dashboard() {
         <div className="fixed inset-0 bg-black/50 flex justify-center items-center p-4 z-50">
           <div className="bg-background-light p-6 rounded-lg shadow-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-primary">Add New Chain</h2>
+              <h2 className="text-xl font-bold text-foreground">Add New Chain</h2>
               <Button
                 onClick={() => setShowAddChainModal(false)}
                 variant="tertiary"
@@ -701,7 +701,7 @@ export default function Dashboard() {
               <div className="mb-6">
                 <label
                   htmlFor="chainName"
-                  className="block text-sm font-medium text-primary mb-2"
+                  className="block text-sm font-medium text-foreground mb-2"
                 >
                   Chain Name
                 </label>
@@ -710,7 +710,7 @@ export default function Dashboard() {
                   id="chainName"
                   value={newChainName}
                   onChange={(e) => setNewChainName(e.target.value)}
-                  className="w-full p-3 bg-background-light border border-primary/20 rounded-lg focus:outline-none focus:border-primary transition duration-200 text-primary"
+                  className="w-full p-3 bg-background-light border border-foreground/20 rounded-lg focus:outline-none focus:border-foreground transition duration-200 text-foreground"
                   placeholder="Enter chain name..."
                 />
               </div>
@@ -763,10 +763,10 @@ const Card = ({
   showProgress?: boolean;
 }) => {
   return (
-    <div className="border-primary border-1 rounded-lg shadow hover:shadow-md transition duration-200 bg-background-light overflow-hidden">
+    <div className="rounded-lg shadow hover:shadow-md transition duration-200 bg-background-extra-light overflow-hidden">
       <div className="p-4">
         <div>
-          <h3 className="text-md text-primary font-semibold">{name}</h3>
+          <h3 className="text-md text-foreground font-semibold">{name}</h3>
           <div className="text-sm text-text-muted mt-1">
             {error && <span className="text-error ml-2">(Error)</span>}
           </div>
@@ -775,11 +775,11 @@ const Card = ({
       <div className="flex justify-between items-flex-end p-4">
         <div>
           {showProgress ? (
-            <p className="text-sm font-bold text-primary">
+            <p className="text-sm font-bold text-foreground">
               {stepsCompletedCount}/{stepsCount} Steps Processed
             </p>
           ) : (
-            <p className="text-sm font-bold text-primary">{stepsCount} Steps</p>
+            <p className="text-sm font-bold text-foreground">{stepsCount} Steps</p>
           )}
         </div>
         <div className="flex gap-2 justify-end">{actions}</div>
@@ -808,11 +808,11 @@ const MobileCard = ({
   showProgress?: boolean;
 }) => {
   return (
-    <div className="border-primary border-1 rounded-lg shadow hover:shadow-md transition duration-200 bg-background-light overflow-hidden">
+    <div className="border-foreground border-1 rounded-lg shadow hover:shadow-md transition duration-200 bg-background-light overflow-hidden">
       <div className="p-4">
         <div className="flex justify-between items-start mb-3">
           <div className="flex-1">
-            <h3 className="text-md text-primary font-semibold">{name}</h3>
+            <h3 className="text-md text-foreground font-semibold">{name}</h3>
             <div className="text-sm text-text-muted mt-1">
               {error && <span className="text-error">(Error)</span>}
             </div>
@@ -821,11 +821,11 @@ const MobileCard = ({
         </div>
         <div className="mt-3">
           {showProgress ? (
-            <p className="text-sm font-bold text-primary">
+            <p className="text-sm font-bold text-foreground">
               {stepsCompletedCount}/{stepsCount} Steps Processed
             </p>
           ) : (
-            <p className="text-sm font-bold text-primary">{stepsCount} Steps</p>
+            <p className="text-sm font-bold text-foreground">{stepsCount} Steps</p>
           )}
         </div>
       </div>

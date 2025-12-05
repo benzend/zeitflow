@@ -217,7 +217,7 @@ const releaseNotes: ReleaseNote[] = [
 ];
 
 const ReleaseNoteCard = ({ note }: { note: ReleaseNote }) => (
-  <div className="border border-primary/20 rounded-lg bg-foreground-light p-6 mb-6">
+  <div className="border border-primary/20 rounded-lg bg-background-light p-6 mb-6">
     <div className="flex items-center gap-4 mb-4">
       <h2 className="text-2xl font-bold text-primary">
         Version {note.version}
@@ -227,10 +227,10 @@ const ReleaseNoteCard = ({ note }: { note: ReleaseNote }) => (
 
     {note.features.length > 0 && (
       <div className="mb-4">
-        <h3 className="text-lg font-semibold text-primary mb-2">
+        <h3 className="text-lg font-semibold text-foreground mb-2">
           ✨ New Features
         </h3>
-        <ul className="list-disc list-inside space-y-1 text-primary/90">
+        <ul className="list-disc list-inside space-y-1 text-foreground/90">
           {note.features.map((feature, index) => (
             <li key={index}>{feature}</li>
           ))}
@@ -240,10 +240,10 @@ const ReleaseNoteCard = ({ note }: { note: ReleaseNote }) => (
 
     {note.improvements.length > 0 && (
       <div className="mb-4">
-        <h3 className="text-lg font-semibold text-primary mb-2">
+        <h3 className="text-lg font-semibold text-foreground mb-2">
           🚀 Improvements
         </h3>
-        <ul className="list-disc list-inside space-y-1 text-primary/90">
+        <ul className="list-disc list-inside space-y-1 text-foreground/90">
           {note.improvements.map((improvement, index) => (
             <li key={index}>{improvement}</li>
           ))}
@@ -253,8 +253,8 @@ const ReleaseNoteCard = ({ note }: { note: ReleaseNote }) => (
 
     {note.fixes.length > 0 && (
       <div>
-        <h3 className="text-lg font-semibold text-primary mb-2">🐛 Fixes</h3>
-        <ul className="list-disc list-inside space-y-1 text-primary/90">
+        <h3 className="text-lg font-semibold text-foreground mb-2">🐛 Fixes</h3>
+        <ul className="list-disc list-inside space-y-1 text-foreground/90">
           {note.fixes.map((fix, index) => (
             <li key={index}>{fix}</li>
           ))}
@@ -280,15 +280,15 @@ export default function ReleaseNotes() {
         <nav className="mb-10 flex justify-between items-center">
           <ul className="flex gap-4">
             <li>
-              <Button href="/dashboard" variant="tertiary" className="!bg-transparent !p-0 underline hover:text-primary-light">
+              <Button href="/dashboard" variant="tertiary" className="!bg-transparent !p-0 underline hover:text-foreground-light">
                 Dashboard
               </Button>
             </li>
             <li>
-              <span className="text-gray-400">/</span>
+              <span className="text-foreground-extra-light">/</span>
             </li>
             <li>
-              <span className="text-primary">Release Notes</span>
+              <span className="text-foreground">Release Notes</span>
             </li>
           </ul>
         </nav>
@@ -297,7 +297,7 @@ export default function ReleaseNotes() {
           <h1 className="text-4xl font-bold text-primary mb-4">
             Release Notes
           </h1>
-          <p className="text-primary/80">
+          <p className="text-foreground/80">
             Track the latest updates, features, and improvements to jjoist.
           </p>
         </div>

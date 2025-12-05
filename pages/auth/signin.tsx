@@ -143,7 +143,7 @@ export default function SignIn({ providers }: { providers: Provider[] }) {
                     variant="secondary"
                     className={`flex-1 rounded-none ${
                       activeTab === 'credentials'
-                        ? 'text-primary border-b-2 border-primary'
+                        ? 'text-primary border-b-2 border-primary hover:!bg-surface'
                         : 'text-primary/60 hover:text-primary !bg-primary/10'
                     }`}
                   >
@@ -156,7 +156,7 @@ export default function SignIn({ providers }: { providers: Provider[] }) {
                     variant="secondary"
                     className={`flex-1 rounded-none ${
                       activeTab === 'magic'
-                        ? 'text-primary border-b-2 border-primary'
+                        ? 'text-primary border-b-2 border-primary hover:!bg-surface'
                         : 'text-primary/60 hover:text-primary !bg-primary/10'
                     }`}
                   >
@@ -245,7 +245,7 @@ export default function SignIn({ providers }: { providers: Provider[] }) {
                      value={magicLinkEmail}
                      onChange={(e) => setMagicLinkEmail(e.target.value)}
                      required
-                     className="w-full px-3 py-2 border border-border bg-input-background text-foreground placeholder-text-placeholder rounded-lg focus:outline-none focus:ring-2 focus:ring-border-focus focus:border-border-focus"
+                     className="w-full px-3 py-2 border border-border bg-surface text-foreground placeholder-text-placeholder rounded-lg focus:outline-none focus:ring-2 focus:ring-border-focus focus:border-border-focus"
                      placeholder="Enter your email"
                    />
                 </div>

@@ -14,7 +14,7 @@ export default function Navigation() {
               <div className="relative w-8 h-8 animate-scale-in">
                 <Logo className="text-primary group-hover:animate-spin-slow transition-all duration-300" />
               </div>
-              <span className="text-xl font-bold text-primary animate-slide-up-fade delay-100">
+              <span className="text-xl font-bold text-accent animate-slide-up-fade delay-100">
                 jjoist
               </span>
             </Button>

@@ -12,9 +12,9 @@ export const ProfileIcon: React.FC<IconProps> = ({
     <circle cx="19" cy="19" r="19" fill="#75A625"/>
     </mask>
     <g mask="url(#mask0_219_8)">
-    <circle cx="18.525" cy="18.525" r="21.375" fill="#87A96B"/>
-    <circle cx="19" cy="14.25" r="5.7" fill="#A3E635"/>
-    <circle cx="19" cy="36.1" r="12.35" fill="#A3E635"/>
+    <circle cx="18.525" cy="18.525" r="21.375" fill="#87A96B" className="fill-foreground-light"/>
+    <circle cx="19" cy="14.25" r="5.7" fill="#A3E635" className="fill-foreground"/>
+    <circle cx="19" cy="36.1" r="12.35" fill="#A3E635" className="fill-foreground"/>
     </g>
   </svg>
   );

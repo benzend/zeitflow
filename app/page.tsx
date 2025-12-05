@@ -24,7 +24,7 @@ export default function Home() {
                 className="text-primary animate-spin-slow animate-pulse-glow"
               />
             </div>
-            <h1 className="text-7xl font-extrabold tracking-tight text-primary drop-shadow-lg animate-slide-up-fade delay-200">
+            <h1 className="text-7xl font-extrabold tracking-tight text-accent drop-shadow-lg animate-slide-up-fade delay-200">
               jjoist
             </h1>
             <p className="text-xl text-text-muted mt-4 max-w-2xl text-center animate-slide-up-fade delay-300">

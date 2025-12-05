@@ -84,26 +84,20 @@ export default function VariablesModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
+      <div className="bg-background-light rounded-lg shadow-xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-xl font-semibold text-foreground">
               Set Variables
             </h2>
             <Button
               onClick={onClose}
               variant="tertiary"
-              className="!bg-transparent !p-0 text-gray-400 hover:text-gray-600 text-2xl"
             >
               ×
             </Button>
           </div>
 
-          {chainName && (
-            <p className="text-sm text-gray-600 mb-4">
-              Chain: <span className="font-medium">{chainName}</span>
-            </p>
-          )}
 
           {loading ? (
             <div className="flex items-center justify-center py-8">
@@ -125,7 +119,7 @@ export default function VariablesModal({
               <div className="space-y-4 mb-6">
                 {variables.map((variable) => (
                   <div key={variable}>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-foreground-light mb-1">
                       {variable}
                     </label>
                     <textarea
@@ -134,7 +128,7 @@ export default function VariablesModal({
                         handleValueChange(variable, e.target.value)
                       }
                       placeholder={`Enter value for {{${variable}}}`}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#a3e635] focus:border-transparent"
+                      className="w-full px-3 py-2 border border-foreground-light rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                       required
                     />
                   </div>

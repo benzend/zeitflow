@@ -106,7 +106,7 @@ export default function SubscriptionModal({ onSubscriptionChange }: Subscription
       <Button
         onClick={openModal}
         variant="tertiary"
-        className="!bg-transparent text-primary py-2 px-4 rounded-lg hover:underline"
+        className="!bg-transparent py-2 px-4 rounded-lg hover:underline"
       >
         {loading ? (
           'Subscription'
@@ -120,13 +120,13 @@ export default function SubscriptionModal({ onSubscriptionChange }: Subscription
       {/* Modal */}
       {isOpen && (
         <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
-          <div className="bg-foreground p-8 rounded-lg shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-background-light p-8 rounded-lg shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-primary">Subscription Management</h2>
+              <h2 className="text-xl font-bold text-foreground">Subscription Management</h2>
               <Button
                 onClick={() => setIsOpen(false)}
                 variant="tertiary"
-                className="!bg-transparent !p-0 text-gray-400 hover:text-gray-600 transition duration-200 text-2xl"
+                className="!bg-transparent !p-0 text-foreground-light hover:text-gray-600 transition duration-200 text-2xl"
               >
                 ✕
               </Button>
@@ -141,16 +141,15 @@ export default function SubscriptionModal({ onSubscriptionChange }: Subscription
             ) : subscription ? (
               <div className="space-y-6">
                 {/* Current Plan */}
-                <div className="p-4 bg-foreground-light rounded-lg border border-primary/20">
-                  <h3 className="text-lg font-medium text-primary mb-2">Current Plan</h3>
+                <div className="p-4 bg-background-light rounded-lg border border-primary/20">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-medium text-primary">{subscription.tier}</p>
-                      <p className="text-sm text-gray-400">
+                      <p className="text-sm text-foreground-light">
                         {subscription.queueLimit} requests per hour
                       </p>
                       {subscription.currentPeriodEnd && (
-                        <p className="text-sm text-gray-400">
+                        <p className="text-sm text-foreground-light">
                           {subscription.cancelAtPeriodEnd 
                             ? `Cancels on ${new Date(subscription.currentPeriodEnd).toLocaleDateString()}`
                             : `Renews on ${new Date(subscription.currentPeriodEnd).toLocaleDateString()}`
@@ -158,42 +157,44 @@ export default function SubscriptionModal({ onSubscriptionChange }: Subscription
                         </p>
                       )}
                     </div>
+
+                    <h3 className="text-lg font-medium text-foreground-extra-light mb-2">Current Plan</h3>
                   </div>
                 </div>
 
                 {/* Available Plans */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-medium text-primary">Available Plans</h3>
+                  <h3 className="text-lg font-medium text-foreground">Available Plans</h3>
                   
                   {/* Free Plan */}
-                  <div className="p-4 bg-foreground-light rounded-lg border border-primary/20">
+                  <div className="p-4 bg-background-light rounded-lg border border-primary/20">
                     <div className="flex items-center justify-between">
                       <div>
                         <h4 className="font-medium text-primary">Free</h4>
-                        <p className="text-sm text-gray-400">20 requests per hour</p>
-                        <p className="text-sm text-gray-400">Basic support</p>
+                        <p className="text-sm text-foreground-light">20 requests per hour</p>
+                        <p className="text-sm text-foreground-light">Basic support</p>
                       </div>
                       <div className="text-right">
                         <p className="font-bold text-primary">$0/month</p>
                         {subscription.tier === 'FREE' && (
-                          <span className="text-sm text-green-500">Current Plan</span>
+                          <span className="text-sm text-foreground">Current Plan</span>
                         )}
                       </div>
                     </div>
                   </div>
 
                   {/* Pro Plan */}
-                  <div className="p-4 bg-foreground-light rounded-lg border border-primary/20">
+                  <div className="p-4 bg-background-light rounded-lg border border-primary/20">
                     <div className="flex items-center justify-between">
                       <div>
                         <h4 className="font-medium text-primary">Pro</h4>
-                        <p className="text-sm text-gray-400">100 requests per hour</p>
-                        <p className="text-sm text-gray-400">Priority support, Advanced features</p>
+                        <p className="text-sm text-foreground-light">100 requests per hour</p>
+                        <p className="text-sm text-foreground-light">Priority support, Advanced features</p>
                       </div>
                       <div className="text-right">
                         <p className="font-bold text-primary">$9.99/month</p>
                         {subscription.tier === 'PRO' ? (
-                          <span className="text-sm text-green-500">Current Plan</span>
+                          <span className="text-sm text-foreground-light">Current Plan</span>
                         ) : (
                           <Button
                             onClick={() => handleUpgrade(process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID!)}
@@ -210,17 +211,17 @@ export default function SubscriptionModal({ onSubscriptionChange }: Subscription
                   </div>
 
                   {/* Unlimited Plan */}
-                  <div className="p-4 bg-foreground-light rounded-lg border border-primary/20">
+                  <div className="p-4 bg-background-light rounded-lg border border-primary/20">
                     <div className="flex items-center justify-between">
                       <div>
                         <h4 className="font-medium text-primary">Unlimited</h4>
-                        <p className="text-sm text-gray-400">1000 requests per hour</p>
-                        <p className="text-sm text-gray-400">Premium support, All features</p>
+                        <p className="text-sm text-foreground-light">1000 requests per hour</p>
+                        <p className="text-sm text-foreground-light">Premium support, All features</p>
                       </div>
                       <div className="text-right">
                         <p className="font-bold text-primary">$29.99/month</p>
                         {subscription.tier === 'UNLIMITED' ? (
-                          <span className="text-sm text-green-500">Current Plan</span>
+                          <span className="text-sm text-foreground-light">Current Plan</span>
                         ) : (
                           <Button
                             onClick={() => handleUpgrade(process.env.NEXT_PUBLIC_STRIPE_UNLIMITED_PRICE_ID!)}
@@ -248,7 +249,7 @@ export default function SubscriptionModal({ onSubscriptionChange }: Subscription
                     >
                       Cancel Subscription
                     </Button>
-                    <p className="text-xs text-gray-400 mt-2">
+                    <p className="text-xs text-foreground-light mt-2">
                       Your subscription will remain active until the end of your billing period.
                     </p>
                   </div>
@@ -266,7 +267,7 @@ export default function SubscriptionModal({ onSubscriptionChange }: Subscription
                 )}
               </div>
             ) : (
-              <p className="text-gray-400">Failed to load subscription information.</p>
+              <p className="text-foreground-light">Failed to load subscription information.</p>
             )}
           </div>
         </div>
