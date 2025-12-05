@@ -11,6 +11,24 @@ type ReleaseNote = {
 
 const releaseNotes: ReleaseNote[] = [
   {
+    version: "1.6.0",
+    date: "2025-12-05",
+    features: [
+      "Added light/dark mode toggle for improved user experience",
+      "Implemented workflow AI builder with ReactFlow for visual workflow creation",
+      "Added entry types for enhanced workflow configuration",
+    ],
+    improvements: [
+      "Cleaned up styles across all pages for a more polished interface",
+      "Enhanced workflow builder UI with better organization",
+      "Improved entry node design and functionality",
+      "Streamlined button styles and color scheme",
+    ],
+    fixes: [
+      "Fixed popular text color visibility issues",
+    ],
+  },
+  {
     version: "1.5.0",
     date: "2025-10-05",
     features: [
