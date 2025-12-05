@@ -48,7 +48,7 @@ const ProgressBar = ({
     <div className="w-full rounded-sm overflow-hidden">
       <div className="w-full bg-surface-hover rounded-full h-1">
         <div
-          className="bg-background-light h-1 transition-all rounded-full duration-300"
+          className="bg-primary h-1 transition-all rounded-full duration-300"
           style={{ width: `${percentage}%` }}
         ></div>
       </div>
