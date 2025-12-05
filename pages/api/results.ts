@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from './auth/[...nextauth]';
+import { generateAiDescription } from '@/pages/api/chain-step';
 import { db } from '@/lib/db';
 import { 
   chainsTable, 
@@ -20,6 +21,7 @@ type QueuedChainStepWithDetails = {
   chainStepId: number;
   position: number;
   response: string | null;
+  aiDescription: string | null;
   status: string;
   error: string | null;
   createdAt: Date;
@@ -138,6 +140,7 @@ export default async function handler(
         response: queuedChainStepsTable.response,
         position: queuedChainStepsTable.position,
         status: queuedChainStepsTable.status,
+        aiDescription: queuedChainStepsTable.aiDescription,
         model: queuedChainStepsTable.model,
         error: queuedChainStepsTable.error,
         createdAt: queuedChainStepsTable.createdAt,
@@ -149,6 +152,15 @@ export default async function handler(
       .innerJoin(chainStepsTable, eq(queuedChainStepsTable.chainStepId, chainStepsTable.id))
       .where(eq(queuedChainStepsTable.queuedChainId, queuedChainId))
       .orderBy(queuedChainStepsTable.position);
+
+    if (queuedChainSteps.length > 0 && queuedChainSteps.some((step) => step.aiDescription === null)) {
+      await Promise.all(queuedChainSteps.map(async (step) => {
+        step.aiDescription = await generateAiDescription(step.prompt);
+        await db.update(queuedChainStepsTable)
+          .set({ aiDescription: step.aiDescription })
+          .where(eq(queuedChainStepsTable.id, step.id));
+      }));
+    }
 
     const queuedChainVariables = await db
       .select({

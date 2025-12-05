@@ -1,0 +1,1 @@
+ALTER TABLE "queued_chain_steps" ADD COLUMN "ai_description" text;

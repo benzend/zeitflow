@@ -506,14 +506,13 @@ export default function ChainDetail() {
             <div className="flex justify-between items-center mb-8">
               <div className="h-10 w-32 bg-background-light/20 rounded"></div>
               <div className="flex space-x-2">
-                <div className="h-10 w-20 bg-blue-500/20 rounded"></div>
-                <div className="h-10 w-20 bg-red-500/20 rounded"></div>
+                <div className="h-10 w-20 bg-red-500/20 rounded-full"></div>
               </div>
             </div>
 
             <ChainInfoSkeleton />
 
-            <div className="bg-background-light border border-primary/20 rounded-lg shadow-lg p-6">
+            <div>
               <div className="flex justify-between items-center mb-6">
                 <div className="h-7 w-32 bg-primary/20 rounded"></div>
                 <div className="h-10 w-32 bg-primary/20 rounded"></div>

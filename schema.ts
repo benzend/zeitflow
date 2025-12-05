@@ -215,6 +215,8 @@ export const queuedChainStepsTable = pgTable("queued_chain_steps", {
   prompt: text("prompt").notNull(),
   position: integer("position").notNull(),
 
+  aiDescription: text("ai_description"),
+
   response: text("response"),
   status: text("status").notNull().default("pending"),
   error: text("error"),

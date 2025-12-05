@@ -3,6 +3,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/Button";
+import ThemeToggle from '@/components/ThemeToggle';
 
 type QueuedChainStepWithDetails = {
   id: number;
@@ -11,6 +12,7 @@ type QueuedChainStepWithDetails = {
   position: number;
   response: string | null;
   status: string;
+  aiDescription: string | null;
   model: string;
   error: string | null;
   createdAt: string;
@@ -40,14 +42,6 @@ const StepSkeleton = () => (
       <div className="h-6 w-24 bg-primary/20 rounded"></div>
       <div className="h-5 w-20 bg-primary/20 rounded"></div>
     </div>
-    <div className="mb-4">
-      <div className="h-4 w-16 bg-primary/20 rounded mb-2"></div>
-      <div className="h-20 w-full bg-primary/20 rounded"></div>
-    </div>
-    <div>
-      <div className="h-4 w-20 bg-primary/20 rounded mb-2"></div>
-      <div className="h-32 w-full bg-primary/20 rounded"></div>
-    </div>
   </div>
 );
 
@@ -67,7 +61,7 @@ const CopyButton = ({ text }: { text: string }) => {
   return (
     <button
       onClick={handleCopy}
-      className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-lg bg-primary/10 hover:bg-primary/20 text-primary transition-colors duration-200"
+      className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-lg bg-primary/10 hover:bg-primary/20 text-primary transition-colors duration-200 cursor-pointer"
       title="Copy to clipboard"
     >
       {copied ? (
@@ -108,15 +102,15 @@ const getStatusBadge = (status: string) => {
   const baseClasses = "px-2.5 py-1 rounded-lg text-xs font-medium";
   switch (status) {
     case "completed":
-      return `${baseClasses} bg-green-400/10 text-green-400`;
+      return `${baseClasses} bg-success/10 text-success`;
     case "processing":
       return `${baseClasses} bg-yellow-400/10 text-yellow-400`;
     case "error":
-      return `${baseClasses} bg-red-400/10 text-red-400`;
+      return `${baseClasses} bg-error/10 text-error`;
     case "pending":
-      return `${baseClasses} bg-gray-400/10 text-gray-400`;
+      return `${baseClasses} bg-gray-400/10 text-foreground-light`;
     default:
-      return `${baseClasses} bg-gray-400/20 text-gray-400`;
+      return `${baseClasses} bg-gray-400/20 text-foreground-light`;
   }
 };
 
@@ -133,17 +127,15 @@ const StepCard = ({ step }: { step: QueuedChainStepWithDetails }) => {
         <div className="flex justify-between items-start mb-4">
           <div className="flex items-center gap-4">
             <h3 className="text-xl font-semibold text-primary">
-              Step {step.position + 1}
+              {step.aiDescription}
             </h3>
             <span className={getStatusBadge(step.status)}>{step.status}</span>
           </div>
           <div className="flex items-center gap-4">
-            <div className="text-xs text-gray-400">
-              Cycle: {step.cycleCount} | Updated: {formatDate(step.updatedAt)}
-            </div>
+            <CopyButton text={step.response} />
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="p-1 hover:bg-primary/10 rounded transition-colors duration-200"
+              className="p-1 hover:bg-primary/10 rounded transition-colors duration-200 cursor-pointer"
               title={isExpanded ? "Collapse" : "Expand"}
             >
               <svg
@@ -162,21 +154,11 @@ const StepCard = ({ step }: { step: QueuedChainStepWithDetails }) => {
           </div>
         </div>
 
-        <div className="bg-background-light p-4 rounded border text-primary/90 mb-4 whitespace-pre-wrap">
-          {step.prompt}
-        </div>
-
         {isExpanded && (
           <div className="space-y-4 border-t border-primary/20 pt-4 mb-4">
             {step.response && (
               <div>
-                <div className="flex justify-between items-center mb-2">
-                  <h4 className="text-sm font-medium text-primary">
-                    Response:
-                  </h4>
-                  <CopyButton text={step.response} />
-                </div>
-                <div className="bg-background-light p-4 rounded border text-primary/90 whitespace-pre-wrap">
+                <div className="bg-background-light p-4 rounded border border-primary text-foreground/90 whitespace-pre-wrap">
                   {step.response}
                 </div>
               </div>
@@ -184,10 +166,10 @@ const StepCard = ({ step }: { step: QueuedChainStepWithDetails }) => {
 
             {step.error && (
               <div>
-                <h4 className="text-sm font-medium text-red-400 mb-2">
+                <h4 className="text-sm font-medium text-error mb-2">
                   Error:
                 </h4>
-                <div className="bg-red-500/20 border border-red-500 text-red-400 p-4 rounded">
+                <div className="bg-red-500/20 border border-red-500 text-error p-4 rounded">
                   {step.error}
                 </div>
               </div>
@@ -195,7 +177,7 @@ const StepCard = ({ step }: { step: QueuedChainStepWithDetails }) => {
           </div>
         )}
 
-        <div className="text-xs text-gray-400">
+        <div className="text-xs text-foreground-light">
           Model: {step.model}
         </div>
       </div>
@@ -314,7 +296,7 @@ export default function Results() {
                 </Button>
               </li>
               <li>
-                <span className="text-gray-400">/</span>
+                <span className="text-foreground-light">/</span>
               </li>
               <li>
                 <span className="text-primary">Results</span>
@@ -367,16 +349,19 @@ export default function Results() {
               </Button>
             </li>
             <li>
-              <span className="text-gray-400">/</span>
+              <span className="text-foreground-extra-light">/</span>
             </li>
             <li>
-              <span className="text-primary">Results</span>
+              <span className="text-foreground">Results</span>
             </li>
           </ul>
+
+
+          <ThemeToggle />
         </nav>
 
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          <div className="bg-red-100 border border-error text-red-700 px-4 py-3 rounded mb-4">
             {error}
           </div>
         )}
@@ -392,26 +377,13 @@ export default function Results() {
               </span>
             </div>
 
-            <div className="text-sm text-gray-400 mb-2">
-              Chain ID: {queuedChain.chainId} | Execution ID: {queuedChain.id}
-            </div>
-
-            <div className="text-sm text-gray-400 mb-4">
-              Started: {formatDate(queuedChain.createdAt)} | Last Updated:{" "}
+            <div className="text-sm text-foreground-light mb-4">
+              Generated:{" "}
               {formatDate(queuedChain.updatedAt)}
             </div>
 
-            <div className="text-sm text-gray-400 mb-4">
-              Variables:{" "}
-              {queuedChainVariables.map((variable) => (
-                <span key={variable.variableName}>
-                  {variable.variableName}: {variable.variableValue}
-                </span>
-              ))}
-            </div>
-
             {queuedChain.error && (
-              <div className="bg-red-500/20 border border-red-500 text-red-400 px-4 py-3 rounded mb-4">
+              <div className="bg-red-500/20 border border-red-500 text-error px-4 py-3 rounded mb-4">
                 <strong>Chain Error:</strong> {queuedChain.error}
               </div>
             )}
@@ -420,7 +392,7 @@ export default function Results() {
 
         <div className="flex flex-col gap-4">
           {queuedChainSteps.length === 0 ? (
-            <div className="text-center py-12 text-gray-400">
+            <div className="text-center py-12 text-foreground-light">
               No steps found for this chain execution.
             </div>
           ) : (

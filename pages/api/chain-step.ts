@@ -5,6 +5,7 @@ import { db } from '@/lib/db';
 import { chainStepsTable, chainsTable, SelectChainStep, usersTable } from '@/schema';
 import { isRateLimited } from '@/lib/rate-limit';
 import { eq } from 'drizzle-orm';
+import { chat } from "@/pages/api/utils/openrouter";
 
 type ResponseData = {
   success: boolean;
@@ -143,11 +144,14 @@ async function handlePost(
       .json({ success: false, message: 'Position already taken' });
   }
 
+  const aiDescription = await generateAiDescription(req.body.prompt);
+
   const chainStepCreateResponse = await db.insert(chainStepsTable).values({
     chainId: req.body.chainId,
     prompt: req.body.prompt,
     cycleCount: req.body.cycleCount || 1,
     position: req.body.position || 0,
+    ai_description: aiDescription,
   }).returning({ id: chainStepsTable.id });
 
   const chainStepId = chainStepCreateResponse[0].id;
@@ -208,6 +212,12 @@ async function handlePut(
       .json({ success: false, message: 'No valid fields to update' });
   }
 
+  const aiDescription = await generateAiDescription(req.body.prompt);
+
+  if (aiDescription) {
+    updateData.ai_description = aiDescription;
+  }
+
   await db.update(chainStepsTable)
     .set(updateData)
     .where(eq(chainStepsTable.id, chainStepId));
@@ -244,4 +254,21 @@ async function handleDelete(
 
   return res.status(200)
     .json({ success: true, message: 'Successfully deleted chain!' });
+}
+
+export async function generateAiDescription(prompt: string) {
+  const response = await chat(
+    prompt,
+    'gpt-3.5-turbo',
+    { 
+      systemPrompt:
+        'You will summarize the user provided prompt into a single short sentence'
+    }
+  );
+
+  if ('error' in response && response.error) {
+    return null;
+  }
+
+  return response.text;
 }
