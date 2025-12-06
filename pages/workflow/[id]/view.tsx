@@ -65,18 +65,18 @@ export default function WorkflowBuilderPage() {
            entryType?: string;
          }): NodeData => {
            const config = JSON.parse(node.config || '{}');
-           return {
-             id: node.id,
-             type: node.type,
-             x: node.positionX,
-             y: node.positionY,
-             label: node.label,
-             fields: config.fields,
-             entryType: node.entryType,
-             aiConfig: config.aiConfig,
-             schedulerConfig: config.schedulerConfig,
-             reviewConfig: config.reviewConfig,
-           };
+            return {
+              id: node.id,
+              type: node.type as 'entry' | 'ai' | 'scheduler' | 'review' | 'slack',
+              x: node.positionX,
+              y: node.positionY,
+              label: node.label,
+              fields: config.fields,
+              entryType: node.entryType,
+              aiConfig: config.aiConfig,
+              schedulerConfig: config.schedulerConfig,
+              reviewConfig: config.reviewConfig,
+            };
          });
 
         setNodes(parsedNodes);

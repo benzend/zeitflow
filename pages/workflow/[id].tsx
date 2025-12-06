@@ -74,18 +74,18 @@ export default function WorkflowBuilderPage() {
             console.error('Failed to parse node config:', error, node.config);
             config = {};
           }
-          return {
-            id: node.id,
-            type: node.type,
-            x: node.positionX,
-            y: node.positionY,
-            label: node.label,
-            fields: config.fields,
-            aiConfig: config.aiConfig,
-            schedulerConfig: config.schedulerConfig,
-            reviewConfig: config.reviewConfig,
-            entryType: node.entryType
-          };
+           return {
+             id: node.id,
+             type: node.type as 'entry' | 'ai' | 'scheduler' | 'review' | 'slack',
+             x: node.positionX,
+             y: node.positionY,
+             label: node.label,
+             fields: config.fields,
+             aiConfig: config.aiConfig,
+             schedulerConfig: config.schedulerConfig,
+             reviewConfig: config.reviewConfig,
+             entryType: node.entryType
+           };
         });
 
         // Parse connections from database format
