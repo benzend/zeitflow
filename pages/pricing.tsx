@@ -72,10 +72,10 @@ export default function Pricing() {
       priceId: process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID
     },
     {
-      name: 'Unlimited',
+      name: 'Business',
       price: '$29.99',
       period: '/month',
-      description: 'For power users and teams',
+      description: 'For businesses and power users',
       features: [
         '1000 requests per hour',
         'Premium AI chain processing',
@@ -84,7 +84,7 @@ export default function Pricing() {
         'Fastest processing',
         'Team collaboration'
       ],
-      buttonText: 'Upgrade to Unlimited',
+      buttonText: 'Upgrade to Business',
       buttonClass: 'bg-purple-600 hover:bg-purple-700 text-white',
       popular: false,
       priceId: process.env.NEXT_PUBLIC_STRIPE_UNLIMITED_PRICE_ID

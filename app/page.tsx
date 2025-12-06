@@ -28,8 +28,7 @@ export default function Home() {
               jjoist
             </h1>
             <p className="text-xl text-text-muted mt-4 max-w-2xl text-center animate-slide-up-fade delay-300">
-              Rethinking the way you work with AI using a unique, powerful
-              system for managing and executing AI prompt chains
+              Build thousands of workflows, fast, without running into complexity.
             </p>
           </header>
         </div>
@@ -37,7 +36,7 @@ export default function Home() {
         <main className="flex flex-col items-center gap-16 flex-1 justify-center w-full max-w-7xl">
           <section className="bg-surface/50 backdrop-blur-sm rounded-3xl shadow-xl py-10 px-4 md:py-12 md:px-12 flex flex-col items-center gap-8 w-full animate-slide-up-fade delay-400">
             <h2 className="text-3xl font-bold text-primary mb-6 animate-shimmer">
-              How it works
+              Build your first workflow
             </h2>
             <div className="w-full md:px-10 mb-10">
               <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0 }}><iframe src="https://cap.so/embed/khxp5yg4x6tpc9a" allowFullScreen style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}></iframe></div>
@@ -112,12 +111,12 @@ export default function Home() {
                   href: '/pricing'
                 },
                 {
-                  name: 'Unlimited',
+                  name: 'Business',
                   price: '$29.99',
                   period: '/month',
                   requests: '1000 requests/hour',
                   features: ['Premium support', 'All features'],
-                  buttonText: 'Go Unlimited',
+                  buttonText: 'For Businesses',
                   buttonClass: 'bg-purple-600 hover:bg-purple-700',
                   href: '/pricing'
                 }

@@ -25,12 +25,12 @@ const getEntryTypeLabel = (entryType: string) => {
 };
 
 const EntryNode = memo(({ data, selected }: EntryNodeProps) => {
-  const color = selected ? '#11FF00' : '#FFFFFF';
+  const color = selected ? 'var(--success)' : 'var(--foreground)';
 
   return (
-    <div className={`px-3 py-2 bg-[#424242] border rounded-lg ${selected ? 'border-green-400' : 'border-gray-200'} min-w-[98px]`}>
+    <div className={`px-3 py-2 bg-background-light border rounded-lg ${selected ? 'border-success' : 'border-border'} min-w-[98px]`}>
       <Handle type="source" position={Position.Right} />
-      
+
       <div className="flex items-center gap-2">
         <div className="w-4 h-3">
           <svg className="w-full h-full" fill="none" viewBox="0 0 15 13">
@@ -43,10 +43,10 @@ const EntryNode = memo(({ data, selected }: EntryNodeProps) => {
             <line stroke={color} strokeWidth="0.5" x1="9.13017" x2="6.43759" y1="8.96121" y2="4.29752" />
           </svg>
         </div>
-        <span className="text-xs text-white whitespace-nowrap">{data.label}</span>
+        <span className="text-xs text-foreground whitespace-nowrap">{data.label}</span>
       </div>
-      
-        <div className="text-xs text-gray-400 mt-1 text-center">
+
+        <div className="text-xs text-text-muted mt-1 text-center">
           {getEntryTypeLabel(data.entryType || 'entry')}
         </div>
     </div>

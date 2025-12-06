@@ -8,13 +8,13 @@ interface SchedulerNodeProps {
 }
 
 const SchedulerNode = memo(({ data, selected }: SchedulerNodeProps) => {
-  const color = selected ? '#11FF00' : '#FFFFFF';
+  const color = selected ? 'var(--success)' : 'var(--foreground)';
 
   return (
-    <div className={`px-3 py-2 bg-[#424242] rounded-lg relative min-w-[103px] ${selected ? 'ring-2 ring-green-400' : ''}`}>
+    <div className={`px-3 py-2 bg-surface rounded-lg relative min-w-[103px] ${selected ? 'ring-2 ring-success' : ''}`}>
       <Handle type="target" position={Position.Left} />
       <Handle type="source" position={Position.Right} />
-      
+
       <div className="flex items-center justify-center">
         <div className="absolute left-3 top-2">
           <div className="h-0.5 relative w-3">
@@ -24,7 +24,7 @@ const SchedulerNode = memo(({ data, selected }: SchedulerNodeProps) => {
             </svg>
           </div>
         </div>
-        <span className="text-xs text-white ml-5 whitespace-nowrap">{data.label}</span>
+        <span className="text-xs text-foreground ml-5 whitespace-nowrap">{data.label}</span>
       </div>
     </div>
   );

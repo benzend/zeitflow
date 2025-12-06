@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 import { ArrowLeft } from 'lucide-react';
 import { Button } from "@/components/Button";
-import WorkflowBuilderReactFlow from "@/components/WorkflowBuilderReactFlow";
+import ThemeToggle from "@/components/ThemeToggle";
+import WorkflowBuilderReactFlow, { WorkflowBuilderRef } from "@/components/WorkflowBuilderReactFlow";
 import { NodeData, Connection } from '@/lib/workflow-types';
 
 interface Workflow {
@@ -20,6 +21,7 @@ export default function WorkflowBuilderPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const { id } = router.query;
+  const workflowBuilderRef = useRef<WorkflowBuilderRef>(null);
   const [workflow, setWorkflow] = useState<Workflow | null>(null);
   const [nodes, setNodes] = useState<NodeData[]>([]);
   const [connections, setConnections] = useState<Connection[]>([]);
@@ -113,13 +115,28 @@ export default function WorkflowBuilderPage() {
 
     try {
       setSaving(true);
+
+      // Create serializable copies to avoid circular references
+      const serializableNodes = updatedNodes.map(node => ({
+        id: node.id,
+        type: node.type,
+        x: node.x,
+        y: node.y,
+        label: node.label,
+        fields: node.fields,
+        entryType: node.entryType,
+        aiConfig: node.aiConfig,
+        schedulerConfig: node.schedulerConfig,
+        reviewConfig: node.reviewConfig
+      }));
+
       const response = await fetch(`/api/workflow/${workflow.id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          nodes: updatedNodes,
+          nodes: serializableNodes,
           connections: updatedConnections,
         }),
       });
@@ -142,9 +159,15 @@ export default function WorkflowBuilderPage() {
     }
   };
 
+  const triggerSave = () => {
+    if (workflowBuilderRef.current) {
+      workflowBuilderRef.current.save();
+    }
+  };
+
   if (status === "loading" || loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#2b2b2b] to-[#3c3c3c] flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-foreground text-lg">Loading workflow...</div>
       </div>
     );
@@ -152,9 +175,9 @@ export default function WorkflowBuilderPage() {
 
   if (error && !workflow) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#2b2b2b] to-[#3c3c3c] flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="text-red-400 text-lg mb-4">{error}</div>
+          <div className="text-error text-lg mb-4">{error}</div>
           <Button
             href="/workflows"
             variant="tertiary"
@@ -177,7 +200,7 @@ export default function WorkflowBuilderPage() {
       </Head>
 
       {/* Header bar */}
-      <div className="absolute top-0 left-0 right-0 bg-surface border-b border-border z-20 h-16">
+      <div className="absolute top-0 left-0 right-0 bg-background-light border-b border-border z-20 h-16">
         <div className="flex items-center justify-between h-full px-4">
           <Button href="/workflows" variant="tertiary" className="!bg-transparent !p-0">
             <ArrowLeft className="text-foreground hover:text-primary transition-colors p-1" />
@@ -190,22 +213,34 @@ export default function WorkflowBuilderPage() {
           </div>
 
           <div className="flex items-center gap-4">
+            <ThemeToggle />
+
             {lastSaved && (
-              <span className="text-sm text-gray-400">
+              <span className="text-sm text-text-muted">
                 Saved at {lastSaved.toLocaleTimeString()}
               </span>
             )}
             {error && (
-              <span className="text-sm text-red-400">
+              <span className="text-sm text-error">
                 {error}
               </span>
             )}
             <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full ${saving ? 'bg-yellow-400' : 'bg-green-400'}`} />
+              <div className={`w-2 h-2 rounded-full ${saving ? 'bg-warning' : 'bg-success'}`} />
               <span className="text-sm text-foreground">
                 {saving ? 'Saving...' : 'Saved'}
               </span>
             </div>
+
+            <Button
+              onClick={triggerSave}
+              variant="primary"
+              size="sm"
+              className="text-xs"
+            >
+              Save
+            </Button>
+
           </div>
         </div>
       </div>
@@ -213,6 +248,7 @@ export default function WorkflowBuilderPage() {
       {/* Workflow Builder */}
       <div className="pt-16">
         <WorkflowBuilderReactFlow
+          ref={workflowBuilderRef}
           initialNodes={nodes}
           initialConnections={connections}
           onSave={handleSave}

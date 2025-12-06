@@ -8,13 +8,13 @@ interface AINodeProps {
 }
 
 const AINode = memo(({ data, selected }: AINodeProps) => {
-  const color = selected ? '#11FF00' : '#FFFFFF';
+  const color = selected ? 'var(--success)' : 'var(--foreground)';
 
   return (
-    <div className={`px-3 py-2 bg-[#424242] rounded-lg relative min-w-[89px] ${selected ? 'ring-2 ring-green-400' : ''}`}>
+    <div className={`px-3 py-2 bg-background-light rounded-lg relative min-w-[89px] ${selected ? 'ring-2 ring-success' : ''}`}>
       <Handle type="target" position={Position.Left} />
       <Handle type="source" position={Position.Right} />
-      
+
       <div className="flex items-center justify-center">
         <div className="absolute left-3 top-2">
           <p className="text-xs" style={{ color }}>AI</p>
@@ -24,7 +24,7 @@ const AINode = memo(({ data, selected }: AINodeProps) => {
             </svg>
           </div>
         </div>
-        <span className="text-xs text-white ml-5 whitespace-nowrap">{data.label}</span>
+        <span className="text-xs text-foreground ml-5 whitespace-nowrap">{data.label}</span>
       </div>
     </div>
   );

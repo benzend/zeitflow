@@ -127,9 +127,9 @@ const SortableStep = ({
           />
 
           <div className="text-xs text-gray-400 mt-2">
-            <label htmlFor="model" className="mb-2">Model</label>
+            <label htmlFor="model" className="mb-2 text-foreground-light">Model</label>
             <br />
-            <select name="model" id="model" value={editStepModel} onChange={(e) => setEditStepModel(e.target.value)} className="border-gray-300 border px-3 py-2 rounded">
+            <select name="model" id="model" value={editStepModel} onChange={(e) => setEditStepModel(e.target.value)} className="border-foreground-light text-foreground border px-3 py-2 rounded">
               {Object.keys(VERBOSE_MODELS).map((model) => (
                 <option key={model} value={model}>
                   {VERBOSE_MODELS[model as keyof typeof VERBOSE_MODELS]}

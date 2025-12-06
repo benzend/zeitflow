@@ -36,16 +36,16 @@ export default function Dropdown({
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
         className={`
-          bg-[#484848] 
-          border-[#5a5a5a] 
-          border-[0.5px] 
+          bg-background-extra-light
+          border-background
+          border-1
           rounded-[8px] 
           h-full 
           w-full 
           px-[12px] 
           ${icon ? 'pl-[36px]' : ''}
           text-[12px] 
-          text-white 
+          text-foreground 
           outline-none 
           cursor-pointer
           transition-colors

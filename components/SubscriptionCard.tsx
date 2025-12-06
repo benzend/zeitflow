@@ -214,7 +214,7 @@ export default function SubscriptionModal({ onSubscriptionChange }: Subscription
                   <div className="p-4 bg-background-light rounded-lg border border-primary/20">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="font-medium text-primary">Unlimited</h4>
+                        <h4 className="font-medium text-primary">Business</h4>
                         <p className="text-sm text-foreground-light">1000 requests per hour</p>
                         <p className="text-sm text-foreground-light">Premium support, All features</p>
                       </div>
