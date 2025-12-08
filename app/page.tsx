@@ -39,7 +39,7 @@ export default function Home() {
               Build your first workflow
             </h2>
             <div className="w-full md:px-10 mb-10">
-              <div style={{position: 'relative', paddingBottom: '56.25%', height: 0}}><iframe src="https://cap.so/embed/qegqpre7vpq3jrf" frameBorder="0" webkitallowfullscreen="true" mozallowfullscreen="true" allowFullScreen={true} style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%'}}></iframe></div>
+              <div style={{position: 'relative', paddingBottom: '56.25%', height: 0}}><iframe src="https://cap.so/embed/qegqpre7vpq3jrf" frameBorder="0" allowFullScreen={true} style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%'}}></iframe></div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 w-full px-10 pb-10 md:pb-0 md:px-0">
               {[
