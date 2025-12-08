@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useCallback, useMemo, forwardRef, useImperativeHandle } from 'react';
 import {
   ReactFlow,
@@ -8,7 +10,9 @@ import {
   Background,
   BackgroundVariant,
   NodeTypes,
-  Connection
+  Connection,
+  useReactFlow,
+  ReactFlowProvider
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
@@ -17,6 +21,7 @@ import { Button } from './Button';
 import { NodeData, Connection as WorkflowConnection } from '@/lib/workflow-types';
 import { generateNodeId } from '@/lib/workflow-utils';
 import { convertToReactFlow, convertFromReactFlow, ReactFlowNodeData } from '@/lib/reactflow-types';
+import { AI_MODELS } from '@/lib/constants';
 
 import EntryNode from './reactflow-nodes/EntryNode';
 import AINode from './reactflow-nodes/AINode';
@@ -67,13 +72,14 @@ const NODE_TYPE_OPTIONS: DropdownOption[] = [
   { value: 'scheduler', label: 'Scheduler' },
 ];
 
-const WorkflowBuilderReactFlow = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps>(({
+// Wrapper component to provide React Flow context
+const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps>(({
   initialNodes = [],
   initialConnections = [],
   onSave
 }, ref) => {
   // Convert initial data to React Flow format
-  const initialFlowData = useMemo(() => 
+  const initialFlowData = useMemo(() =>
     convertToReactFlow(initialNodes, initialConnections),
     [initialNodes, initialConnections]
   );
@@ -84,10 +90,7 @@ const WorkflowBuilderReactFlow = forwardRef<WorkflowBuilderRef, WorkflowBuilderP
   const [newPersonName, setNewPersonName] = useState('');
   const [showAddDropdown, setShowAddDropdown] = useState(false);
 
-  // Expose save method to parent component
-  useImperativeHandle(ref, () => ({
-    save: handleSave
-  }));
+  const { screenToFlowPosition } = useReactFlow();
 
   // Handle new connections
   const onConnect = useCallback(
@@ -108,13 +111,14 @@ const WorkflowBuilderReactFlow = forwardRef<WorkflowBuilderRef, WorkflowBuilderP
 
   // Add new node
   const addNode = useCallback((type: 'entry' | 'ai' | 'scheduler' | 'review') => {
+    const centerPosition = screenToFlowPosition({
+      x: window.innerWidth / 2,
+      y: window.innerHeight / 2
+    });
     const newNode = {
       id: generateNodeId(),
       type,
-      position: { 
-        x: Math.random() * 400 + 100, // Random position with some margin
-        y: Math.random() * 300 + 100 
-      },
+      position: centerPosition,
       data: {
         id: generateNodeId(),
         type,
@@ -122,6 +126,7 @@ const WorkflowBuilderReactFlow = forwardRef<WorkflowBuilderRef, WorkflowBuilderP
         ...(type === 'entry' ? { fields: [], entryType: 'endpoint' } :
           type === 'ai' ? {
             aiConfig: {
+              model: 'google/gemini-2.0-flash-001',
               systemPrompt: '',
               userPrompt: '',
               outputType: 'JSON',
@@ -146,7 +151,7 @@ const WorkflowBuilderReactFlow = forwardRef<WorkflowBuilderRef, WorkflowBuilderP
 
     setNodes((nds) => [...nds, newNode]);
     setSelectedNode(newNode.id);
-  }, [setNodes]);
+  }, [setNodes, screenToFlowPosition]);
 
   // Remove selected node
   const removeSelectedNode = useCallback(() => {
@@ -208,6 +213,11 @@ const WorkflowBuilderReactFlow = forwardRef<WorkflowBuilderRef, WorkflowBuilderP
     }
   }, [nodes, edges, onSave]);
 
+  // Expose save method to parent component
+  useImperativeHandle(ref, () => ({
+    save: handleSave
+  }));
+
   // Helper functions for updating node data
   const updateNodeData = useCallback((nodeId: string, updates: Partial<ReactFlowNodeData>) => {
     setNodes((nds) => nds.map((node) =>
@@ -253,13 +263,14 @@ const WorkflowBuilderReactFlow = forwardRef<WorkflowBuilderRef, WorkflowBuilderP
     }
   }, [selectedNode, nodes, updateNodeData]);
 
-  const updateAIConfig = useCallback((updates: { 
-    systemPrompt?: string; 
-    userPrompt?: string; 
-    outputType?: string; 
-    outputStructure?: string; 
-    hasTemplate?: boolean; 
-    templateText?: string 
+  const updateAIConfig = useCallback((updates: {
+    model?: string;
+    systemPrompt?: string;
+    userPrompt?: string;
+    outputType?: string;
+    outputStructure?: string;
+    hasTemplate?: boolean;
+    templateText?: string
   }) => {
     if (!selectedNode) return;
     const currentNode = nodes.find(n => n.id === selectedNode);
@@ -591,22 +602,34 @@ const WorkflowBuilderReactFlow = forwardRef<WorkflowBuilderRef, WorkflowBuilderP
                 </p>
               </Button>
             </div>
-          ) : selectedNodeData?.type === 'ai' && selectedNodeData.aiConfig ? (
-            <div className="mt-[20px] px-[20px] pb-[20px]">
-              <div className="mb-[20px]">
-                <h2 className="text-foreground text-lg font-bold mb-[4px]">
-                  AI Configuration
-                </h2>
-                <p className="text-text-muted text-sm leading-relaxed">
-                  Configure prompts and output settings for this AI model
-                </p>
-              </div>
+           ) : selectedNodeData?.type === 'ai' && selectedNodeData.aiConfig ? (
+             <div className="mt-[20px] px-[20px] pb-[20px]">
+               <div className="mb-[20px]">
+                 <h2 className="text-foreground text-lg font-bold mb-[4px]">
+                   AI Configuration
+                 </h2>
+                 <p className="text-text-muted text-sm leading-relaxed">
+                   Configure prompts and output settings for this AI model
+                 </p>
+               </div>
 
-              <div className="mb-[16px]">
-                <label className="block text-foreground-light font-medium mb-[8px]">
-                  System Prompt
-                </label>
-              </div>
+               <div className="mb-[16px]">
+                 <label className="block text-foreground-light font-medium mb-[8px]">
+                   AI Model
+                 </label>
+                 <Dropdown
+                   value={selectedNodeData.aiConfig.model}
+                   onChange={(value) => updateAIConfig({ model: value })}
+                   options={AI_MODELS}
+                   className="h-[32px]"
+                 />
+               </div>
+
+               <div className="mb-[16px]">
+                 <label className="block text-foreground-light font-medium mb-[8px]">
+                   System Prompt
+                 </label>
+               </div>
 
               <div className="bg-background-extra-light mt-2 overflow-clip p-3 rounded" style={{ minHeight: selectedNodeData.aiConfig.hasTemplate ? '330px' : '71px' }}>
                 <textarea
@@ -896,6 +919,16 @@ const WorkflowBuilderReactFlow = forwardRef<WorkflowBuilderRef, WorkflowBuilderP
       </div>
       ) : null}
     </div>
+  );
+});
+
+WorkflowBuilderInner.displayName = 'WorkflowBuilderInner';
+
+const WorkflowBuilderReactFlow = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps>((props, ref) => {
+  return (
+    <ReactFlowProvider>
+      <WorkflowBuilderInner {...props} ref={ref} />
+    </ReactFlowProvider>
   );
 });
 

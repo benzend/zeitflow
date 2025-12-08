@@ -7,6 +7,7 @@ export interface Field {
 }
 
 export interface AINodeConfig {
+  model: string;
   systemPrompt: string;
   userPrompt: string;
   outputType: string;

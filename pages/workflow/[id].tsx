@@ -6,6 +6,7 @@ import { Play, Edit, TrendingUp, Clock, CheckCircle, XCircle, Activity } from 'l
 import { Button } from "@/components/Button";
 import ThemeToggle from "@/components/ThemeToggle";
 import ProfileDropdown from "@/components/ProfileDropdown";
+import WorkflowStatsSkeleton from "@/components/WorkflowStatsSkeleton";
 
 interface Workflow {
   id: number;
@@ -31,6 +32,7 @@ interface RecentExecution {
   completedAt: string | null;
   error: string | null;
   duration: number | null;
+  url: string;
 }
 
 export default function WorkflowStatsPage() {
@@ -90,7 +92,7 @@ export default function WorkflowStatsPage() {
   };
 
   const formatDuration = (ms: number) => {
-    if (ms < 1000) return `${ms}ms`;
+    if (ms < 1000) return `${Math.round(ms)}ms`;
     const seconds = Math.floor(ms / 1000);
     if (seconds < 60) return `${seconds}s`;
     const minutes = Math.floor(seconds / 60);
@@ -121,11 +123,7 @@ export default function WorkflowStatsPage() {
   };
 
   if (status === "loading" || loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-foreground text-lg">Loading workflow stats...</div>
-      </div>
-    );
+    return <WorkflowStatsSkeleton />;
   }
 
   if (error && !workflow) {
@@ -180,7 +178,7 @@ export default function WorkflowStatsPage() {
           </div>
           <div className="flex gap-2">
             <Button
-              href={`/workflow/${workflow?.id}/view`}
+              href={`/workflow/${workflow?.id}/execution`}
               variant="secondary"
               className="flex items-center gap-2"
             >
@@ -243,7 +241,7 @@ export default function WorkflowStatsPage() {
           {recentExecutions.length > 0 ? (
             <div className="space-y-3">
               {recentExecutions.map((execution) => (
-                <div key={execution.id} className="flex items-center justify-between p-4 bg-background-extra-light rounded-lg">
+                <div key={execution.id} className="flex items-center justify-between p-4 bg-background-extra-light rounded-lg hover:bg-background-extra-light/80 transition-colors">
                   <div className="flex items-center gap-3">
                     <div className={`flex items-center gap-2 ${getStatusColor(execution.status)}`}>
                       {getStatusIcon(execution.status)}
@@ -264,6 +262,13 @@ export default function WorkflowStatsPage() {
                         {execution.error}
                       </div>
                     )}
+                    <Button
+                      href={execution.url}
+                      variant="tertiary"
+                      className="!bg-transparent !p-0 underline hover:text-primary-light text-sm"
+                    >
+                      View Details →
+                    </Button>
                   </div>
                 </div>
               ))}

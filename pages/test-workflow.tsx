@@ -1,6 +1,11 @@
 import { useState } from 'react';
-import WorkflowBuilderReactFlow from '@/components/WorkflowBuilderReactFlow';
+import dynamic from 'next/dynamic';
 import { NodeData, Connection } from '@/lib/workflow-types';
+
+const WorkflowBuilderReactFlow = dynamic(() => import('@/components/WorkflowBuilderReactFlow'), {
+  ssr: false,
+  loading: () => <div className="flex items-center justify-center h-screen">Loading workflow builder...</div>
+});
 
 // Sample workflow data for testing
 const sampleNodes: NodeData[] = [
@@ -22,6 +27,7 @@ const sampleNodes: NodeData[] = [
     y: 100,
     label: 'gpt-4o',
     aiConfig: {
+      model: 'openai/gpt-4o',
       systemPrompt: 'You are an expert PM that analyzes meeting notes.',
       userPrompt: '{{ entry.fields.notes }}',
       outputType: 'JSON',

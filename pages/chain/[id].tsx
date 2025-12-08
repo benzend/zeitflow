@@ -193,7 +193,7 @@ export default function ChainDetail() {
   const { id } = router.query;
 
   // Safely get available variables for editing
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   const getEditStepSuggestions = () => {
     try {
       if (!chainSteps || !Array.isArray(chainSteps) || !editingStepId) {
@@ -208,7 +208,7 @@ export default function ChainDetail() {
   };
 
   // Safely get available variables for new step
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   const getNewStepSuggestions = () => {
     try {
       if (!chainSteps || !Array.isArray(chainSteps)) {

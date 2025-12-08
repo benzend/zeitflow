@@ -76,12 +76,9 @@ const WorkflowCard = ({ workflow, onDelete }: { workflow: Workflow; onDelete: (i
             <Settings size={14} />
             Edit
           </Button>
-          <Button variant="primary" size="sm" onClick={runWorkflow}>
+          <Button variant="primary" size="sm" href={`/workflow/${workflow.id}/execution`}>
             <Play size={14} />
             Run
-          </Button>
-          <Button variant="primary" size="sm" href={`/workflow/${workflow.id}/view`}>
-            View
           </Button>
         </div>
         <Button

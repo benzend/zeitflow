@@ -139,6 +139,7 @@ function convertYamlNodeToNodeData(yamlNode: Record<string, unknown>): NodeData 
     }));
   } else if (nodeType === 'ai') {
     node.aiConfig = {
+      model: typeof yamlNode.model === 'string' ? yamlNode.model : 'google/gemini-2.0-flash-001',
       systemPrompt: typeof yamlNode.systemPrompt === 'string' ? yamlNode.systemPrompt : '',
       userPrompt: typeof yamlNode.userPrompt === 'string' ? yamlNode.userPrompt : '{{ entry.fields.notes }}',
       outputType: typeof yamlNode.outputType === 'string' ? yamlNode.outputType : 'text',

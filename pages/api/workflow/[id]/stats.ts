@@ -95,7 +95,7 @@ export default async function handler(
       if (completedExecutions.length > 0) {
         const durations = completedExecutions
           .filter(e => e.startedAt && e.completedAt)
-          .map(e => new Date(e.startedAt!).getTime() - new Date(e.completedAt!).getTime());
+          .map(e => Math.abs(new Date(e.startedAt!).getTime() - new Date(e.completedAt!).getTime()));
         if (durations.length > 0) {
           averageDuration = durations.reduce((sum, duration) => sum + duration, 0) / durations.length;
         }
@@ -109,8 +109,9 @@ export default async function handler(
         completedAt: execution.completedAt,
         error: execution.error,
         duration: execution.startedAt && execution.completedAt
-          ? new Date(execution.startedAt).getTime() - new Date(execution.completedAt).getTime()
-          : null
+          ? Math.abs(new Date(execution.startedAt).getTime() - new Date(execution.completedAt).getTime())
+          : null,
+        url: `/workflow/execution/${execution.id}`
       }));
 
       return res.status(200).json({

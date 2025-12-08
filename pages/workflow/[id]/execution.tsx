@@ -6,6 +6,7 @@ import { Button } from "@/components/Button";
 import { NodeData, Field } from '@/lib/workflow-types';
 import ThemeToggle from '@/components/ThemeToggle';
 import ProfileDropdown from "@/components/ProfileDropdown";
+import WorkflowExecutionSkeleton from "@/components/WorkflowExecutionSkeleton";
 
 interface Workflow {
   id: number;
@@ -16,7 +17,7 @@ interface Workflow {
   updatedAt: string;
 }
 
-export default function WorkflowBuilderPage() {
+export default function WorkflowExecutionPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const { id } = router.query;
@@ -180,11 +181,7 @@ export default function WorkflowBuilderPage() {
 
 
   if (status === "loading" || loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-foreground text-lg">Loading workflow...</div>
-      </div>
-    );
+    return <WorkflowExecutionSkeleton />;
   }
 
   if (error && !workflow) {
@@ -237,12 +234,20 @@ export default function WorkflowBuilderPage() {
             <h1 className="text-3xl font-bold text-primary mb-2">{workflow?.name || "Workflow"}</h1>
             <p className="text-foreground-light">Workflow execution details</p>
           </div>
-            <Button
-              href={`/workflow/${workflow?.id}/edit`}
-              variant="primary"
-            >
-              Edit Workflow
-            </Button>
+             <div className="flex gap-4">
+               <Button
+                 href={`/workflow/${workflow?.id}`}
+                 variant="secondary"
+               >
+                 View Stats
+               </Button>
+               <Button
+                 href={`/workflow/${workflow?.id}/edit`}
+                 variant="primary"
+               >
+                 Edit Workflow
+               </Button>
+             </div>
         </div>
 
         {/* Content */}
@@ -271,20 +276,29 @@ export default function WorkflowBuilderPage() {
                         {executing ? 'Executing...' : 'Execute Workflow'}
                       </Button>
                     </form>
-                    {executionResult && (
-                      <div className={`mt-4 p-3 rounded ${executionResult.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                        {executionResult.success ? (
-                          <div>
-                            <p className="font-medium">Workflow executed successfully!</p>
-                            {executionResult.executionId && (
-                              <p className="text-sm">Execution ID: {executionResult.executionId}</p>
-                            )}
-                          </div>
-                        ) : (
-                          <p className="font-medium">{executionResult.error}</p>
-                        )}
-                      </div>
-                    )}
+                     {executionResult && (
+                       <div className={`mt-4 p-3 rounded ${executionResult.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                         {executionResult.success ? (
+                           <div>
+                             <p className="font-medium">Workflow executed successfully!</p>
+                             {executionResult.executionId && (
+                               <div className="mt-2">
+                                 <p className="text-sm">Execution ID: {executionResult.executionId}</p>
+                                 <Button
+                                   href={`/workflow/execution/${executionResult.executionId}`}
+                                   variant="tertiary"
+                                   className="!bg-transparent !p-0 underline hover:text-primary-light text-sm mt-1"
+                                 >
+                                   View Execution Details →
+                                 </Button>
+                               </div>
+                             )}
+                           </div>
+                         ) : (
+                           <p className="font-medium">{executionResult.error}</p>
+                         )}
+                       </div>
+                     )}
                   </div>
                 ) : (
                   <div>

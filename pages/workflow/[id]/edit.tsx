@@ -7,6 +7,7 @@ import { Button } from "@/components/Button";
 import ThemeToggle from "@/components/ThemeToggle";
 import WorkflowBuilderReactFlow, { WorkflowBuilderRef } from "@/components/WorkflowBuilderReactFlow";
 import { NodeData, Connection } from '@/lib/workflow-types';
+import WorkflowEditSkeleton from "@/components/WorkflowEditSkeleton";
 
 interface Workflow {
   id: number;
@@ -166,11 +167,7 @@ export default function WorkflowBuilderPage() {
   };
 
   if (status === "loading" || loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-foreground text-lg">Loading workflow...</div>
-      </div>
-    );
+    return <WorkflowEditSkeleton />;
   }
 
   if (error && !workflow) {

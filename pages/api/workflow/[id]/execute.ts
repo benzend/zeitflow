@@ -85,64 +85,7 @@ export default async function handler(
       inputData: JSON.stringify(req.body.inputData || {}),
     }).returning();
 
-    // Simple execution logic - process nodes in order
-    // This is a basic implementation; in production, you'd want proper workflow engine
-    let currentNodeId = connections.find(c => !connections.some(other => other.toNodeId === c.fromNodeId))?.fromNodeId;
-
-    let outputData: Record<string, any> = {};
-
-    while (currentNodeId) {
-      const node = nodes.find(n => n.id === currentNodeId);
-      if (!node) break;
-
-      const config = JSON.parse(node.config || '{}');
-
-      switch (node.type) {
-        case 'entry':
-          switch (node.entryType) {
-            case 'api':
-              console.warn('API call not implemented yet');
-              break;
-            case 'form':
-              outputData['userInput'] = req.body;
-              break;
-             default:
-               // TODO: Implement API call
-               break;
-           }
-           break;
-        case 'ai':
-          if (!outputData['userInput']) {
-            console.warn('AI call requires user input');
-            break;
-          }
-
-          const aiConfig = config.aiConfig || {};
-
-          const aiResponse = await chat(outputData['userInput'], aiConfig.model, { systemPrompt: aiConfig.systemPrompt });
-
-          if ('error' in aiResponse && aiResponse.error) {
-            outputData[node.id] = { error: aiResponse.error };
-            console.error('AI call error:', aiResponse.error);
-            break;
-          }
-          outputData[node.id] = { response: aiResponse.text };
-          break;
-        case 'scheduler':
-          // TODO: Implement scheduler call
-          break;
-        case 'review':
-          // TODO: Implement review call
-          break;
-        case 'slack':
-          // TODO: Implement slack call
-          break;
-      }
-
-      // Move to next node
-      const nextConnection = connections.find(c => c.fromNodeId === currentNodeId);
-      currentNodeId = nextConnection?.toNodeId;
-    }
+    const outputData = await executeWorkflow(workflowId, userId, req.body.inputData || {}, connections, nodes, req);
 
     // Update execution status
     await db.update(workflowExecutionsTable)
@@ -153,9 +96,73 @@ export default async function handler(
       })
       .where(eq(workflowExecutionsTable.id, execution.id));
 
-    res.status(200).json({ success: true, executionId: execution.id });
+    res.status(200).json({ success: true, executionId: execution.id, outputData });
   } catch (error) {
     console.error('Workflow execution error:', error);
     res.status(500).json({ error: 'Failed to execute workflow' });
   }
+}
+
+async function executeWorkflow(workflowId: number, userId: string, inputData: Record<string, any>, connections: any[], nodes: any[], req: any) {
+  let currentNodeId = connections.find(c => !connections.some(other => other.toNodeId === c.fromNodeId))?.fromNodeId;
+
+  const outputData: Record<string, any> = {};
+
+  while (currentNodeId) {
+    const node = nodes.find(n => n.id === currentNodeId);
+    if (!node) break;
+
+    const config = JSON.parse(node.config || '{}');
+
+    switch (node.type) {
+      case 'entry':
+        switch (node.entryType) {
+          case 'api':
+            console.warn('API call not implemented yet');
+            break;
+          case 'form':
+            outputData['userInput'] = req.body;
+            break;
+           default:
+             // TODO: Implement API call
+             break;
+         }
+         break;
+      case 'ai':
+        if (!outputData['userInput']) {
+          console.warn('AI call requires user input');
+          break;
+        }
+
+        const aiConfig = config.aiConfig || {};
+
+        const userInput = JSON.stringify(outputData['userInput']);
+
+        const aiResponse = await chat(userInput, aiConfig.model, { systemPrompt: aiConfig.systemPrompt });
+
+        if ('error' in aiResponse && aiResponse.error) {
+          outputData[node.id] = { error: aiResponse.error };
+          console.error('AI call error:', aiResponse.error);
+          break;
+        }
+        outputData[node.id] = { response: aiResponse.text };
+        console.log('AI call response:', aiResponse.text);
+        break;
+      case 'scheduler':
+        // TODO: Implement scheduler call
+        break;
+      case 'review':
+        // TODO: Implement review call
+        break;
+      case 'slack':
+        // TODO: Implement slack call
+        break;
+    }
+
+    // Move to next node
+    const nextConnection = connections.find(c => c.fromNodeId === currentNodeId);
+    currentNodeId = nextConnection?.toNodeId;
+  }
+
+  return outputData;
 }
