@@ -43,13 +43,14 @@ export default async function handler(
     return res.status(404).json({ error: 'Workflow not found' });
   }
 
-  let userId: number | null = null;
+  let userId: string = '';
 
-  if (nodes[0].type === 'entry') {
-    userId = parseInt(workflow.userId as string, 10); // we'll need to authenticate endpoints differently in the future
+  if (nodes[0].type === 'entry' && nodes[0].entryType === 'api') {
+    userId = workflow.userId; // we'll need to authenticate endpoints differently in the future
   } else {
     const session = await getServerSession(req, res, authOptions);
-    if (!session?.user?.email) {
+    const emailExists = !!session?.user?.email;
+    if (!emailExists) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
@@ -62,7 +63,7 @@ export default async function handler(
       return res.status(401).json({ error: 'User not found' });
     }
 
-    userId = parseInt(user[0].id as string, 10);
+    userId = user[0].id;
   }
 
   if (workflow.userId !== userId.toString()) {
@@ -88,40 +89,53 @@ export default async function handler(
     // This is a basic implementation; in production, you'd want proper workflow engine
     let currentNodeId = connections.find(c => !connections.some(other => other.toNodeId === c.fromNodeId))?.fromNodeId;
 
+    let outputData: Record<string, any> = {};
+
     while (currentNodeId) {
       const node = nodes.find(n => n.id === currentNodeId);
       if (!node) break;
 
       const config = JSON.parse(node.config || '{}');
 
-      if (node.type === 'review') {
-        // For review nodes, check if meeting creation is confirmed
-        if (config.reviewConfig?.meetingConfirmed && config.schedulerConfig) {
-          try {
-            // Find available slots
-            const slots = await CalendarService.findAvailableSlots(
-              userId.toString(),
-              config.schedulerConfig.people || [],
-              parseInt(config.schedulerConfig.minTimeRequirement) || 60
-            );
-
-            // In a real implementation, you'd return slots to frontend for user selection
-            // For now, auto-select first slot
-            if (slots.length > 0) {
-              const selectedSlot = slots[0];
-              await CalendarService.createMeeting(
-                userId.toString(),
-                `Meeting from workflow: ${workflow.name}`,
-                selectedSlot.start,
-                selectedSlot.end,
-                config.schedulerConfig.people || []
-              );
-            }
-          } catch (error) {
-            console.error('Calendar integration error:', error);
-            // Continue execution even if calendar fails
+      switch (node.type) {
+        case 'entry':
+          switch (node.entryType) {
+            case 'api':
+              console.warn('API call not implemented yet');
+              break;
+            case 'form':
+              outputData['userInput'] = req.body;
+              break;
+            default:
+              // TODO: Implement API call
+              break;
+          break;
+        case 'ai':
+          if (!outputData['userInput']) {
+            console.warn('AI call requires user input');
+            break;
           }
-        }
+
+          const aiConfig = JSON.parse(node.aiConfig || '{}');
+
+          const aiResponse = await chat(outputData['userInput'], aiConfig.model, { systemPrompt: aiConfig.systemPrompt });
+
+          if (aiResponse.error) {
+            outputData[node.id] = { error: aiResponse.error };
+            console.error('AI call error:', aiResponse.error);
+            break;
+          }
+          outputData[node.id] = { response: aiResponse.text };
+          break;
+        case 'scheduler':
+          // TODO: Implement scheduler call
+          break;
+        case 'review':
+          // TODO: Implement review call
+          break;
+        case 'slack':
+          // TODO: Implement slack call
+          break;
       }
 
       // Move to next node
@@ -131,7 +145,11 @@ export default async function handler(
 
     // Update execution status
     await db.update(workflowExecutionsTable)
-      .set({ status: 'completed', completedAt: new Date() })
+      .set({
+        status: 'completed',
+        completedAt: new Date(),
+        outputData: JSON.stringify(outputData),
+      })
       .where(eq(workflowExecutionsTable.id, execution.id));
 
     res.status(200).json({ success: true, executionId: execution.id });
