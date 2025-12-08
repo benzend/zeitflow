@@ -237,12 +237,12 @@ export default function WorkflowBuilderPage() {
             <h1 className="text-3xl font-bold text-primary mb-2">{workflow?.name || "Workflow"}</h1>
             <p className="text-foreground-light">Workflow execution details</p>
           </div>
-          <Button
-            href={`/workflow/${workflow?.id}`}
-            variant="primary"
-          >
-            Edit Workflow
-          </Button>
+            <Button
+              href={`/workflow/${workflow?.id}/edit`}
+              variant="primary"
+            >
+              Edit Workflow
+            </Button>
         </div>
 
         {/* Content */}

@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { workflowsTable, workflowNodesTable, workflowConnectionsTable, workflowExecutionsTable, usersTable } from "@/schema";
 import { eq } from "drizzle-orm";
 import { CalendarService } from "@/lib/calendar";
+import { chat } from "@/lib/openrouter";
 
 export default async function handler(
   req: NextApiRequest,
@@ -30,7 +31,7 @@ export default async function handler(
     return res.status(404).json({ error: 'Invalid workflow. No nodes found' });
   }
 
-    // Verify workflow exists and belongs to user
+  // Verify workflow exists and belongs to user
   const [workflow] = await db
     .select()
     .from(workflowsTable)
@@ -49,8 +50,7 @@ export default async function handler(
     userId = workflow.userId; // we'll need to authenticate endpoints differently in the future
   } else {
     const session = await getServerSession(req, res, authOptions);
-    const emailExists = !!session?.user?.email;
-    if (!emailExists) {
+    if (!session?.user?.email) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
@@ -106,21 +106,22 @@ export default async function handler(
             case 'form':
               outputData['userInput'] = req.body;
               break;
-            default:
-              // TODO: Implement API call
-              break;
-          break;
+             default:
+               // TODO: Implement API call
+               break;
+           }
+           break;
         case 'ai':
           if (!outputData['userInput']) {
             console.warn('AI call requires user input');
             break;
           }
 
-          const aiConfig = JSON.parse(node.aiConfig || '{}');
+          const aiConfig = config.aiConfig || {};
 
           const aiResponse = await chat(outputData['userInput'], aiConfig.model, { systemPrompt: aiConfig.systemPrompt });
 
-          if (aiResponse.error) {
+          if ('error' in aiResponse && aiResponse.error) {
             outputData[node.id] = { error: aiResponse.error };
             console.error('AI call error:', aiResponse.error);
             break;

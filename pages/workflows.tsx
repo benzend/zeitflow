@@ -39,7 +39,10 @@ const WorkflowCard = ({ workflow, onDelete }: { workflow: Workflow; onDelete: (i
   
   return (
     <div className="flex flex-col justify-between rounded-lg shadow hover:shadow-md transition duration-200 bg-background-light overflow-hidden">
-      <div className="p-4">
+      <div
+        className="p-4 cursor-pointer h-full hover:bg-background-extra-light transition-colors"
+        onClick={() => window.location.href = `/workflow/${workflow.id}`}
+      >
         <div className="flex justify-between items-start">
           <div className="flex-1">
             <h3 className="text-md text-foreground font-semibold mb-2">{workflow.name}</h3>
@@ -48,8 +51,8 @@ const WorkflowCard = ({ workflow, onDelete }: { workflow: Workflow; onDelete: (i
             )}
             <div className="flex items-center gap-2">
               <span className={`px-2 py-1 rounded-full text-xs ${
-                workflow.status === 'published' 
-                  ? 'bg-green-100 text-green-800' 
+                workflow.status === 'published'
+                  ? 'bg-green-100 text-green-800'
                   : workflow.status === 'draft'
                   ? 'bg-yellow-100 text-yellow-800'
                   : 'bg-gray-100 text-gray-800'
@@ -66,7 +69,7 @@ const WorkflowCard = ({ workflow, onDelete }: { workflow: Workflow; onDelete: (i
       <div className="flex justify-between items-center p-4 border-t border-primary/10">
         <div className="flex gap-2">
           <Button
-            href={`/workflow/${workflow.id}`}
+            href={`/workflow/${workflow.id}/edit`}
             variant="tertiary"
             size="sm"
           >
