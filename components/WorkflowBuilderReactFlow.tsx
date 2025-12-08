@@ -58,18 +58,23 @@ const FIELD_TYPE_OPTIONS: DropdownOption[] = [
   { value: 'file', label: 'File Upload' },
 ];
 
+const API_FIELD_TYPE_OPTIONS: DropdownOption[] = [
+  { value: 'string', label: 'String' },
+  { value: 'json', label: 'JSON' },
+  { value: 'number', label: 'Number' },
+  { value: 'boolean', label: 'Boolean' },
+  { value: 'date', label: 'Date' },
+  { value: 'file', label: 'File' },
+];
+
 const ENTRY_TYPE_OPTIONS: DropdownOption[] = [
-  { value: 'endpoint', label: 'Endpoint' },
-  { value: 'webhook', label: 'Webhook' },
   { value: 'api', label: 'API' },
   { value: 'form', label: 'Form' },
-  { value: 'trigger', label: 'Trigger' },
 ];
 
 const NODE_TYPE_OPTIONS: DropdownOption[] = [
   { value: 'entry', label: 'Entry' },
   { value: 'ai', label: 'AI Model' },
-  { value: 'scheduler', label: 'Scheduler' },
 ];
 
 // Wrapper component to provide React Flow context
@@ -123,7 +128,7 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
         id: generateNodeId(),
         type,
         label: type === 'entry' ? 'Entry' : type === 'ai' ? 'AI Model' : type === 'scheduler' ? 'Scheduler' : 'Review',
-        ...(type === 'entry' ? { fields: [], entryType: 'endpoint' } :
+        ...(type === 'entry' ? { fields: [], entryType: 'api' } :
           type === 'ai' ? {
             aiConfig: {
               model: 'google/gemini-2.0-flash-001',
@@ -532,75 +537,145 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
                   Entry Type
                 </label>
                  <Dropdown
-                   value={selectedNodeData.entryType || 'endpoint'}
+                   value={selectedNodeData.entryType || 'api'}
                    onChange={(value) => updateNodeData(selectedNode!, { entryType: value })}
                    options={ENTRY_TYPE_OPTIONS}
                    className="h-[32px]"
                  />
               </div>
 
-              <div className="mb-[12px]">
-                <h3 className="text-foreground text-lg font-bold mb-[4px]">
-                  Fields
-                </h3>
-              </div>
-
-              <div className="space-y-[16px]">
-                <div className="grid grid-cols-2 gap-4 pb-[8px] border-b border-border">
-                  <p className="text-foreground-light text-[12px] font-medium">
-                    Field Name
-                  </p>
-                  <p className="text-foreground-light text-[12px] font-medium">
-                    Input Type
-                  </p>
+              {selectedNodeData.entryType === 'api' ? (
+                <>
+                <div className="mb-[12px]">
+                  <h3 className="text-foreground text-lg font-bold mb-[4px]">
+                    Set Expected API Input
+                  </h3>
                 </div>
 
-                {(selectedNodeData.fields || []).map((field) => (
-                  <div key={field.id} className="space-y-2">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-background-extra-light border-border border-[0.5px] h-[32px] rounded-[8px] overflow-hidden">
-                        <input
-                          type="text"
-                          value={field.key}
-                          onChange={(e) => updateField(field.id, { key: e.target.value })}
-                          placeholder="Field name"
-                          className="bg-transparent h-full w-full px-[12px] text-[12px] text-foreground placeholder-text-placeholder outline-none"
+                <div className="space-y-[16px]">
+                  <div className="grid grid-cols-2 gap-4 pb-[8px] border-b border-border">
+                    <p className="text-foreground-light text-[12px] font-medium">
+                      Key
+                    </p>
+                    <p className="text-foreground-light text-[12px] font-medium">
+                      Type
+                    </p>
+                  </div>
+
+                  {(selectedNodeData.fields || []).map((field) => (
+                    <div key={field.id} className="space-y-2">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-background-extra-light border-border border-[0.5px] h-[32px] rounded-[8px] overflow-hidden">
+                          <input
+                            type="text"
+                            value={field.key}
+                            onChange={(e) => updateField(field.id, { key: e.target.value })}
+                            placeholder="Field name"
+                            className="bg-transparent h-full w-full px-[12px] text-[12px] text-foreground placeholder-text-placeholder outline-none"
+                          />
+                        </div>
+                         <Dropdown
+                          value={field.type}
+                          onChange={(value) => updateField(field.id, { type: value })}
+                          options={API_FIELD_TYPE_OPTIONS}
+                          className="h-[32px]"
                         />
                       </div>
-                       <Dropdown
-                        value={field.type}
-                        onChange={(value) => updateField(field.id, { type: value })}
-                        options={FIELD_TYPE_OPTIONS}
-                        className="h-[32px]"
-                      />
+                      <Button
+                        onClick={() => removeField(field.id)}
+                        variant="tertiary"
+                        className="!bg-transparent flex h-[8px] hover:opacity-70 items-center justify-end transition-opacity w-full !p-0"
+                      >
+                        <svg className="text-foreground-light" width="10" height="10" viewBox="0 0 10 10" fill="none">
+                          <line x1="1" y1="1" x2="9" y2="9" stroke="currentColor" strokeWidth="0.5" />
+                          <line x1="9" y1="1" x2="1" y2="9" stroke="currentColor" strokeWidth="0.5" />
+                        </svg>
+                      </Button>
                     </div>
-                    <Button
-                      onClick={() => removeField(field.id)}
-                      variant="tertiary"
-                      className="!bg-transparent flex h-[8px] hover:opacity-70 items-center justify-end transition-opacity w-full !p-0"
-                    >
-                      <svg className="text-foreground-light" width="10" height="10" viewBox="0 0 10 10" fill="none">
-                        <line x1="1" y1="1" x2="9" y2="9" stroke="currentColor" strokeWidth="0.5" />
-                        <line x1="9" y1="1" x2="1" y2="9" stroke="currentColor" strokeWidth="0.5" />
-                      </svg>
-                    </Button>
-                  </div>
-                ))}
-              </div>
-
-              <Button
-                onClick={addField}
-                variant="tertiary"
-                className="!bg-transparent border-border border-[0.5px] flex gap-3 h-[36px] hover:!bg-surface-hover items-center mt-[16px] px-[16px] rounded-[8px] transition-colors w-full"
-              >
-                <div className="flex h-[12px] items-center justify-center w-[12px]">
-                  <div className="bg-foreground-light h-[1px] w-[12px]" />
-                  <div className="absolute bg-foreground-light h-[12px] w-[1px]" />
+                  ))}
                 </div>
-                <p className="text-[12px] text-foreground font-medium">
-                  Add Field
-                </p>
-              </Button>
+
+                <Button
+                  onClick={addField}
+                  variant="tertiary"
+                  className="!bg-transparent border-border border-[0.5px] flex gap-3 h-[36px] hover:!bg-surface-hover items-center mt-[16px] px-[16px] rounded-[8px] transition-colors w-full"
+                >
+                  <div className="flex h-[12px] items-center justify-center w-[12px]">
+                    <div className="bg-foreground-light h-[1px] w-[12px]" />
+                    <div className="absolute bg-foreground-light h-[12px] w-[1px]" />
+                  </div>
+                  <p className="text-[12px] text-foreground font-medium">
+                    Add Field
+                  </p>
+                </Button>
+              </>
+
+              ) : selectedNodeData.entryType === 'form' ? (
+              <>
+                <div className="mb-[12px]">
+                  <h3 className="text-foreground text-lg font-bold mb-[4px]">
+                    Fields
+                  </h3>
+                </div>
+
+                <div className="space-y-[16px]">
+                  <div className="grid grid-cols-2 gap-4 pb-[8px] border-b border-border">
+                    <p className="text-foreground-light text-[12px] font-medium">
+                      Field Name
+                    </p>
+                    <p className="text-foreground-light text-[12px] font-medium">
+                      Input Type
+                    </p>
+                  </div>
+
+                  {(selectedNodeData.fields || []).map((field) => (
+                    <div key={field.id} className="space-y-2">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-background-extra-light border-border border-[0.5px] h-[32px] rounded-[8px] overflow-hidden">
+                          <input
+                            type="text"
+                            value={field.key}
+                            onChange={(e) => updateField(field.id, { key: e.target.value })}
+                            placeholder="Field name"
+                            className="bg-transparent h-full w-full px-[12px] text-[12px] text-foreground placeholder-text-placeholder outline-none"
+                          />
+                        </div>
+                         <Dropdown
+                          value={field.type}
+                          onChange={(value) => updateField(field.id, { type: value })}
+                          options={FIELD_TYPE_OPTIONS}
+                          className="h-[32px]"
+                        />
+                      </div>
+                      <Button
+                        onClick={() => removeField(field.id)}
+                        variant="tertiary"
+                        className="!bg-transparent flex h-[8px] hover:opacity-70 items-center justify-end transition-opacity w-full !p-0"
+                      >
+                        <svg className="text-foreground-light" width="10" height="10" viewBox="0 0 10 10" fill="none">
+                          <line x1="1" y1="1" x2="9" y2="9" stroke="currentColor" strokeWidth="0.5" />
+                          <line x1="9" y1="1" x2="1" y2="9" stroke="currentColor" strokeWidth="0.5" />
+                        </svg>
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+
+                <Button
+                  onClick={addField}
+                  variant="tertiary"
+                  className="!bg-transparent border-border border-[0.5px] flex gap-3 h-[36px] hover:!bg-surface-hover items-center mt-[16px] px-[16px] rounded-[8px] transition-colors w-full"
+                >
+                  <div className="flex h-[12px] items-center justify-center w-[12px]">
+                    <div className="bg-foreground-light h-[1px] w-[12px]" />
+                    <div className="absolute bg-foreground-light h-[12px] w-[1px]" />
+                  </div>
+                  <p className="text-[12px] text-foreground font-medium">
+                    Add Field
+                  </p>
+                </Button>
+              </>
+              ) : null}
             </div>
            ) : selectedNodeData?.type === 'ai' && selectedNodeData.aiConfig ? (
              <div className="mt-[20px] px-[20px] pb-[20px]">
@@ -651,44 +726,6 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
                   value={selectedNodeData.aiConfig.userPrompt}
                   onChange={(e) => updateAIConfig({ userPrompt: e.target.value })}
                   className="bg-transparent font-['Inter:Regular',_sans-serif] font-normal h-[119px] leading-[normal] not-italic outline-none p-4 resize-none text-sm text-foreground w-full"
-                />
-              </div>
-
-              <div className="mt-[32px] mb-[16px]">
-                <h3 className="text-foreground text-lg font-bold mb-[4px]">
-                  Expected Output
-                </h3>
-                <p className="text-text-muted text-sm">
-                  Define the output format and structure
-                </p>
-              </div>
-
-              <div className="mb-[12px]">
-                <label className="block text-foreground-light  font-medium mb-[6px]">
-                  Output Type
-                </label>
-              </div>
-
-              <div className="bg-background-extra-light border-border border-[0.5px] h-[27px] mt-[4px] overflow-clip rounded">
-                <input
-                  type="text"
-                  value={selectedNodeData.aiConfig.outputType}
-                  onChange={(e) => updateAIConfig({ outputType: e.target.value })}
-                  className="bg-transparent font-['Inter:Regular',_sans-serif] font-normal h-full leading-[normal] not-italic outline-none px-[12px] text-sm text-nowrap text-foreground w-full"
-                />
-              </div>
-
-              <div className="mt-[16px] mb-[6px]">
-                <label className="block text-foreground-light  font-medium">
-                  JSON Structure
-                </label>
-              </div>
-
-              <div className="bg-background-extra-light border-border border-[0.5px] mt-[4px] overflow-clip rounded-[10px]">
-                <textarea
-                  value={selectedNodeData.aiConfig.outputStructure}
-                  onChange={(e) => updateAIConfig({ outputStructure: e.target.value })}
-                  className="bg-transparent font-['Inter:Regular',_sans-serif] font-mono font-normal h-30 leading-[normal] not-italic outline-none p-4 resize-none text-sm text-foreground w-full"
                 />
               </div>
             </div>

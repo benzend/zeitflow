@@ -118,13 +118,10 @@ async function executeWorkflow(workflowId: number, userId: string, inputData: Re
       case 'entry':
         switch (node.entryType) {
           case 'api':
-            console.warn('API call not implemented yet');
-            break;
           case 'form':
             outputData['userInput'] = req.body;
             break;
            default:
-             // TODO: Implement API call
              break;
          }
          break;
