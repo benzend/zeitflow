@@ -231,7 +231,7 @@ export default function ExecutionDetails() {
         {execution && workflow && (
           <div className="space-y-6">
             {/* Header */}
-            <div className="flex justify-between items-start">
+            <div className="flex justify-between items-end">
               <div>
                 <h1 className="text-3xl font-bold text-primary mb-2">
                   Execution #{execution.id}
@@ -250,6 +250,15 @@ export default function ExecutionDetails() {
                     </span>
                   )}
                 </div>
+              </div>
+
+              <div>
+                <Button
+                  href={`/workflow/${workflow?.id}/execution`}
+                  variant="primary"
+                >
+                  Run Again
+                </Button>
               </div>
             </div>
 

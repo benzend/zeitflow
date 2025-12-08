@@ -2,8 +2,9 @@ import { useState, useEffect, useRef } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Play } from 'lucide-react';
 import { Button } from "@/components/Button";
+import { ButtonGroup } from "@/components/ButtonGroup";
 import ThemeToggle from "@/components/ThemeToggle";
 import WorkflowBuilderReactFlow, { WorkflowBuilderRef } from "@/components/WorkflowBuilderReactFlow";
 import { NodeData, Connection } from '@/lib/workflow-types';
@@ -212,6 +213,28 @@ export default function WorkflowBuilderPage() {
           <div className="flex items-center gap-4">
             <ThemeToggle />
 
+
+            <ButtonGroup>
+              <Button
+                variant="secondary"
+                href={`/workflow/${workflow?.id}`}
+              >
+                History
+              </Button>
+              <Button
+                variant="secondary"
+                href={`/workflow/${workflow?.id}/execution`}
+              >
+                Run
+              </Button>
+              <Button
+                onClick={triggerSave}
+                variant="primary"
+              >
+                Save
+              </Button>
+            </ButtonGroup>
+
             {lastSaved && (
               <span className="text-sm text-text-muted">
                 Saved at {lastSaved.toLocaleTimeString()}
@@ -228,15 +251,6 @@ export default function WorkflowBuilderPage() {
                 {saving ? 'Saving...' : 'Saved'}
               </span>
             </div>
-
-            <Button
-              onClick={triggerSave}
-              variant="primary"
-              size="sm"
-              className="text-xs"
-            >
-              Save
-            </Button>
 
           </div>
         </div>

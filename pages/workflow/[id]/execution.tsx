@@ -116,7 +116,7 @@ export default function WorkflowExecutionPage() {
       const result = await response.json();
 
       if (response.ok && result.success) {
-        setExecutionResult({ success: true, executionId: result.executionId });
+        router.push(`/workflow/execution/${result.executionId}`);
       } else {
         setExecutionResult({ success: false, error: result.error || 'Failed to execute workflow' });
       }
