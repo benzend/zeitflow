@@ -29,9 +29,12 @@ export default function WorkflowExecutionPage() {
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [executing, setExecuting] = useState(false);
   const [executionResult, setExecutionResult] = useState<{success: boolean, executionId?: number, error?: string} | null>(null);
+  const [apiToken, setApiToken] = useState<string | null>(null);
+  const [loadingToken, setLoadingToken] = useState(false);
 
   const authHeaders = {
     'Content-Type': 'application/json',
+    'Authorization': apiToken ? `Bearer ${apiToken}` : 'Bearer YOUR_API_TOKEN',
   };
 
   useEffect(() => {
@@ -44,6 +47,7 @@ export default function WorkflowExecutionPage() {
 
     if (id && !Array.isArray(id)) {
       fetchWorkflow(parseInt(id, 10));
+      fetchApiToken();
     }
   }, [session, status, router, id]);
 
@@ -89,6 +93,38 @@ export default function WorkflowExecutionPage() {
       setError("An error occurred while fetching the workflow");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchApiToken = async () => {
+    try {
+      setLoadingToken(true);
+      const response = await fetch('/api/user/api-token');
+      const data = await response.json();
+
+      if (data.success) {
+        setApiToken(data.apiToken);
+      }
+    } catch (error) {
+      console.error('Failed to fetch API token:', error);
+    } finally {
+      setLoadingToken(false);
+    }
+  };
+
+  const generateNewApiToken = async () => {
+    try {
+      setLoadingToken(true);
+      const response = await fetch('/api/user/api-token', { method: 'POST' });
+      const data = await response.json();
+
+      if (data.success) {
+        setApiToken(data.apiToken);
+      }
+    } catch (error) {
+      console.error('Failed to generate new API token:', error);
+    } finally {
+      setLoadingToken(false);
     }
   };
 
@@ -324,12 +360,47 @@ export default function WorkflowExecutionPage() {
                           POST
                         </code>
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-foreground-light mb-1">Headers</label>
-                        <pre className="block bg-background-extra-light p-2 rounded text-sm text-foreground font-mono overflow-x-auto">
-                          {JSON.stringify(authHeaders, null, 2)}
-                        </pre>
-                      </div>
+                       <div>
+                         <label className="block text-sm font-medium text-foreground-light mb-1">Headers</label>
+                         <pre className="block bg-background-extra-light p-2 rounded text-sm text-foreground font-mono overflow-x-auto">
+                           {JSON.stringify(authHeaders, null, 2)}
+                         </pre>
+                       </div>
+                       <div>
+                         <label className="block text-sm font-medium text-foreground-light mb-1">Your API Token</label>
+                         <div className="bg-background-extra-light p-3 rounded">
+                           {loadingToken ? (
+                             <div className="text-sm text-foreground-light">Loading API token...</div>
+                           ) : apiToken ? (
+                             <div className="space-y-2">
+                               <div className="flex items-center justify-between">
+                                 <code className="text-sm text-foreground font-mono break-all">{apiToken}</code>
+                                 <CopyButton text={apiToken} />
+                               </div>
+                               <Button
+                                 onClick={generateNewApiToken}
+                                 variant="secondary"
+                                 size="sm"
+                                 disabled={loadingToken}
+                               >
+                                 {loadingToken ? 'Generating...' : 'Generate New Token'}
+                               </Button>
+                             </div>
+                           ) : (
+                             <div className="space-y-2">
+                               <div className="text-sm text-error">No API token found</div>
+                               <Button
+                                 onClick={generateNewApiToken}
+                                 variant="primary"
+                                 size="sm"
+                                 disabled={loadingToken}
+                               >
+                                 {loadingToken ? 'Generating...' : 'Generate API Token'}
+                               </Button>
+                             </div>
+                           )}
+                         </div>
+                       </div>
                         <div>
                           <label className="block text-sm font-medium text-foreground-light mb-1">Parameters</label>
                           <pre className="block bg-background-extra-light p-2 rounded text-sm text-foreground font-mono overflow-x-auto">
@@ -337,17 +408,19 @@ export default function WorkflowExecutionPage() {
                           </pre>
                         </div>
                         <div>
-                          <div className="flex items-center justify-between mb-1">
-                            <label className="block text-sm font-medium text-foreground-light">Example cURL</label>
-                            <CopyButton text={`curl -X POST "${window.location.origin}/api/workflow/${workflow?.id}/execute" \\
-  -H "Content-Type: application/json" \\
-  -d '${formatApiParams(entryNode.fields)}'`} />
-                          </div>
-                          <pre className="block bg-background-extra-light p-2 rounded text-sm text-foreground font-mono overflow-x-auto">
-                            {`curl -X POST "${window.location.origin}/api/workflow/${workflow?.id}/execute" \\
-  -H "Content-Type: application/json" \\
-  -d '${formatApiParams(entryNode.fields)}'`}
-                          </pre>
+                           <div className="flex items-center justify-between mb-1">
+                             <label className="block text-sm font-medium text-foreground-light">Example cURL</label>
+                             <CopyButton text={`curl -X POST "${window.location.origin}/api/workflow/${workflow?.id}/execute" \\
+   -H "Content-Type: application/json" \\
+   -H "Authorization: Bearer ${apiToken || 'YOUR_API_TOKEN'}" \\
+   -d '${formatApiParams(entryNode.fields)}'`} />
+                           </div>
+                           <pre className="block bg-background-extra-light p-2 rounded text-sm text-foreground font-mono overflow-x-auto">
+                             {`curl -X POST "${window.location.origin}/api/workflow/${workflow?.id}/execute" \\
+   -H "Content-Type: application/json" \\
+   -H "Authorization: Bearer ${apiToken || 'YOUR_API_TOKEN'}" \\
+   -d '${formatApiParams(entryNode.fields)}'`}
+                           </pre>
                         </div>
                      </div>
                   </div>

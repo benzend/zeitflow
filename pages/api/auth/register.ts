@@ -36,6 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       password: hashedPassword,
       name: name || null,
       emailVerified: null, // User needs to verify email
+      apiToken: crypto.randomUUID(), // Generate API token
     }).returning()
 
     // Send verification email

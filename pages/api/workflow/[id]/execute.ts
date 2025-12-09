@@ -47,7 +47,24 @@ export default async function handler(
   let userId: string = '';
 
   if (nodes[0].type === 'entry' && nodes[0].entryType === 'api') {
-    userId = workflow.userId; // we'll need to authenticate endpoints differently in the future
+    // Check for API token in Authorization header
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'API token required' });
+    }
+
+    const apiToken = authHeader.substring(7); // Remove 'Bearer ' prefix
+    
+    const user = await db.select()
+      .from(usersTable)
+      .where(eq(usersTable.apiToken, apiToken))
+      .limit(1);
+
+    if (user.length === 0) {
+      return res.status(401).json({ error: 'Invalid API token' });
+    }
+
+    userId = user[0].id;
   } else {
     const session = await getServerSession(req, res, authOptions);
     if (!session?.user?.email) {
