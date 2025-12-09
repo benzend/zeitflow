@@ -287,9 +287,9 @@ export default function Workflows() {
             </>
           ) : workflows.length === 0 ? (
             <div className="col-span-full text-center py-12">
-              <WorkflowIcon size={64} className="mx-auto text-gray-400 mb-4" />
-              <h3 className="text-xl font-medium text-gray-300 mb-2">No workflows yet</h3>
-              <p className="text-gray-400 mb-6">Create your first automation workflow to get started</p>
+              <WorkflowIcon size={64} className="mx-auto text-foreground-light mb-4" />
+              <h3 className="text-xl font-medium text-foreground-light mb-2">No workflows yet</h3>
+              <p className="text-foreground-light mb-6">Create your first automation workflow to get started</p>
               <Button
                 onClick={() => setShowCreateModal(true)}
                 variant="primary"
