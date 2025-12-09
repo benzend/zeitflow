@@ -11,6 +11,32 @@ type ReleaseNote = {
 
 const releaseNotes: ReleaseNote[] = [
   {
+    version: "1.7.0",
+    date: "2025-12-08",
+    features: [
+      "Added API token system for programmatic workflow access",
+      "Implemented comprehensive workflow statistics page with execution metrics",
+      "Created detailed workflow execution view with API endpoints and output tracking",
+      "Enhanced workflow builder with improved ReactFlow node organization",
+      "Added homepage video tutorial for workflow building guidance",
+      "Introduced reusable ButtonGroup and ButtonGroupItem components",
+    ],
+    improvements: [
+      "Enhanced workflow execution with detailed output data storage and retrieval",
+      "Improved workflow execution API with better response handling and error management",
+      "Updated styling across workflow pages with enhanced light theme colors",
+      "Added skeleton loading components for workflow stats, execution, and edit pages",
+      "Implemented copy-to-clipboard functionality for API tokens and execution details",
+      "Improved navigation with better breadcrumb organization and page structure",
+    ],
+    fixes: [
+      "Resolved multiple build errors across workflow and execution pages",
+      "Fixed average duration calculation in workflow statistics",
+      "Corrected progress bar visibility issues in dashboard",
+      "Fixed styling issues in ReactFlow workflow builder components",
+    ],
+  },
+  {
     version: "1.6.0",
     date: "2025-12-05",
     features: [
