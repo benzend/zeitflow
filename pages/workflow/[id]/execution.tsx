@@ -3,6 +3,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/Button";
+import { CopyButton } from "@/components/CopyButton";
 import { NodeData, Field } from '@/lib/workflow-types';
 import ThemeToggle from '@/components/ThemeToggle';
 import ProfileDropdown from "@/components/ProfileDropdown";
@@ -92,6 +93,13 @@ export default function WorkflowExecutionPage() {
   };
 
   const entryNode = nodes.find(n => n.type === 'entry');
+
+  const formatApiParams = (params: Record<string, string>) => {
+    return JSON.stringify(params.reduce((acc, field) => {
+      acc[field.key] = field.type;
+      return acc;
+    }, {} as Record<string, string>), null, 2);
+  };
 
   const handleInputChange = (key: string, value: string) => {
     setFormData(prev => ({ ...prev, [key]: value }));
@@ -322,13 +330,26 @@ export default function WorkflowExecutionPage() {
                           {JSON.stringify(authHeaders, null, 2)}
                         </pre>
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-foreground-light mb-1">Parameters</label>
-                        <pre className="block bg-background-extra-light p-2 rounded text-sm text-foreground font-mono overflow-x-auto">
-                          {JSON.stringify(entryNode.fields, null, 2)}
-                        </pre>
-                      </div>
-                    </div>
+                        <div>
+                          <label className="block text-sm font-medium text-foreground-light mb-1">Parameters</label>
+                          <pre className="block bg-background-extra-light p-2 rounded text-sm text-foreground font-mono overflow-x-auto">
+                            {formatApiParams(entryNode.fields)}
+                          </pre>
+                        </div>
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="block text-sm font-medium text-foreground-light">Example cURL</label>
+                            <CopyButton text={`curl -X POST "${window.location.origin}/api/workflow/${workflow?.id}/execute" \\
+  -H "Content-Type: application/json" \\
+  -d '${formatApiParams(entryNode.fields)}'`} />
+                          </div>
+                          <pre className="block bg-background-extra-light p-2 rounded text-sm text-foreground font-mono overflow-x-auto">
+                            {`curl -X POST "${window.location.origin}/api/workflow/${workflow?.id}/execute" \\
+  -H "Content-Type: application/json" \\
+  -d '${formatApiParams(entryNode.fields)}'`}
+                          </pre>
+                        </div>
+                     </div>
                   </div>
                 )}
               </div>
