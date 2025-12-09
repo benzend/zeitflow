@@ -130,7 +130,8 @@ export default function WorkflowExecutionPage() {
 
   const entryNode = nodes.find(n => n.type === 'entry');
 
-  const formatApiParams = (params: Record<string, string>) => {
+  const formatApiParams = (params?: Array<{ id: string, key: string, type: string }>) => {
+    if (!params) return '';
     return JSON.stringify(params.reduce((acc, field) => {
       acc[field.key] = field.type;
       return acc;
