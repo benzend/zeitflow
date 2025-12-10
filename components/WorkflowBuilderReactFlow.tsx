@@ -279,7 +279,7 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
     const currentNode = nodes.find(n => n.id === selectedNode);
 
     if (!currentNode?.data.fields) {
-      currentNode.data.fields = [];
+      currentNode?.data.fields = [];
     }
 
     updateNodeData(selectedNode, { fields: [...currentNode.data.fields, newField] });
