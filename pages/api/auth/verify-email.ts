@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import { db } from '@/lib/db'
 import { usersTable, verificationTokensTable } from '@/schema'
 import { eq, and } from 'drizzle-orm'
+import { vemetric } from '@/lib/vemetric-client'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -46,10 +47,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Update user's email verification status
-    await db
+    const [user] = await db
       .update(usersTable)
       .set({ emailVerified: new Date() })
       .where(eq(usersTable.email, email))
+      .returning()
 
     // Delete the verification token
     await db
@@ -60,6 +62,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           eq(verificationTokensTable.token, token)
         )
       )
+
+    vemetric.trackEvent('EmailVerified', {
+      userIdentifier: user.id,
+      userDisplayName: user.name || undefined,
+    });
 
     res.status(200).json({ message: 'Email verified successfully' })
   } catch (error) {

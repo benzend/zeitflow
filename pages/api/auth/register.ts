@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs'
 import { db } from '@/lib/db'
 import { usersTable } from '@/schema'
 import { eq } from 'drizzle-orm'
+import { vemetric } from '@/lib/vemetric-client'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -31,13 +32,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const hashedPassword = await bcrypt.hash(password, 12)
 
     // Create user
-    const newUser = await db.insert(usersTable).values({
+    const [newUser] = await db.insert(usersTable).values({
       email,
       password: hashedPassword,
       name: name || null,
       emailVerified: null, // User needs to verify email
       apiToken: crypto.randomUUID(), // Generate API token
     }).returning()
+
+    vemetric.trackEvent('UserInitialized', {
+      userIdentifier: newUser.id,
+      userDisplayName: newUser.name || undefined,
+    });
 
     // Send verification email
     try {
@@ -59,7 +65,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(201).json({ 
       message: 'Account created successfully! Please check your email to verify your account.',
       requiresVerification: true,
-      user: { id: newUser[0].id, email: newUser[0].email } 
+      user: { id: newUser.id, email: newUser.email } 
     })
   } catch (error) {
     console.error('Registration error:', error)
