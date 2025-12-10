@@ -7,7 +7,7 @@ import { ThemeProvider } from '@/lib/theme-context';
 
 export default function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
   return (
-    <SessionProvider session={session}>
+    <SessionProvider session={session} refetchOnWindowFocus={false}>
       <VemetricScript token={process.env.NEXT_PUBLIC_VEMETRIC_TOKEN!} />
       <ThemeProvider>
         <Component {...pageProps} />

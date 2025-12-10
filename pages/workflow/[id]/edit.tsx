@@ -1,13 +1,14 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
-import { ArrowLeft, Play } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { Button } from "@/components/Button";
 import { ButtonGroup } from "@/components/ButtonGroup";
 import ThemeToggle from "@/components/ThemeToggle";
 import WorkflowBuilderReactFlow, { WorkflowBuilderRef } from "@/components/WorkflowBuilderReactFlow";
 import { NodeData, Connection } from '@/lib/workflow-types';
+import { areWorkflowStatesEqual } from '@/lib/workflow-comparison';
 import WorkflowEditSkeleton from "@/components/WorkflowEditSkeleton";
 
 interface Workflow {
@@ -31,19 +32,11 @@ export default function WorkflowBuilderPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
-
-  useEffect(() => {
-    if (status === "loading") return;
-
-    if (!session) {
-      router.push("/auth/signin");
-      return;
-    }
-
-    if (id && !Array.isArray(id)) {
-      fetchWorkflow(parseInt(id, 10));
-    }
-  }, [session, status, router, id]);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const originalNodes = useRef<NodeData[]>([]);
+  const originalConnections = useRef<Connection[]>([]);
+  const currentNodes = useRef<NodeData[]>([]);
+  const currentConnections = useRef<Connection[]>([]);
 
   const fetchWorkflow = async (workflowId: number) => {
     try {
@@ -101,6 +94,13 @@ export default function WorkflowBuilderPage() {
 
         setNodes(parsedNodes);
         setConnections(parsedConnections);
+        
+        // Store original and current state for change detection
+        originalNodes.current = [...parsedNodes];
+        originalConnections.current = [...parsedConnections];
+        currentNodes.current = [...parsedNodes];
+        currentConnections.current = [...parsedConnections];
+        setHasUnsavedChanges(false);
       } else {
         setError(data.message || "Failed to fetch workflow");
       }
@@ -149,6 +149,13 @@ export default function WorkflowBuilderPage() {
         setNodes(updatedNodes);
         setConnections(updatedConnections);
         setLastSaved(new Date());
+        
+        // Update original and current state to reflect saved changes
+        originalNodes.current = [...updatedNodes];
+        originalConnections.current = [...updatedConnections];
+        currentNodes.current = [...updatedNodes];
+        currentConnections.current = [...updatedConnections];
+        setHasUnsavedChanges(false);
         setError("");
       } else {
         setError(data.message || "Failed to save workflow");
@@ -166,6 +173,85 @@ export default function WorkflowBuilderPage() {
       workflowBuilderRef.current.save();
     }
   };
+
+  // Check for changes using debounced comparison
+  const checkForChanges = useCallback(() => {
+    if (originalNodes.current.length === 0) return;
+    
+    const hasChanges = !areWorkflowStatesEqual(
+      originalNodes.current,
+      originalConnections.current,
+      currentNodes.current,
+      currentConnections.current
+    );
+    
+    setHasUnsavedChanges(hasChanges);
+  }, []);
+
+  // Debounced change detection
+  const debouncedCheckForChanges = useRef<NodeJS.Timeout | null>(null);
+  
+  const triggerChangeCheck = useCallback(() => {
+    if (debouncedCheckForChanges.current) {
+      clearTimeout(debouncedCheckForChanges.current);
+    }
+    debouncedCheckForChanges.current = setTimeout(checkForChanges, 500);
+  }, [checkForChanges]);
+
+  // Handle workflow changes from WorkflowBuilder
+  const handleWorkflowChange = useCallback((updatedNodes: NodeData[], updatedConnections: Connection[]) => {
+    // Store current state for comparison
+    currentNodes.current = updatedNodes;
+    currentConnections.current = updatedConnections;
+    
+    // Trigger debounced change detection
+    triggerChangeCheck();
+  }, [triggerChangeCheck]);
+
+  useEffect(() => {
+    if (status === "loading") return;
+
+    if (!session) {
+      router.push("/auth/signin");
+      return;
+    }
+
+    if (id && !Array.isArray(id)) {
+      fetchWorkflow(parseInt(id, 10));
+    }
+  }, [session, status, router, id]);
+
+  // Navigation protection
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        const message = 'You have unsaved changes. Are you sure you want to leave?';
+        e.preventDefault();
+        e.returnValue = message;
+        return message;
+      }
+    };
+
+    const handleRouteChange = () => {
+      if (hasUnsavedChanges && !confirm('You have unsaved changes. Are you sure you want to leave?')) {
+        router.events.emit('routeChangeError');
+        throw 'Route change aborted';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    router.events.on('routeChangeStart', handleRouteChange);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      router.events.off('routeChangeStart', handleRouteChange);
+      if (debouncedCheckForChanges.current) {
+        clearTimeout(debouncedCheckForChanges.current);
+      }
+    };
+  }, [hasUnsavedChanges, router]);
+
+
 
   if (status === "loading" || loading) {
     return <WorkflowEditSkeleton />;
@@ -200,9 +286,20 @@ export default function WorkflowBuilderPage() {
       {/* Header bar */}
       <div className="absolute top-0 left-0 right-0 bg-background-light border-b border-border z-20 h-16">
         <div className="flex items-center justify-between h-full px-4">
-          <Button href={`/workflow/${workflow?.id}`} variant="tertiary" className="!bg-transparent !p-0">
-            <ArrowLeft className="text-foreground hover:text-primary transition-colors p-1" />
-          </Button>
+          <button
+            onClick={() => {
+              if (hasUnsavedChanges) {
+                if (confirm('You have unsaved changes. Are you sure you want to leave?')) {
+                  router.push(`/workflow/${workflow?.id}`);
+                }
+              } else {
+                router.push(`/workflow/${workflow?.id}`);
+              }
+            }}
+            className="!bg-transparent !p-0 hover:text-primary transition-colors"
+          >
+            <ArrowLeft className="text-foreground p-1" />
+          </button>
           <div className="flex items-center gap-4">
             <h1 className="text-foreground font-semibold">{workflow?.name}</h1>
             {workflow?.description && (
@@ -210,32 +307,54 @@ export default function WorkflowBuilderPage() {
             )}
           </div>
 
-          <div className="flex items-center gap-4">
-            <ThemeToggle />
+            <div className="flex items-center gap-4">
+              <ThemeToggle />
 
+              {/* Unsaved changes warning */}
+              {hasUnsavedChanges && (
+                <span className="text-sm text-warning font-medium">
+                  You have unsaved changes
+                </span>
+              )}
 
-            <ButtonGroup>
+              <ButtonGroup>
               <Button
                 variant="secondary"
-                href={`/workflow/${workflow?.id}`}
+                onClick={() => {
+                  if (hasUnsavedChanges) {
+                    if (confirm('You have unsaved changes. Are you sure you want to leave?')) {
+                      router.push(`/workflow/${workflow?.id}`);
+                    }
+                  } else {
+                    router.push(`/workflow/${workflow?.id}`);
+                  }
+                }}
               >
                 History
               </Button>
               <Button
                 variant="secondary"
-                href={`/workflow/${workflow?.id}/execution`}
+                onClick={() => {
+                  if (hasUnsavedChanges) {
+                    if (confirm('You have unsaved changes. Are you sure you want to leave?')) {
+                      router.push(`/workflow/${workflow?.id}/execution`);
+                    }
+                  } else {
+                    router.push(`/workflow/${workflow?.id}/execution`);
+                  }
+                }}
               >
                 Run
               </Button>
               <Button
                 onClick={triggerSave}
-                variant="primary"
+                variant={hasUnsavedChanges ? "primary" : "secondary"}
               >
                 Save
               </Button>
             </ButtonGroup>
 
-            {lastSaved && (
+            {lastSaved && !hasUnsavedChanges && (
               <span className="text-sm text-text-muted">
                 Saved at {lastSaved.toLocaleTimeString()}
               </span>
@@ -246,9 +365,15 @@ export default function WorkflowBuilderPage() {
               </span>
             )}
             <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full ${saving ? 'bg-warning' : 'bg-success'}`} />
+              <div className={`w-2 h-2 rounded-full ${
+                saving ? 'bg-warning' : 
+                hasUnsavedChanges ? 'bg-warning' : 
+                'bg-success'
+              }`} />
               <span className="text-sm text-foreground">
-                {saving ? 'Saving...' : 'Saved'}
+                {saving ? 'Saving...' : 
+                 hasUnsavedChanges ? 'Unsaved' : 
+                 'Saved'}
               </span>
             </div>
 
@@ -263,6 +388,7 @@ export default function WorkflowBuilderPage() {
           initialNodes={nodes}
           initialConnections={connections}
           onSave={handleSave}
+          onChange={handleWorkflowChange}
         />
       </div>
     </div>

@@ -1,16 +1,14 @@
 'use client';
 
-import { useState, useCallback, useMemo, forwardRef, useImperativeHandle } from 'react';
+import { useState, useCallback, useMemo, forwardRef, useImperativeHandle, useEffect } from 'react';
 import {
   ReactFlow,
   addEdge,
   useNodesState,
   useEdgesState,
-  Controls,
   Background,
   BackgroundVariant,
   NodeTypes,
-  Connection,
   useReactFlow,
   ReactFlowProvider
 } from '@xyflow/react';
@@ -19,6 +17,7 @@ import '@xyflow/react/dist/style.css';
 import { Plus, Trash2 } from 'lucide-react';
 import { Button } from './Button';
 import { NodeData, Connection as WorkflowConnection } from '@/lib/workflow-types';
+import { Connection as ReactFlowConnection } from '@xyflow/react';
 import { generateNodeId } from '@/lib/workflow-utils';
 import { convertToReactFlow, convertFromReactFlow, ReactFlowNodeData } from '@/lib/reactflow-types';
 import { AI_MODELS } from '@/lib/constants';
@@ -33,10 +32,12 @@ interface WorkflowBuilderProps {
   initialNodes?: NodeData[];
   initialConnections?: WorkflowConnection[];
   onSave?: (nodes: NodeData[], connections: WorkflowConnection[]) => void;
+  onChange?: (nodes: NodeData[], connections: WorkflowConnection[]) => void;
 }
 
 export interface WorkflowBuilderRef {
   save: () => void;
+  getCurrentState: () => { nodes: NodeData[], connections: WorkflowConnection[] };
 }
 
 const nodeTypes: NodeTypes = {
@@ -81,7 +82,8 @@ const NODE_TYPE_OPTIONS: DropdownOption[] = [
 const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps>(({
   initialNodes = [],
   initialConnections = [],
-  onSave
+  onSave,
+  onChange
 }, ref) => {
   // Convert initial data to React Flow format
   const initialFlowData = useMemo(() =>
@@ -99,7 +101,7 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
 
   // Handle new connections
   const onConnect = useCallback(
-    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
+    (params: ReactFlowConnection) => setEdges((eds) => addEdge(params, eds)),
     [setEdges]
   );
 
@@ -218,9 +220,43 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
     }
   }, [nodes, edges, onSave]);
 
-  // Expose save method to parent component
+  // Get current workflow state
+  const getCurrentState = useCallback(() => {
+    const { nodes: workflowNodes, connections: workflowConnections } =
+      convertFromReactFlow(nodes, edges);
+    
+    // Create a deep copy of serializable data only
+    const serializableNodes = workflowNodes.map(node => ({
+      id: node.id,
+      type: node.type,
+      x: node.x,
+      y: node.y,
+      label: node.label,
+      fields: node.fields,
+      entryType: node.entryType,
+      aiConfig: node.aiConfig,
+      schedulerConfig: node.schedulerConfig,
+      reviewConfig: node.reviewConfig
+    }));
+
+    return {
+      nodes: serializableNodes,
+      connections: workflowConnections
+    };
+  }, [nodes, edges]);
+
+  // Notify parent of changes
+  useEffect(() => {
+    if (onChange) {
+      const currentState = getCurrentState();
+      onChange(currentState.nodes, currentState.connections);
+    }
+  }, [nodes, edges, onChange, getCurrentState]);
+
+  // Expose methods to parent component
   useImperativeHandle(ref, () => ({
-    save: handleSave
+    save: handleSave,
+    getCurrentState
   }));
 
   // Helper functions for updating node data
@@ -321,18 +357,7 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
     }
   }, [selectedNode, nodes, updateSchedulerConfig]);
 
-  const toggleTemplate = useCallback(() => {
-    if (!selectedNode) return;
-    const currentNode = nodes.find(n => n.id === selectedNode);
-    if (currentNode?.data.aiConfig) {
-      updateAIConfig({
-        hasTemplate: !currentNode.data.aiConfig.hasTemplate,
-        templateText: currentNode.data.aiConfig.hasTemplate
-          ? currentNode.data.aiConfig.templateText
-          : (currentNode.data.aiConfig.templateText || '[meeting title] | Takeaways\n\nHere\'s what we heard:\n[list of items that were said]\n\nNext steps:\n[list of actionables]\n\n[some nice-ities about the meeting]')
-      });
-    }
-  }, [selectedNode, nodes, updateAIConfig]);
+
 
   const selectedNodeData = nodes.find(n => n.id === selectedNode)?.data;
 

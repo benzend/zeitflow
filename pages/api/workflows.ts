@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "./auth/[...nextauth]";
 import { db } from "@/lib/db";
-import { workflowsTable, usersTable, workflowExecutionsTable } from "@/schema";
+import { workflowsTable, usersTable, workflowExecutionsTable, workflowNodesTable } from "@/schema";
 import { eq, sql } from "drizzle-orm";
 import { isRateLimited } from "@/lib/rate-limit";
 
@@ -94,6 +94,21 @@ export default async function handler(
           status: 'draft'
         })
         .returning();
+
+      // Create default entry node
+      const entryNodeId = crypto.randomUUID();
+      await db
+        .insert(workflowNodesTable)
+        .values({
+          id: entryNodeId,
+          workflowId: workflow.id,
+          type: 'entry',
+          positionX: 100,
+          positionY: 100,
+          label: 'API Called',
+          entryType: 'apiCalled',
+          config: JSON.stringify({})
+        });
 
       return res.status(201).json({ 
         success: true, 

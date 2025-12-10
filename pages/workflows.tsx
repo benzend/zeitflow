@@ -184,7 +184,7 @@ export default function Workflows() {
         setShowCreateModal(false);
         setNewWorkflowName("");
         setNewWorkflowDescription("");
-        router.push(`/workflow/${data.workflow.id}`);
+        router.push(`/workflow/${data.workflow.id}/edit`);
       } else {
         setError(data.message || "Failed to create workflow");
       }
