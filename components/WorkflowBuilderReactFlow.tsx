@@ -277,9 +277,12 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
       type: 'text'
     };
     const currentNode = nodes.find(n => n.id === selectedNode);
-    if (currentNode?.data.fields) {
-      updateNodeData(selectedNode, { fields: [...currentNode.data.fields, newField] });
+
+    if (!currentNode?.data.fields) {
+      currentNode.data.fields = [];
     }
+
+    updateNodeData(selectedNode, { fields: [...currentNode.data.fields, newField] });
   }, [selectedNode, nodes, updateNodeData]);
 
   const removeField = useCallback((fieldId: string) => {
