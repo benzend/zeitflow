@@ -105,8 +105,8 @@ export default async function handler(
           type: 'entry',
           positionX: 100,
           positionY: 100,
-          label: 'API Called',
-          entryType: 'apiCalled',
+          label: 'Entry',
+          entryType: 'api',
           config: JSON.stringify({})
         });
 
