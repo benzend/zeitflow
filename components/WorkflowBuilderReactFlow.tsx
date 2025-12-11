@@ -22,6 +22,7 @@ import { generateNodeId } from '@/lib/workflow-utils';
 import { convertToReactFlow, convertFromReactFlow, ReactFlowNodeData } from '@/lib/reactflow-types';
 import { AI_MODELS } from '@/lib/constants';
 import TypeaheadTextarea from './TypeaheadTextarea';
+import { ToastContainer, toast } from 'react-toastify';
 
 import EntryNode from './reactflow-nodes/EntryNode';
 import AINode from './reactflow-nodes/AINode';
@@ -120,6 +121,10 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
   const onNodeClick = useCallback((_event: React.MouseEvent, node: { id: string }) => {
     setSelectedNode(node.id);
   }, []);
+
+  const findEntryNode = () => {
+    return nodes.find(n => n.type === 'entry');
+  }
 
   // Handle canvas click (deselect)
   const onPaneClick = useCallback(() => {
@@ -422,6 +427,22 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
 
     return suggestions;
   }, [nodes, edges]);
+
+  const handleEntryNodeClick = () => {
+    const entryNode = findEntryNode();
+    if (entryNode) {
+      setSelectedNode(entryNode.id);
+      setNodes((nds) => nds.map((node) => {
+        if (node.id === entryNode.id) {
+          return { ...node, selected: true };
+        } else {
+          return { ...node, selected: false };
+        }
+      }));
+    } else {
+      toast.error('No entry node found. Please add one to the workflow.');
+    }
+  }
 
   const selectedNodeData = nodes.find(n => n.id === selectedNode)?.data;
 
@@ -789,6 +810,20 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
                  />
                </div>
 
+               <div>
+                 {getFieldSuggestions(selectedNode!).length === 0 && (
+                   <div className="mb-[16px]">
+                     <p className="block text-warning text-sm font-medium mb-[8px]">
+                       Note: Please add fields to the{" "}
+                       <button
+                         className="font-bold cursor-pointer underline"
+                         onClick={handleEntryNodeClick}>Entry node</button>
+                       to inject variables into the prompt.
+                     </p>
+                   </div>
+                 )}
+               </div>
+
                <div className="mb-[16px]">
                  <label className="block text-foreground-light font-medium mb-[8px]">
                    System Prompt
@@ -802,6 +837,7 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
                   suggestions={getFieldSuggestions(selectedNode!)}
                   className="bg-transparent font-['Inter:Regular',_sans-serif] font-normal h-[119px] leading-[normal] not-italic outline-none p-4 resize-none text-sm text-foreground w-full"
                   placeholder="Enter system prompt... Type {{ for variables"
+                  hintNoSuggestionsMessage={"No variables found"}
                 />
               </div>
 
@@ -819,6 +855,7 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
                      suggestions={getFieldSuggestions(selectedNode!)}
                      className="bg-transparent font-['Inter:Regular',_sans-serif] font-normal h-[119px] leading-[normal] not-italic outline-none p-4 resize-none text-sm text-foreground w-full"
                      placeholder="Enter user prompt... Type {{ for variables"
+                      hintNoSuggestionsMessage={"No variables found"}
                    />
                  </div>
                </div>
@@ -1059,6 +1096,7 @@ const WorkflowBuilderReactFlow = forwardRef<WorkflowBuilderRef, WorkflowBuilderP
   return (
     <ReactFlowProvider>
       <WorkflowBuilderInner {...props} ref={ref} />
+      <ToastContainer position="bottom-right" />
     </ReactFlowProvider>
   );
 });

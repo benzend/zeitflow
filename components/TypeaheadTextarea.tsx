@@ -12,6 +12,7 @@ interface TypeaheadTextareaProps {
   name?: string;
   showHint?: boolean;
   hintDuration?: number;
+  hintNoSuggestionsMessage?: string;
 }
 
 export default function TypeaheadTextarea({
@@ -25,6 +26,7 @@ export default function TypeaheadTextarea({
   name,
   showHint = true,
   hintDuration = 2000,
+  hintNoSuggestionsMessage = "No suggestions found",
 }: TypeaheadTextareaProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -127,10 +129,16 @@ export default function TypeaheadTextarea({
         name={name}
       />
       
-      {showHint && suggestions.length > 0 && !isOpen && (
+      {showHint && !isOpen && (
         <div
           className={`absolute top-2 right-2 text-xs text-inverted bg-background-light px-2 py-1 rounded border border-primary/20 transition-opacity ${showTimedHint ? 'opacity-100' : 'opacity-20'}`}>
-          Type <span className="font-mono">{"{{"}{"}}"}</span> for variables
+          {suggestions.length > 0 ? (
+            <>Type <span className="font-mono">{"{{"}{"}}"}</span> for variables</>
+          ) : (
+            <span className="text-xs text-foreground-light">
+              {hintNoSuggestionsMessage}
+            </span>
+          )}
         </div>
       )}
       
