@@ -16,11 +16,12 @@ import '@xyflow/react/dist/style.css';
 
 import { Plus, Trash2 } from 'lucide-react';
 import { Button } from './Button';
-import { NodeData, Connection as WorkflowConnection } from '@/lib/workflow-types';
+import { NodeData, Connection as WorkflowConnection, Field } from '@/lib/workflow-types';
 import { Connection as ReactFlowConnection } from '@xyflow/react';
 import { generateNodeId } from '@/lib/workflow-utils';
 import { convertToReactFlow, convertFromReactFlow, ReactFlowNodeData } from '@/lib/reactflow-types';
 import { AI_MODELS } from '@/lib/constants';
+import TypeaheadTextarea from './TypeaheadTextarea';
 
 import EntryNode from './reactflow-nodes/EntryNode';
 import AINode from './reactflow-nodes/AINode';
@@ -363,6 +364,54 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
   }, [selectedNode, nodes, updateSchedulerConfig]);
 
 
+
+  // Get field suggestions from connected nodes that come before the current AI node
+  const getFieldSuggestions = useCallback((nodeId: string): (string | { name: string, description: string })[] => {
+    const suggestions: (string | { name: string, description: string })[] = [];
+    
+    // Find all incoming edges to this node
+    const incomingEdges = edges.filter(edge => edge.target === nodeId);
+    
+    // For each incoming edge, get the source node and its fields
+    incomingEdges.forEach(edge => {
+      const sourceNode = nodes.find(n => n.id === edge.source);
+      if (sourceNode) {
+        const nodeData = sourceNode.data;
+        
+        // Add fields from entry nodes
+        if (nodeData.type === 'entry' && nodeData.fields) {
+          nodeData.fields.forEach((field: Field) => {
+            suggestions.push({
+              name: field.key,
+              description: `${nodeData.label} - ${field.type}`
+            });
+          });
+        }
+        
+        // Add AI output fields (we can suggest the node label as a variable)
+        if (nodeData.type === 'ai' && nodeData.aiConfig) {
+          suggestions.push({
+            name: nodeData.label.toLowerCase().replace(/\s+/g, '_'),
+            description: `${nodeData.label} - AI Output`
+          });
+        }
+        
+        // Add scheduler output fields
+        if (nodeData.type === 'scheduler' && nodeData.schedulerConfig) {
+          suggestions.push({
+            name: 'scheduled_time',
+            description: `${nodeData.label} - Scheduled Time`
+          });
+          suggestions.push({
+            name: 'calendar_link',
+            description: `${nodeData.label} - Calendar Link`
+          });
+        }
+      }
+    });
+
+    return suggestions;
+  }, [nodes, edges]);
 
   const selectedNodeData = nodes.find(n => n.id === selectedNode)?.data;
 
@@ -736,28 +785,33 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
                  </label>
                </div>
 
-              <div className="bg-background-extra-light mt-2 overflow-clip p-3 rounded" style={{ minHeight: selectedNodeData.aiConfig.hasTemplate ? '330px' : '71px' }}>
-                <textarea
-                  value={selectedNodeData.aiConfig.systemPrompt}
-                  onChange={(e) => updateAIConfig({ systemPrompt: e.target.value })}
-                  className="bg-transparent font-['Inter:Regular',_sans-serif] font-normal leading-[normal] mb-[7px] not-italic outline-none resize-none text-sm text-foreground w-full"
-                  rows={2}
-                />
-              </div>
-
-              <div className="mt-[20px]">
-                <label className="block text-foreground-light font-medium mb-[8px]">
-                  User Prompt
-                </label>
-              </div>
-
-              <div className="bg-background-extra-light mt-[4px] overflow-clip rounded">
-                <textarea
-                  value={selectedNodeData.aiConfig.userPrompt}
-                  onChange={(e) => updateAIConfig({ userPrompt: e.target.value })}
+               <div className="bg-background-extra-light mt-[4px] rounded">
+                <TypeaheadTextarea
+                  value={selectedNodeData.aiConfig.systemPrompt || ""}
+                  onChange={(value) => updateAIConfig({ systemPrompt: value })}
+                  suggestions={getFieldSuggestions(selectedNode!)}
                   className="bg-transparent font-['Inter:Regular',_sans-serif] font-normal h-[119px] leading-[normal] not-italic outline-none p-4 resize-none text-sm text-foreground w-full"
+                  placeholder="Enter system prompt... Type {{ for variables"
                 />
               </div>
+
+               <div className="mt-[20px]">
+                 <label className="block text-foreground-light font-medium mb-[8px]">
+                   User Prompt
+                 </label>
+               </div>
+
+               <div>
+                 <div className="bg-background-extra-light mt-[4px] rounded">
+                   <TypeaheadTextarea
+                     value={selectedNodeData.aiConfig.userPrompt}
+                     onChange={(value) => updateAIConfig({ userPrompt: value })}
+                     suggestions={getFieldSuggestions(selectedNode!)}
+                     className="bg-transparent font-['Inter:Regular',_sans-serif] font-normal h-[119px] leading-[normal] not-italic outline-none p-4 resize-none text-sm text-foreground w-full"
+                     placeholder="Enter user prompt... Type {{ for variables"
+                   />
+                 </div>
+               </div>
             </div>
           ) : selectedNodeData?.type === 'scheduler' && selectedNodeData.schedulerConfig ? (
             <div className="mt-[20px] px-[20px] pb-[20px]">

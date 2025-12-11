@@ -104,7 +104,7 @@ export default function TypeaheadTextarea({
       />
       
       {showHint && suggestions.length > 0 && !isOpen && (
-        <div className="absolute top-2 right-2 text-xs text-gray-400 bg-background-light px-2 py-1 rounded border border-primary/20">
+        <div className="absolute top-2 right-2 text-xs text-inverted bg-background-light px-2 py-1 rounded border border-primary/20">
           Type <span className="font-mono">{"{{"}{"}}"}</span> for variables
         </div>
       )}
@@ -135,11 +135,11 @@ export default function TypeaheadTextarea({
               <span className="bg-[#a3e635]/20 rounded px-1 py-0.5 text-xs font-mono text-[#a3e635]">
                 {suggestionName}
               </span>
-              <span className="text-xs text-foreground-light">
+              <span className="text-xs text-white">
                 {`{{${suggestionName}}}`}
               </span>
               {suggestionDescription && (
-                <span className="text-xs text-foreground-light min-w-30">
+                <span className="text-xs text-white min-w-30">
                   {suggestionDescription}
                 </span>
                )}

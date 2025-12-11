@@ -4,8 +4,9 @@ import { authOptions } from "../../auth/[...nextauth]";
 import { db } from "@/lib/db";
 import { workflowsTable, workflowNodesTable, workflowConnectionsTable, workflowExecutionsTable, usersTable } from "@/schema";
 import { eq } from "drizzle-orm";
-import { CalendarService } from "@/lib/calendar";
+
 import { chat } from "@/lib/openrouter";
+import { extractVariables } from "@/lib/variables-client";
 
 export default async function handler(
   req: NextApiRequest,
@@ -22,10 +23,19 @@ export default async function handler(
   }
 
   // Get workflow nodes and connections
-  const nodes = await db
+  const dbNodes = await db
     .select()
     .from(workflowNodesTable)
     .where(eq(workflowNodesTable.workflowId, workflowId));
+
+  // Map database nodes to WorkflowNode interface
+  const nodes: WorkflowNode[] = dbNodes.map(node => ({
+    id: node.id,
+    type: node.type as 'entry' | 'ai' | 'scheduler' | 'review' | 'slack',
+    label: node.label,
+    entryType: node.entryType || undefined,
+    config: node.config || undefined,
+  }));
 
   if (nodes.length === 0) {
     return res.status(404).json({ error: 'Invalid workflow. No nodes found' });
@@ -89,10 +99,17 @@ export default async function handler(
 
   try {
     // Get workflow nodes and connections
-    const connections = await db
+    const dbConnections = await db
       .select()
       .from(workflowConnectionsTable)
       .where(eq(workflowConnectionsTable.workflowId, workflowId));
+
+    // Map database connections to WorkflowConnection interface
+    const connections: WorkflowConnection[] = dbConnections.map(conn => ({
+      id: conn.id.toString(),
+      fromNodeId: conn.fromNodeId,
+      toNodeId: conn.toNodeId,
+    }));
 
     // Create execution record
     const [execution] = await db.insert(workflowExecutionsTable).values({
@@ -102,7 +119,7 @@ export default async function handler(
       inputData: JSON.stringify(req.body.inputData || {}),
     }).returning();
 
-    const outputData = await executeWorkflow(workflowId, userId, req.body.inputData || {}, connections, nodes, req);
+    const outputData = await executeWorkflow(workflowId, userId, req.body.inputData || {}, connections, nodes);
 
     // Update execution status
     await db.update(workflowExecutionsTable)
@@ -120,10 +137,117 @@ export default async function handler(
   }
 }
 
-async function executeWorkflow(workflowId: number, userId: string, inputData: Record<string, any>, connections: any[], nodes: any[], req: any) {
+interface WorkflowConnection {
+  id: string;
+  fromNodeId: string;
+  toNodeId: string;
+}
+
+interface WorkflowNode {
+  id: string;
+  type: 'entry' | 'ai' | 'scheduler' | 'review' | 'slack';
+  label: string;
+  entryType?: string;
+  config?: string;
+}
+
+/**
+ * Collects available variables from connected nodes that come before current node
+ */
+function collectAvailableVariables(
+  nodeId: string, 
+  connections: WorkflowConnection[], 
+  nodes: WorkflowNode[], 
+  inputData: Record<string, unknown>,
+  nodeOutputs: Record<string, unknown>
+): Record<string, unknown> {
+  const variables: Record<string, unknown> = {};
+  
+  // Find all incoming connections to this node
+  const incomingEdges = connections.filter(edge => edge.toNodeId === nodeId);
+  
+  // For each incoming edge, get the source node and its variables
+  incomingEdges.forEach(edge => {
+    const sourceNode = nodes.find(n => n.id === edge.fromNodeId);
+    if (sourceNode) {
+      const config = JSON.parse(sourceNode.config || '{}');
+      
+      // Add variables from entry nodes
+      if (sourceNode.type === 'entry') {
+        if (sourceNode.entryType === 'api' || sourceNode.entryType === 'form') {
+          // Add input data fields
+          if (inputData && typeof inputData === 'object') {
+            Object.keys(inputData).forEach(key => {
+              variables[key] = inputData[key];
+            });
+          }
+          
+          // Add fields from entry node configuration
+          if (config.fields && Array.isArray(config.fields)) {
+            config.fields.forEach((field: { key: string }) => {
+              if (inputData && inputData[field.key]) {
+                variables[field.key] = inputData[field.key];
+              }
+            });
+          }
+        }
+      }
+      
+      // Add AI output variables
+      if (sourceNode.type === 'ai' && nodeOutputs[sourceNode.id]) {
+        const nodeOutput = nodeOutputs[sourceNode.id] as { response?: string };
+        const nodeLabel = sourceNode.label || sourceNode.id;
+        const variableName = nodeLabel.toLowerCase().replace(/\s+/g, '_');
+        variables[variableName] = nodeOutput.response;
+      }
+      
+      // Add scheduler output variables
+      if (sourceNode.type === 'scheduler' && nodeOutputs[sourceNode.id]) {
+        const schedulerOutput = nodeOutputs[sourceNode.id] as { scheduledTime?: string; calendarLink?: string };
+        variables['scheduled_time'] = schedulerOutput.scheduledTime || '';
+        variables['calendar_link'] = schedulerOutput.calendarLink || '';
+      }
+    }
+  });
+  
+  return variables;
+}
+
+/**
+ * Substitutes variables in a prompt string with their values
+ */
+function substituteVariables(prompt: string, variables: Record<string, unknown>): string {
+  let processedPrompt = prompt;
+  
+  // Extract all variables from the prompt
+  const extractedVars = extractVariables(prompt);
+  
+  // Replace each variable with its value
+  extractedVars.forEach(varName => {
+    const regex = new RegExp(`\\{\\{${varName}\\}\\}`, 'g');
+    const value = variables[varName];
+    if (value !== undefined && value !== null) {
+      processedPrompt = processedPrompt.replace(regex, String(value));
+    } else {
+      console.warn(`Variable ${varName} not found in available variables`);
+      // Replace with empty string if variable not found
+      processedPrompt = processedPrompt.replace(regex, '');
+    }
+  });
+  
+  return processedPrompt;
+}
+
+async function executeWorkflow(
+  workflowId: number, 
+  userId: string, 
+  inputData: Record<string, unknown>, 
+  connections: WorkflowConnection[], 
+  nodes: WorkflowNode[]
+) {
   let currentNodeId = connections.find(c => !connections.some(other => other.toNodeId === c.fromNodeId))?.fromNodeId;
 
-  const outputData: Record<string, any> = {};
+  const outputData: Record<string, unknown> = {};
 
   while (currentNodeId) {
     const node = nodes.find(n => n.id === currentNodeId);
@@ -136,23 +260,40 @@ async function executeWorkflow(workflowId: number, userId: string, inputData: Re
         switch (node.entryType) {
           case 'api':
           case 'form':
-            outputData['userInput'] = req.body;
+            // Store the raw input data for variable substitution
+            outputData['userInput'] = inputData;
+            // Also store individual fields for easier access
+            if (inputData && typeof inputData === 'object') {
+              Object.assign(outputData, inputData);
+            }
             break;
            default:
              break;
          }
          break;
       case 'ai':
-        if (!outputData['userInput']) {
-          console.warn('AI call requires user input');
-          break;
-        }
-
         const aiConfig = config.aiConfig || {};
+        
+        // Collect available variables from connected nodes
+        const availableVariables = collectAvailableVariables(node.id, connections, nodes, inputData, outputData);
+        
+        // Substitute variables in system prompt
+        const systemPrompt = aiConfig.systemPrompt 
+          ? substituteVariables(aiConfig.systemPrompt, availableVariables)
+          : '';
+        
+        // Substitute variables in user prompt
+        const userPrompt = aiConfig.userPrompt 
+          ? substituteVariables(aiConfig.userPrompt, availableVariables)
+          : '';
 
-        const userInput = JSON.stringify(outputData['userInput']);
+        console.log(`AI Node ${node.id} - Available variables:`, Object.keys(availableVariables));
+        console.log(`AI Node ${node.id} - Original system prompt:`, aiConfig.systemPrompt);
+        console.log(`AI Node ${node.id} - Processed system prompt:`, systemPrompt);
+        console.log(`AI Node ${node.id} - Original user prompt:`, aiConfig.userPrompt);
+        console.log(`AI Node ${node.id} - Processed user prompt:`, userPrompt);
 
-        const aiResponse = await chat(userInput, aiConfig.model, { systemPrompt: aiConfig.systemPrompt });
+        const aiResponse = await chat(userPrompt, aiConfig.model, { systemPrompt });
 
         if ('error' in aiResponse && aiResponse.error) {
           outputData[node.id] = { error: aiResponse.error };
