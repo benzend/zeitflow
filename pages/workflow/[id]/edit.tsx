@@ -186,6 +186,9 @@ export default function WorkflowBuilderPage() {
     );
     
     setHasUnsavedChanges(hasChanges);
+    if (hasChanges) {
+      triggerSave();
+    }
   }, []);
 
   // Debounced change detection
@@ -310,13 +313,6 @@ export default function WorkflowBuilderPage() {
             <div className="flex items-center gap-4">
               <ThemeToggle />
 
-              {/* Unsaved changes warning */}
-              {hasUnsavedChanges && (
-                <span className="text-sm text-warning font-medium">
-                  You have unsaved changes
-                </span>
-              )}
-
               <ButtonGroup>
               <Button
                 variant="secondary"
@@ -346,25 +342,14 @@ export default function WorkflowBuilderPage() {
               >
                 Run
               </Button>
-              <Button
-                onClick={triggerSave}
-                variant={hasUnsavedChanges ? "primary" : "secondary"}
-              >
-                Save
-              </Button>
             </ButtonGroup>
 
-            {lastSaved && !hasUnsavedChanges && (
-              <span className="text-sm text-text-muted">
-                Saved at {lastSaved.toLocaleTimeString()}
-              </span>
-            )}
             {error && (
               <span className="text-sm text-error">
                 {error}
               </span>
             )}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 w-20">
               <div className={`w-2 h-2 rounded-full ${
                 saving ? 'bg-warning' : 
                 hasUnsavedChanges ? 'bg-warning' : 
