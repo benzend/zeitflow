@@ -86,11 +86,17 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
   onSave,
   onChange
 }, ref) => {
-  // Convert initial data to React Flow format
-  const initialFlowData = useMemo(() =>
-    convertToReactFlow(initialNodes, initialConnections),
-    [initialNodes, initialConnections]
-  );
+   // Convert initial data to React Flow format
+   const initialFlowData = useMemo(() => {
+     const flowData = convertToReactFlow(initialNodes, initialConnections);
+     // Apply edge styling to existing edges
+     flowData.edges = flowData.edges.map(edge => ({
+       ...edge,
+       type: 'smoothstep',
+       markerEnd: { type: 'arrowclosed', color: '#a3e635' }
+     }));
+     return flowData;
+   }, [initialNodes, initialConnections]);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialFlowData.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialFlowData.edges);
@@ -102,7 +108,11 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
 
   // Handle new connections
   const onConnect = useCallback(
-    (params: ReactFlowConnection) => setEdges((eds) => addEdge(params, eds)),
+    (params: ReactFlowConnection) => setEdges((eds) => addEdge({
+      ...params,
+      type: 'smoothstep',
+      markerEnd: { type: 'arrowclosed', color: '#a3e635' }
+    }, eds)),
     [setEdges]
   );
 
