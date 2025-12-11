@@ -11,6 +11,33 @@ type ReleaseNote = {
 
 const releaseNotes: ReleaseNote[] = [
   {
+    version: "1.8.0",
+    date: "2025-12-10",
+    features: [
+      "Implemented workflow update detection to prevent accidental data loss",
+      "Added comprehensive variable substitution system for workflow execution",
+      "Implemented autosaving functionality for workflow builder",
+      "Enhanced Vemetric custom event tracking for better analytics",
+      "Improved typeahead textarea with transparent hint when not focused",
+    ],
+    improvements: [
+      "Enhanced workflow builder with better node handling and field validation",
+      "Improved API token system with better integration and usage tracking",
+      "Updated workflow execution with enhanced output data handling",
+      "Streamlined workflow edit page with automatic save functionality",
+      "Enhanced variable highlighting and substitution in prompts",
+      "Improved error handling for invalid field names and node types",
+    ],
+    fixes: [
+      "Fixed build errors across multiple components and API endpoints",
+      "Resolved package management issues by standardizing on pnpm",
+      "Fixed initial node type configuration in workflow creation",
+      "Corrected field validation for workflow builder inputs",
+      "Fixed average duration calculation in workflow statistics",
+      "Resolved styling issues in workflow pages and components",
+    ],
+  },
+  {
     version: "1.7.0",
     date: "2025-12-08",
     features: [
