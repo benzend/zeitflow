@@ -184,7 +184,7 @@ export default function WorkflowExecutionPage() {
             value={value}
             onChange={(e) => handleInputChange(field.key, e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-            placeholder={field.label || field.name}
+            placeholder={field.key}
           />
         );
       case 'email':
@@ -195,7 +195,7 @@ export default function WorkflowExecutionPage() {
             value={value}
             onChange={(e) => handleInputChange(field.key, e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-            placeholder={field.label || field.name}
+            placeholder={field.key}
           />
         );
       case 'textarea':
@@ -205,7 +205,7 @@ export default function WorkflowExecutionPage() {
             value={value}
             onChange={(e) => handleInputChange(field.key, e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-            placeholder={field.label || field.name}
+            placeholder={field.key}
             rows={4}
           />
         );
@@ -217,7 +217,7 @@ export default function WorkflowExecutionPage() {
             value={value}
             onChange={(e) => handleInputChange(field.key, e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-            placeholder={field.label || field.name}
+            placeholder={field.key}
           />
         );
     }
@@ -307,7 +307,7 @@ export default function WorkflowExecutionPage() {
                       {entryNode.fields?.map((field: Field) => (
                         <div key={field.id}>
                           <label htmlFor={field.id} className="block text-sm font-medium text-foreground-light mb-1">
-                            {field.label || field.name}
+                            {field.key}
                           </label>
                           {renderFieldInput(field)}
                         </div>
