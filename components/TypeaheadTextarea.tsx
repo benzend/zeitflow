@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { useTypeahead } from "@/lib/use-typeahead";
 
 interface TypeaheadTextareaProps {
@@ -11,6 +11,7 @@ interface TypeaheadTextareaProps {
   id?: string;
   name?: string;
   showHint?: boolean;
+  hintDuration?: number;
 }
 
 export default function TypeaheadTextarea({
@@ -23,9 +24,11 @@ export default function TypeaheadTextarea({
   id,
   name,
   showHint = true,
+  hintDuration = 2000,
 }: TypeaheadTextareaProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [showTimedHint, setShowTimedHint] = useState(false);
 
   const {
     isOpen,
@@ -45,6 +48,25 @@ export default function TypeaheadTextarea({
       setTextareaRef(textareaRef.current);
     }
   }, [setTextareaRef]);
+
+  // Handle hint timer
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    
+    if (showTimedHint) {
+      timer = setTimeout(() => {
+        setShowTimedHint(false);
+      }, hintDuration);
+    }
+    
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [showTimedHint, hintDuration]);
+
+  const handleFocus = () => {
+    setShowTimedHint(true);
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = e.target.value;
@@ -96,6 +118,8 @@ export default function TypeaheadTextarea({
         onChange={handleInputChange}
         onKeyDown={handleKeyDownEvent}
         onClick={handleTextareaClick}
+        onFocus={handleFocus}
+        onBlur={() => setShowTimedHint(false)}
         className={className}
         placeholder={placeholder}
         required={required}
@@ -104,7 +128,8 @@ export default function TypeaheadTextarea({
       />
       
       {showHint && suggestions.length > 0 && !isOpen && (
-        <div className="absolute top-2 right-2 text-xs text-inverted bg-background-light px-2 py-1 rounded border border-primary/20">
+        <div
+          className={`absolute top-2 right-2 text-xs text-inverted bg-background-light px-2 py-1 rounded border border-primary/20 transition-opacity ${showTimedHint ? 'opacity-100' : 'opacity-20'}`}>
           Type <span className="font-mono">{"{{"}{"}}"}</span> for variables
         </div>
       )}
