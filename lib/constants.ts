@@ -1,4 +1,4 @@
-export const GODMODE_EMAILS = ['benjamin.scottt.dev@gmail.com', 'benn.jscott@gmail.com', 'benn.jscott+dev@gmail.com', 'shan.asif95@gmail.com'];
+export const GODMODE_EMAILS = ['benjamin.scottt.dev@gmail.com', 'benn.jscott@gmail.com', 'benn.jscott+dev@gmail.com', 'shan.asif95@gmail.com', 'dominik@seriouscode.io'];
 
 export const AI_MODELS = [
   { value: 'openai/gpt-4o', label: 'GPT-4o' },
