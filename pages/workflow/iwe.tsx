@@ -6,6 +6,7 @@ import { ArrowLeft, SendHorizontal, Workflow as WorkflowIcon, Files, Plus, Loade
 import { Button } from "@/components/Button";
 import { parseWorkflowFromText, ParsedWorkflow } from "@/lib/workflow-parser";
 import { marked } from 'marked';
+import ChatHistorySkeleton from "@/components/ChatHistorySkeleton";
 
 // Configure marked for better chat rendering
 marked.setOptions({
@@ -42,9 +43,10 @@ interface ChatMessage {
 export default function WorkflowBuilderPage() {
   const { data: session, status } = useSession();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [loading, setLoading] = useState(true);
+  const [_loading, setLoading] = useState(true);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [error, setError] = useState("");
+  const [fetchingChatHistory, setFetchingChatHistory] = useState(false);
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [sidePanel, setSidePanel] = useState<'workflows' | 'files' | 'chats'>('workflows');
   const [chatThreads, setChatThreads] = useState<ChatThread[]>([]);
@@ -58,10 +60,6 @@ export default function WorkflowBuilderPage() {
   const openSidePanel = (panel: 'workflows' | 'files' | 'chats') => {
     setSidePanel(panel);
   }
-
-
-
-
 
   // Auto-scroll to bottom when new messages are added
   useEffect(() => {
@@ -110,6 +108,8 @@ export default function WorkflowBuilderPage() {
     const targetThreadId = threadId || currentThreadId;
     if (!targetThreadId) return;
 
+    setFetchingChatHistory(true);
+
     try {
       const response = await fetch(`/api/chat/workflow?threadId=${targetThreadId}`);
       const data = await response.json();
@@ -140,6 +140,8 @@ export default function WorkflowBuilderPage() {
     } catch (err) {
       console.error("Failed to fetch chat history:", err);
     }
+
+    setFetchingChatHistory(false);
   }, [currentThreadId]);
 
   // Fetch messages when current thread changes
@@ -215,27 +217,99 @@ export default function WorkflowBuilderPage() {
     if (!prompt.trim()) return;
 
     const systemPrompt = `
-Your are a helful assistant that can create workflows and maange them.
+You are a helpful assistant that creates and manages workflows.
 
-You can create a workflow by using the following syntax:
-
+WORKFLOW SYNTAX:
 workflow:
-  name: Send Actionable Summary in Slack
-  description: Send a summary of the next steps based on the notes from the user into their Slack channel.
+  name: [required] Workflow name
+  description: [optional] Workflow description  
   nodes:
-    - type: form
+    - type: [required] One of: entry, ai, scheduler, review, slack
+      [node-specific properties]
+
+NODE TYPES:
+1. entry/form - Collect user input
+   Required: fields array
+   Example:
+   - type: entry
+     fields:
+       - name: notes
+         label: Notes
+         type: textarea
+
+2. ai - Process with AI
+   Required: systemPrompt
+   Optional: model, userPrompt, outputType
+   Example:
+   - type: ai
+     systemPrompt: You summarize notes
+     model: google/gemini-2.0-flash-001
+
+3. scheduler - Schedule meetings
+   Required: people array, minTimeRequirement, calendar
+   Example:
+   - type: scheduler
+     people: ["user@example.com"]
+     minTimeRequirement: "30 minutes"
+     calendar: "primary"
+
+4. review - Review and confirm
+   No additional properties required
+   Example:
+   - type: review
+
+5. slack - Send to Slack
+   Required: channel
+   Example:
+   - type: slack
+     channel: summary
+
+VARIABLES:
+- Use {{entry.fields.fieldName}} to reference form inputs
+- Use {{previousOutput}} to reference previous AI output
+- Variables are automatically available to subsequent nodes
+
+COMMON MISTAKES TO AVOID:
+- Missing required fields for each node type
+- Invalid node types (only: entry, ai, scheduler, review, slack)
+- Incorrect YAML indentation
+- Missing workflow name
+- Using undefined variables
+
+EXAMPLE WORKFLOWS:
+
+1. Simple Notes Processing:
+workflow:
+  name: Process Meeting Notes
+  description: Extract action items from meeting notes
+  nodes:
+    - type: entry
       fields:
         - name: notes
-          label: Notes
+          label: Meeting Notes
           type: textarea
-          required: true
-
     - type: ai
-      systemPrompt: You are a helpful assistant that summarized the next steps based on the notes from the user.
-      model: gpt-3.5-turbo
+      systemPrompt: Extract action items from the meeting notes and format them as a numbered list.
+      userPrompt: "{{entry.fields.notes}}"
 
-    - type: slack
-      channel: summary
+2. Customer Support Workflow:
+workflow:
+  name: Customer Support Response
+  description: Generate professional response to customer inquiry
+  nodes:
+    - type: entry
+      fields:
+        - name: customer_issue
+          label: Customer Issue
+          type: textarea
+        - name: urgency
+          label: Urgency Level
+          type: select
+          options: ["Low", "Medium", "High"]
+    - type: ai
+      systemPrompt: You are a customer support representative. Generate a professional, empathetic response to the customer issue.
+      userPrompt: "Customer Issue: {{entry.fields.customer_issue}}\nUrgency: {{entry.fields.urgency}}"
+    - type: review
 `
 
     // Add user message to history
@@ -305,7 +379,7 @@ workflow:
 
     fetchWorkflows();
     fetchChatThreads();
-  }, [session, status, router, fetchWorkflows, fetchChatThreads]);
+  }, [session, status, router]);
 
   return (
     <div>
@@ -394,7 +468,9 @@ workflow:
           <div className="flex flex-col justify-between h-full w-7/12">
             {/* history */}
             <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
-              {chatHistory.map((message, index) => (
+              {fetchingChatHistory ? (
+                <ChatHistorySkeleton />
+              ): currentThreadId && chatHistory.map((message, index) => (
                 <div key={index} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                   <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
                     message.role === 'user'

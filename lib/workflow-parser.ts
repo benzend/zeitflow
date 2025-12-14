@@ -55,24 +55,31 @@ export const parseWorkflowFromText = (text: string): WorkflowParseResult => {
     const yamlNodes = parsedYaml.nodes || [];
 
     if (!name || typeof name !== 'string') {
-      return { workflow: null, error: 'Workflow name is required and must be a string' };
+      return { workflow: null, error: 'ERROR: Workflow name is required and must be a string. Example: name: My Workflow' };
     }
 
     if (!Array.isArray(yamlNodes) || yamlNodes.length === 0) {
-      return { workflow: null, error: 'Workflow must have at least one node' };
+      return { workflow: null, error: 'ERROR: Workflow must have at least one node. Example: nodes:\n  - type: entry\n    fields:\n      - name: notes\n        type: text' };
     }
 
     // Convert YAML nodes to NodeData format
     const nodes: NodeData[] = [];
-    for (const yamlNode of yamlNodes) {
-      const node = convertYamlNodeToNodeData(yamlNode);
-      if (node) {
-        nodes.push(node);
+    for (let i = 0; i < yamlNodes.length; i++) {
+      try {
+        const node = convertYamlNodeToNodeData(yamlNodes[i], yamlNodes);
+        if (node) {
+          nodes.push(node);
+        }
+      } catch (error) {
+        return { 
+          workflow: null, 
+          error: `ERROR in node ${i + 1}: ${error instanceof Error ? error.message : 'Unknown error'}` 
+        };
       }
     }
 
     if (nodes.length === 0) {
-      return { workflow: null, error: 'Failed to parse any valid nodes' };
+      return { workflow: null, error: 'ERROR: Failed to parse any valid nodes. Check that each node has a valid type and required properties.' };
     }
 
     // Generate connections based on node order (simple linear flow)
@@ -105,16 +112,70 @@ export const parseWorkflowFromText = (text: string): WorkflowParseResult => {
 };
 
 /**
+ * Validates a YAML node configuration
+ */
+function validateYamlNode(yamlNode: Record<string, unknown>, type: string): { isValid: boolean; error?: string } {
+  switch (type) {
+    case 'entry':
+    case 'form':
+      if (!yamlNode.fields || !Array.isArray(yamlNode.fields) || yamlNode.fields.length === 0) {
+        return { isValid: false, error: 'Entry nodes require at least one field' };
+      }
+      // Validate each field has required properties
+      for (let i = 0; i < yamlNode.fields.length; i++) {
+        const field = yamlNode.fields[i] as Record<string, unknown>;
+        if (!field.name || typeof field.name !== 'string') {
+          return { isValid: false, error: `Entry field ${i + 1} requires a name property` };
+        }
+      }
+      break;
+    case 'ai':
+      if (!yamlNode.systemPrompt || typeof yamlNode.systemPrompt !== 'string') {
+        return { isValid: false, error: 'AI nodes require a systemPrompt' };
+      }
+      break;
+    case 'scheduler':
+      if (!yamlNode.people || !Array.isArray(yamlNode.people)) {
+        return { isValid: false, error: 'Scheduler nodes require a people array' };
+      }
+      if (!yamlNode.minTimeRequirement || typeof yamlNode.minTimeRequirement !== 'string') {
+        return { isValid: false, error: 'Scheduler nodes require minTimeRequirement' };
+      }
+      if (!yamlNode.calendar || typeof yamlNode.calendar !== 'string') {
+        return { isValid: false, error: 'Scheduler nodes require calendar' };
+      }
+      break;
+    case 'slack':
+      if (!yamlNode.channel || typeof yamlNode.channel !== 'string') {
+        return { isValid: false, error: 'Slack nodes require a channel' };
+      }
+      break;
+    case 'review':
+      // Review nodes don't require additional properties
+      break;
+  }
+  return { isValid: true };
+}
+
+/**
  * Converts a YAML node object to NodeData format
  */
-function convertYamlNodeToNodeData(yamlNode: Record<string, unknown>): NodeData | null {
+function convertYamlNodeToNodeData(yamlNode: Record<string, unknown>, allNodes: Record<string, unknown>[]): NodeData | null {
   if (!yamlNode || !yamlNode.type) {
     return null;
   }
 
   const type = yamlNode.type;
-  if (typeof type !== 'string' || !['entry', 'form', 'ai', 'scheduler', 'review', 'slack'].includes(type)) {
+  const VALID_NODE_TYPES = ['entry', 'form', 'ai', 'scheduler', 'review', 'slack'];
+  
+  if (typeof type !== 'string' || !VALID_NODE_TYPES.includes(type)) {
     return null;
+  }
+
+  // Validate node configuration
+  const validation = validateYamlNode(yamlNode, type);
+  if (!validation.isValid) {
+    throw new Error(validation.error);
   }
 
   // Map 'form' to 'entry' for compatibility
@@ -138,10 +199,21 @@ function convertYamlNodeToNodeData(yamlNode: Record<string, unknown>): NodeData 
       type: String(field.type || 'text')
     }));
   } else if (nodeType === 'ai') {
+    // Find entry node to get available fields for dynamic userPrompt
+    let defaultUserPrompt = '{{ previousOutput }}'; // More reliable default
+    
+    const entryNode = allNodes.find(n => n.type === 'entry' || n.type === 'form');
+    if (entryNode && entryNode.fields && Array.isArray(entryNode.fields) && entryNode.fields.length > 0) {
+      const firstField = entryNode.fields[0] as Record<string, unknown>;
+      if (firstField.name && typeof firstField.name === 'string') {
+        defaultUserPrompt = `{{ entry.fields.${firstField.name} }}`;
+      }
+    }
+    
     node.aiConfig = {
       model: typeof yamlNode.model === 'string' ? yamlNode.model : 'google/gemini-2.0-flash-001',
       systemPrompt: typeof yamlNode.systemPrompt === 'string' ? yamlNode.systemPrompt : '',
-      userPrompt: typeof yamlNode.userPrompt === 'string' ? yamlNode.userPrompt : '{{ entry.fields.notes }}',
+      userPrompt: typeof yamlNode.userPrompt === 'string' ? yamlNode.userPrompt : defaultUserPrompt,
       outputType: typeof yamlNode.outputType === 'string' ? yamlNode.outputType : 'text',
       outputStructure: typeof yamlNode.outputStructure === 'string' ? yamlNode.outputStructure : ''
     };
