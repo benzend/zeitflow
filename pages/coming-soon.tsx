@@ -57,7 +57,7 @@ export default function ComingSoon() {
                   <Logo className="text-[#a3e635] group-hover:animate-spin-slow transition-all duration-300" />
                 </div>
                 <span className="text-xl font-bold text-[#a3e635] animate-slide-up-fade delay-100">
-                  zeitflow.io
+                  ZeitFlow
                 </span>
               </Button>
             </div>

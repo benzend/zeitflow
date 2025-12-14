@@ -25,7 +25,7 @@ export default function Home() {
               />
             </div>
             <h1 className="text-7xl font-extrabold tracking-tight text-accent drop-shadow-lg animate-slide-up-fade delay-200">
-              zeitflow.io
+              ZeitFlow
             </h1>
             <p className="text-xl text-text-muted mt-4 max-w-2xl text-center animate-slide-up-fade delay-300">
               Build thousands of workflows, fast, without running into complexity.

@@ -38,7 +38,7 @@ export default function VerifyEmail() {
   return (
     <div>
       <Head>
-        <title>Email Verification - zeitflow.io</title>
+        <title>Email Verification - ZeitFlow</title>
         <meta name="description" content="Verify your email address" />
         <link rel="icon" href="/favicon.ico" />
       </Head>

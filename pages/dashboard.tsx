@@ -251,7 +251,7 @@ export default function Dashboard() {
   return (
     <div>
       <Head>
-        <title>Dashboard - zeitflow.io</title>
+        <title>Dashboard - ZeitFlow</title>
         <meta name="description" content="Manage your AI chains" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />

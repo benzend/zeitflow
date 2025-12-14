@@ -24,7 +24,7 @@ export default function LoadingScreen() {
           <div className="absolute inset-4 border-4 border-[#a3e635] rounded-full animate-spin-slow"></div>
         </div>
         <div className="text-[#a3e635] text-xl font-bold animate-pulse">
-          Loading zeitflow.io...
+          Loading ZeitFlow...
         </div>
       </div>
     </div>

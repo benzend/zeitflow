@@ -84,8 +84,8 @@ export default function Register({ providers }: { providers: Provider[] }) {
   return (
     <div>
       <Head>
-        <title>Register - zeitflow.io</title>
-        <meta name="description" content="Create your zeitflow.io account" />
+        <title>Register - ZeitFlow</title>
+        <meta name="description" content="Create your ZeitFlow account" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 

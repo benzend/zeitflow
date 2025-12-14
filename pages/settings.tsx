@@ -91,7 +91,7 @@ export default function Settings() {
   return (
     <div>
       <Head>
-        <title>Account Settings - zeitflow.io</title>
+        <title>Account Settings - ZeitFlow</title>
         <meta name="description" content="Manage your account settings" />
         <link rel="icon" href="/favicon.ico" />
       </Head>

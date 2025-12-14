@@ -339,10 +339,10 @@ export default function ReleaseNotes() {
   return (
     <div>
       <Head>
-        <title>Release Notes - zeitflow.io</title>
+        <title>Release Notes - ZeitFlow</title>
         <meta
           name="description"
-          content="Latest updates and improvements to zeitflow.io"
+          content="Latest updates and improvements to ZeitFlow"
         />
         <link rel="icon" href="/favicon.ico" />
       </Head>
@@ -369,7 +369,7 @@ export default function ReleaseNotes() {
             Release Notes
           </h1>
           <p className="text-foreground/80">
-            Track the latest updates, features, and improvements to zeitflow.io.
+            Track the latest updates, features, and improvements to ZeitFlow.
           </p>
         </div>
 

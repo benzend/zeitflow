@@ -249,7 +249,7 @@ export default function WorkflowExecutionPage() {
   return (
     <div>
       <Head>
-        <title>{workflow?.name || "Workflow"} - zeitflow.io</title>
+        <title>{workflow?.name || "Workflow"} - ZeitFlow</title>
         <meta name="description" content="View your automation workflow" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />

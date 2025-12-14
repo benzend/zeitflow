@@ -384,7 +384,7 @@ workflow:
   return (
     <div>
       <Head>
-        <title>IWE - zeitflow.io</title>
+        <title>IWE - ZeitFlow</title>
         <meta name="description" content="Interactive Workflow Engine" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />

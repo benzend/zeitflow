@@ -9,7 +9,7 @@ const openrouter = createOpenRouter({
   apiKey: process.env.OPENROUTER_API_KEY,
   headers: {
     "HTTP-Referer": "https://zeitflow.io", // Optional. Site URL for rankings on openrouter.ai.
-    "X-Title": "zeitflow.io", // Optional. Site title for rankings on openrouter.ai.
+    "X-Title": "ZeitFlow", // Optional. Site title for rankings on openrouter.ai.
     "Content-Type": "application/json",
   }
 });
