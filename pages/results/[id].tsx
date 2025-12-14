@@ -282,7 +282,7 @@ export default function Results() {
     return (
       <div>
         <Head>
-          <title>Results - jjoist</title>
+          <title>Results - zeitflow.io</title>
           <meta name="description" content="View chain execution results" />
           <link rel="icon" href="/favicon.ico" />
         </Head>
@@ -335,7 +335,7 @@ export default function Results() {
   return (
     <div>
       <Head>
-        <title>Results - {queuedChain?.chainName || "Chain"} - jjoist</title>
+        <title>Results - {queuedChain?.chainName || "Chain"} - zeitflow.io</title>
         <meta name="description" content="View chain execution results" />
         <link rel="icon" href="/favicon.ico" />
       </Head>

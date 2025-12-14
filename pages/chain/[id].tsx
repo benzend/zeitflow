@@ -496,7 +496,7 @@ export default function ChainDetail() {
     return (
       <div>
         <Head>
-          <title>Loading Chain - jjoist</title>
+          <title>Loading Chain - zeitflow.io</title>
           <meta name="description" content="Loading chain details" />
           <link rel="icon" href="/favicon.ico" />
         </Head>
@@ -573,7 +573,7 @@ export default function ChainDetail() {
   return (
     <div>
       <Head>
-        <title>{chain.name} - jjoist</title>
+        <title>{chain.name} - zeitflow.io</title>
         <meta name="description" content={`Details for chain ${chain.name}`} />
         <link rel="icon" href="/favicon.ico" />
       </Head>

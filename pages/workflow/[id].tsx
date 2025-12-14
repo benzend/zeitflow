@@ -146,7 +146,7 @@ export default function WorkflowStatsPage() {
   return (
     <div>
       <Head>
-        <title>{workflow?.name || "Workflow"} Stats - jjoist</title>
+        <title>{workflow?.name || "Workflow"} Stats - zeitflow.io</title>
         <meta name="description" content="View workflow execution statistics and history" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />

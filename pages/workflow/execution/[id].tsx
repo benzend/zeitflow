@@ -184,7 +184,7 @@ export default function ExecutionDetails() {
   return (
     <div>
       <Head>
-        <title>Execution {execution?.id} - {workflow?.name || "Workflow"} - jjoist</title>
+        <title>Execution {execution?.id} - {workflow?.name || "Workflow"} - zeitflow.io</title>
         <meta name="description" content="View workflow execution details" />
         <link rel="icon" href="/favicon.ico" />
       </Head>

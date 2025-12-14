@@ -1,6 +1,6 @@
 {
   "project": {
-    "name": "jjoist",
+    "name": "zeitflow-ai",
     "description": "Rethinking the way you work with AI using a unique, powerful system for managing and executing AI prompt chains",
     "design_reference": "https://www.figma.com/design/WGyZiPNKkarvUQ2yp5Jd7X/Joist?node-id=0-1&t=mtcudrto30gTcYYP-1",
     "architecture": {

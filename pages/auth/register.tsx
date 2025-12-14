@@ -84,8 +84,8 @@ export default function Register({ providers }: { providers: Provider[] }) {
   return (
     <div>
       <Head>
-        <title>Register - jjoist</title>
-        <meta name="description" content="Create your jjoist account" />
+        <title>Register - zeitflow.io</title>
+        <meta name="description" content="Create your zeitflow.io account" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 

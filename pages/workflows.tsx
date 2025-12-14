@@ -220,7 +220,7 @@ export default function Workflows() {
   return (
     <div>
       <Head>
-        <title>Workflows - jjoist</title>
+        <title>Workflows - zeitflow.io</title>
         <meta name="description" content="Manage your automation workflows" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />

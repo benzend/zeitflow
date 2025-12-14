@@ -15,7 +15,7 @@ export default function Navigation() {
                 <Logo className="text-primary group-hover:animate-spin-slow transition-all duration-300" />
               </div>
               <span className="text-xl font-bold text-accent animate-slide-up-fade delay-100">
-                jjoist
+                zeitflow.io
               </span>
             </Button>
           </div>

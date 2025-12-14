@@ -116,8 +116,8 @@ export default function SignIn({ providers }: { providers: Provider[] }) {
   return (
     <div>
       <Head>
-        <title>Sign In - jjoist</title>
-        <meta name="description" content="Sign in to your jjoist account" />
+        <title>Sign In - zeitflow.io</title>
+        <meta name="description" content="Sign in to your zeitflow.io account" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
@@ -129,7 +129,7 @@ export default function SignIn({ providers }: { providers: Provider[] }) {
             <div className="-mt-4 mb-8">
               <div className="px-4 py-2 rounded-lg">
                 <h1 className="text-xl font-bold text-center text-primary">
-                  Sign In to jjoist
+                  Sign In to zeitflow.io
                 </h1>
               </div>
             </div>

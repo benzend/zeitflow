@@ -7,17 +7,17 @@ export async function sendMagicLinkEmail(email: string, url: string) {
     const { data, error } = await resend.emails.send({
       from: process.env.RESEND_FROM_EMAIL!,
       to: [email],
-      subject: 'Sign in to jjoist',
+      subject: 'Sign in to zeitflow.io',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="color: #a3e635; margin: 0;">jjoist</h1>
+            <h1 style="color: #a3e635; margin: 0;">zeitflow.io</h1>
           </div>
           
           <h2 style="color: #333; margin-bottom: 20px;">Sign in to your account</h2>
           
           <p style="color: #666; margin-bottom: 30px;">
-            Click the button below to sign in to your jjoist account. This link will expire in 24 hours.
+            Click the button below to sign in to your zeitflow.io account. This link will expire in 24 hours.
           </p>
           
           <div style="text-align: center; margin: 30px 0;">
@@ -25,7 +25,7 @@ export async function sendMagicLinkEmail(email: string, url: string) {
                style="background-color: #a3e635; color: #18181b; padding: 12px 30px; 
                       text-decoration: none; border-radius: 8px; font-weight: bold; 
                       display: inline-block;">
-              Sign In to jjoist
+              Sign In to zeitflow.io
             </a>
           </div>
           
