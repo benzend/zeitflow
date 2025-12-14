@@ -17,7 +17,7 @@ export default function Home() {
       {/* Main Content */}
       <div className="flex flex-col items-center justify-between p-8 font-sans pt-24">
         <div className="flex flex-col items-center mt-6 mb-10 w-full max-w-7xl">
-          <header className="flex flex-col items-center gap-4">
+          <header className="flex flex-col items-center gap-4 mb-10">
             <div className="relative w-32 h-32 animate-float animate-scale-in">
               <Logo
                 size={128}
@@ -30,6 +30,15 @@ export default function Home() {
             <p className="text-xl text-text-muted mt-4 max-w-2xl text-center animate-slide-up-fade delay-300">
               Build thousands of workflows, fast, without running into complexity.
             </p>
+
+            <Button
+              href="/auth/register"
+              variant="primary"
+              size="xl"
+              className="mt-5"
+            >
+              Try it out with a free account →
+            </Button>
           </header>
         </div>
 
@@ -39,29 +48,29 @@ export default function Home() {
               Build your first workflow
             </h2>
             <div className="w-full md:px-10 mb-10">
-              <div style={{position: 'relative', paddingBottom: '56.25%', height: 0}}><iframe src="https://cap.so/embed/qegqpre7vpq3jrf" frameBorder="0" allowFullScreen={true} style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%'}}></iframe></div>
+              <div style={{position: 'relative', paddingBottom: '56.25%', height: 0}}><iframe src="https://cap.so/embed/qegqpre7vpq3jrf" allowFullScreen={true} style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%'}}></iframe></div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 w-full px-10 pb-10 md:pb-0 md:px-0">
               {[
                 {
-                  icon: QueueIcon,
-                  title: 'Queue',
-                  desc: 'Run multiple chains sequentially',
+                  icon: '/homepage/illustration-easy-building.png',
+                  title: 'Easy Building',
+                  desc: 'Build workflows without the typical complexity of other workflow tools',
                 },
                 {
-                  icon: ChainIcon,
-                  title: 'Chain',
-                  desc: 'Command a customized sequence of prompts',
+                  icon: '/homepage/illustration-api-form-integrations.png',
+                  title: 'API and Form Integrations',
+                  desc: 'Connect to your own APIs and create public forms to run workflows',
                 },
                 {
-                  icon: StepIcon,
-                  title: 'Steps',
-                  desc: 'Execute multiple prompts in an execution cycle',
+                  icon: '/homepage/illustration-ai-without-limits.png',
+                  title: 'AI without Limits',
+                  desc: 'Run workflows with any AI model and unlimited processing',
                 },
                 {
-                  icon: ResultIcon,
-                  title: 'Result',
-                  desc: 'Compile the results into a single output',
+                  icon: '/homepage/illustration-easy-to-format.png',
+                  title: 'Easy to Format',
+                  desc: 'Compile the results into an easy to use format',
                 },
               ].map((item, index) => (
                 <div
@@ -69,8 +78,8 @@ export default function Home() {
                   className="flex flex-col items-center gap-4 group hover:scale-105 transition-transform duration-300 animate-slide-up-fade"
                   style={{ animationDelay: `${(index + 5) * 100}ms` }}
                 >
-                  <div className="w-20 h-20 bg-surface rounded-2xl flex items-center justify-center group-hover:bg-surface-hover transition-colors duration-300 shadow-lg group-hover:animate-pulse-glow">
-                    <item.icon className="text-primary group-hover:scale-110 transition-transform duration-300" />
+                  <div className="h-20 bg-surface rounded-xl flex items-center justify-center group-hover:shadow-2xl/20 transition-shadow duration-300 shadow-lg group-hover:animate-pulse-glow">
+                    <img src={item.icon} className="w-full h-full object-contain" />
                   </div>
                   <span className="font-semibold text-primary text-lg">
                     {item.title}
