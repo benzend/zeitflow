@@ -12,7 +12,9 @@ export default function Navigation() {
           <div className="flex items-center">
             <Button href="/" variant="tertiary" className="flex items-center space-x-2 group !bg-transparent !p-0 !h-auto">
               <div className="relative w-8 h-8 animate-scale-in">
-                <Logo className="text-primary group-hover:animate-spin-slow transition-all duration-300" />
+                <Logo
+                  className="text-primary animate-spin-slow animate-pulse-glow"
+                />
               </div>
               <span className="text-xl font-bold text-accent animate-slide-up-fade delay-100">
                 ZeitFlow
@@ -31,7 +33,7 @@ export default function Navigation() {
             <Button
               variant="primary"
               href="/auth/register"
-              >
+            >
               Register
             </Button>
           </div>

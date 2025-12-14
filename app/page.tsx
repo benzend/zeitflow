@@ -1,12 +1,6 @@
 
 import { Button } from '../components/Button';
-import Logo from './components/Logo';
-import {
-  QueueIcon,
-  ChainIcon,
-  StepIcon,
-  ResultIcon,
-} from './components/FeatureIcons';
+import Logo from '@/app/components/Logo';
 import Navigation from '@/components/Navigation';
 
 export default function Home() {
