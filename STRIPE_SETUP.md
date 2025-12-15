@@ -1,6 +1,6 @@
 # Stripe Subscription Setup Guide
 
-This guide will help you complete the Stripe subscription integration for jjoist.
+This guide will help you complete the Stripe subscription integration for ZeitFlow.
 
 ## Environment Variables
 
@@ -26,13 +26,13 @@ NEXT_PUBLIC_STRIPE_UNLIMITED_PRICE_ID=price_...  # Same as above, for frontend
 In your Stripe dashboard, create these products:
 
 **Pro Plan:**
-- Name: jjoist Pro
+- Name: ZeitFlow Pro
 - Price: $9.99/month
 - Recurring: Monthly
 - Copy the Price ID and use it for `STRIPE_PRO_PRICE_ID`
 
 **Unlimited Plan:**
-- Name: jjoist Unlimited
+- Name: ZeitFlow Unlimited
 - Price: $29.99/month
 - Recurring: Monthly
 - Copy the Price ID and use it for `STRIPE_UNLIMITED_PRICE_ID`

@@ -68,12 +68,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await resend.emails.send({
       from: process.env.VERIFY_FROM_EMAIL!,
       to: email,
-      subject: 'Verify your jjoist account',
+      subject: 'Verify your ZeitFlow account',
       html: `
         <div style="max-width: 600px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif;">
           <h1 style="color: #333; text-align: center;">Verify Your Email</h1>
           <p>Hello,</p>
-          <p>Thank you for signing up for jjoist! Please click the button below to verify your email address:</p>
+          <p>Thank you for signing up for ZeitFlow! Please click the button below to verify your email address:</p>
           <div style="text-align: center; margin: 30px 0;">
             <a href="${verificationUrl}" 
                style="background-color: #007bff; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
@@ -83,7 +83,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           <p>Or copy and paste this link into your browser:</p>
           <p style="word-break: break-all; color: #666;">${verificationUrl}</p>
           <p>This link will expire in 24 hours.</p>
-          <p>If you didn't create an account with jjoist, you can safely ignore this email.</p>
+          <p>If you didn't create an account with ZeitFlow, you can safely ignore this email.</p>
         </div>
       `,
     })

@@ -13,7 +13,7 @@ This guide walks you through setting up authentication for your Joice applicatio
 5. Choose **Web application**
 6. Set the following:
 
-   **Name**: `jjoist App Authentication`
+   **Name**: `ZeitFlow App Authentication`
 
    **Authorized JavaScript origins**:
 

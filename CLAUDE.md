@@ -23,7 +23,7 @@ npm run migrate
 
 ## Architecture Overview
 
-This is a Next.js application that implements an AI chain processing system called "jjoist". The application allows users to create, manage, and execute chains of AI prompts that are processed asynchronously.
+This is a Next.js application that implements an AI chain processing system called "ZeitFlow". The application allows users to create, manage, and execute chains of AI prompts that are processed asynchronously.
 
 ### Core Concepts
 

@@ -25,7 +25,7 @@
 - **Testing**: Jest with jsdom environment, coverage from components/pages/lib, __tests__ folder structure
 
 ## Project Context
-- **Name**: "jjoist" - AI prompt chain management system
+- **Name**: "ZeitFlow" - AI prompt chain management system
 - **Architecture**: Queue → Chain → Step → Result hierarchy
 - **Tech Stack**: Next.js 16, React 19, Drizzle ORM, NextAuth, TypeScript, Tailwind CSS
 - **Key Integrations**: OpenRouter AI, Stripe, Google Calendar, Neon Database
