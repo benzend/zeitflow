@@ -127,7 +127,9 @@ export default async function handler(
 
     // Extract all variables from chain steps
     const allPrompts = chainSteps.map((step) => step.prompt);
-    const requiredVariables = extractVariablesFromPrompts(allPrompts);
+    const extractedVariables = extractVariablesFromPrompts(allPrompts);
+    const injectableVariable = (variable: string) => variable !== 'previousOutput';
+    const requiredVariables = extractedVariables.filter(injectableVariable);
 
     // Validate that all required variables are provided
     if (requiredVariables.length > 0) {

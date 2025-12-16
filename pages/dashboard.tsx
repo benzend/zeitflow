@@ -743,7 +743,6 @@ export default function Dashboard() {
         onClose={handleVariablesModalClose}
         onSubmit={handleVariablesSubmit}
         chainId={selectedChainForQueue?.id || 0}
-        chainName={selectedChainForQueue?.name || ""}
       />
     </div>
   );

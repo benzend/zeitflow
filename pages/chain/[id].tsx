@@ -355,7 +355,7 @@ export default function ChainDetail() {
     if (!chain) {
       return;
     }
-    // Show variables modal instead of directly running
+
     setShowVariablesModal(true);
   };
 
@@ -772,7 +772,6 @@ export default function ChainDetail() {
         onClose={handleVariablesModalClose}
         onSubmit={handleVariablesSubmit}
         chainId={chain?.id || 0}
-        chainName={chain?.name || ""}
       />
     </div>
   );

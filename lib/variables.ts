@@ -29,17 +29,19 @@ export async function substituteVariables(
 
   for (const variable of variables) {
     const regex = new RegExp(`\\{\\{${variable.variableName}\\}\\}`, "g");
-    if (regex.test('{{previousOutput}}')) {
-      const previousResponse = await getPreviousResponse(queuedChainStepId);
-      if (previousResponse) {
-        processedPrompt = processedPrompt.replace(regex, previousResponse);
-      } else {
-        console.warn("Previous response not found for queued chain step: " + queuedChainStepId);
-      }
-    } else {
-      processedPrompt = processedPrompt.replace(regex, variable.variableValue);
-    }
+    processedPrompt = processedPrompt.replace(regex, variable.variableValue);
   };
+
+  const hasPreviousOutputVariable = processedPrompt.includes('{{previousOutput}}');
+
+  if (hasPreviousOutputVariable) {
+    const previousResponse = await getPreviousResponse(queuedChainStepId);
+    if (previousResponse) {
+      processedPrompt = processedPrompt.replaceAll('{{previousOutput}}', previousResponse);
+    } else {
+      console.warn("Previous response not found for queued chain step: " + queuedChainStepId);
+    }
+  }
 
   return processedPrompt;
 }

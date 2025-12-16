@@ -7,7 +7,6 @@ interface VariablesModalProps {
   onClose: () => void;
   onSubmit: (variables: Record<string, string>) => void;
   chainId: number;
-  chainName?: string;
 }
 
 export default function VariablesModal({
@@ -15,12 +14,13 @@ export default function VariablesModal({
   onClose,
   onSubmit,
   chainId,
-  chainName,
 }: VariablesModalProps) {
   const [variables, setVariables] = useState<string[]>([]);
   const [values, setValues] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const injectableVariable = (variable: string) => variable !== 'previousOutput';
 
   const fetchVariables = useCallback(async () => {
     setLoading(true);
@@ -31,10 +31,17 @@ export default function VariablesModal({
       const data = await response.json();
 
       if (data.success) {
-        setVariables(data.variables || []);
+        const injectableVariables = data.variables?.filter(injectableVariable) || [];
+        if (injectableVariables.length === 0) {
+          onSubmit({});
+          onClose();
+          return;
+        }
+
+        setVariables(injectableVariables);
         // Initialize empty values
         const initialValues: Record<string, string> = {};
-        data.variables?.forEach((variable: string) => {
+        injectableVariables.forEach((variable: string) => {
           initialValues[variable] = "";
         });
         setValues(initialValues);
