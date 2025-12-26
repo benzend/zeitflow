@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth';
 import { isRateLimited } from '@/lib/rate-limit';
 import { authOptions } from './auth/[...nextauth]';
+import { put } from '@vercel/blob';
 import formidable from 'formidable';
 import fs from 'fs';
 import path from 'path';
@@ -63,28 +64,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const timestamp = Date.now();
     const randomString = Math.random().toString(36).substring(2, 8);
     const fileExtension = path.extname(file.originalFilename || '');
-    const fileName = `${timestamp}_${randomString}${fileExtension}`;
+    const fileName = `blog-${timestamp}_${randomString}${fileExtension}`;
 
-    // Create uploads directory if it doesn't exist
-    const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
-    }
+    // Read file data
+    const fileData = fs.readFileSync(file.filepath);
 
-    // Save file
-    const filePath = path.join(uploadsDir, fileName);
-    fs.copyFileSync(file.filepath, filePath);
+    // Upload to Vercel Blob
+    const blob = await put(fileName, fileData, {
+      access: 'public',
+      contentType: file.mimetype || 'image/jpeg',
+    });
 
     // Clean up temporary file
     fs.unlinkSync(file.filepath);
 
-    // Return the public URL
-    const publicUrl = `/uploads/${fileName}`;
-
     res.status(200).json({ 
       success: true, 
       message: 'File uploaded successfully',
-      url: publicUrl
+      url: blob.url
     });
 
   } catch (error) {

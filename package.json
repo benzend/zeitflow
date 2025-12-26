@@ -25,6 +25,7 @@
     "@types/formidable": "^3.4.6",
     "@vemetric/node": "^0.2.0",
     "@vemetric/react": "^0.5.5",
+    "@vercel/blob": "^2.0.0",
     "@xyflow/react": "^12.9.0",
     "ai": "^4.3.19",
     "bcryptjs": "^3.0.2",
