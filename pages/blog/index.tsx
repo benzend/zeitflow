@@ -34,29 +34,33 @@ interface BlogPageProps {
 export default function Blog({ posts, currentPage, totalPages, hasNext, hasPrevious }: BlogPageProps) {
   const pageTitle = currentPage > 1 ? `Blog - Page ${currentPage} | ZeitFlow` : 'Blog | ZeitFlow';
   const pageDescription = 'Insights, tutorials, and updates on AI workflow automation';
+  
+  // Use fallback URL if environment variable is not set
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.zeitflow.io';
   const canonicalUrl = currentPage > 1 
-    ? `${process.env.NEXT_PUBLIC_APP_URL}/blog?page=${currentPage}`
-    : `${process.env.NEXT_PUBLIC_APP_URL}/blog`;
+    ? `${baseUrl}/blog?page=${currentPage}`
+    : `${baseUrl}/blog`;
+  const defaultImage = `${baseUrl}/logo.svg`;
 
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "Blog",
     "name": "ZeitFlow Blog",
     "description": pageDescription,
-    "url": `${process.env.NEXT_PUBLIC_APP_URL}/blog`,
+    "url": `${baseUrl}/blog`,
     "publisher": {
       "@type": "Organization",
       "name": "ZeitFlow",
       "logo": {
         "@type": "ImageObject",
-        "url": `${process.env.NEXT_PUBLIC_APP_URL}/logo.svg`
+        "url": defaultImage
       }
     },
     "blogPost": posts.map(post => ({
       "@type": "BlogPosting",
       "headline": post.title,
       "description": post.excerpt || '',
-      "url": `${process.env.NEXT_PUBLIC_APP_URL}/blog/${post.slug}`,
+      "url": `${baseUrl}/blog/${post.slug}`,
       "datePublished": post.publishedAt,
       "author": {
         "@type": "Person",
@@ -76,7 +80,7 @@ export default function Blog({ posts, currentPage, totalPages, hasNext, hasPrevi
         <meta property="og:type" content="website" />
         <meta property="og:title" content={pageTitle} />
         <meta property="og:description" content={pageDescription} />
-        <meta property="og:image" content={`${process.env.NEXT_PUBLIC_APP_URL}/logo.svg`} />
+        <meta property="og:image" content={defaultImage} />
         <meta property="og:url" content={canonicalUrl} />
         <meta property="og:site_name" content="ZeitFlow" />
         
@@ -84,20 +88,20 @@ export default function Blog({ posts, currentPage, totalPages, hasNext, hasPrevi
         <meta name="twitter:card" content="summary" />
         <meta name="twitter:title" content={pageTitle} />
         <meta name="twitter:description" content={pageDescription} />
-        <meta name="twitter:image" content={`${process.env.NEXT_PUBLIC_APP_URL}/logo.svg`} />
+        <meta name="twitter:image" content={defaultImage} />
         
         {/* Canonical URL */}
         <link rel="canonical" href={canonicalUrl} />
         
         {/* Pagination meta */}
         {hasPrevious && currentPage > 1 && (
-          <link rel="prev" href={`${process.env.NEXT_PUBLIC_APP_URL}/blog?page=${currentPage - 1}`} />
+          <link rel="prev" href={`${baseUrl}/blog?page=${currentPage - 1}`} />
         )}
         {hasPrevious && currentPage === 1 && (
-          <link rel="prev" href={`${process.env.NEXT_PUBLIC_APP_URL}/blog`} />
+          <link rel="prev" href={`${baseUrl}/blog`} />
         )}
         {hasNext && (
-          <link rel="next" href={`${process.env.NEXT_PUBLIC_APP_URL}/blog?page=${currentPage + 1}`} />
+          <link rel="next" href={`${baseUrl}/blog?page=${currentPage + 1}`} />
         )}
         
         {/* Structured Data */}

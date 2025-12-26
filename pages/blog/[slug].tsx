@@ -62,32 +62,43 @@ export default function BlogPostPage({ post, notFound }: BlogPostPageProps) {
   const authorName = post.author.isAdmin ? 'ZeitFlow' : post.author.name;
   const publishedDate = post.publishedAt ? new Date(post.publishedAt).toISOString() : '';
   const modifiedDate = post.updatedAt ? new Date(post.updatedAt).toISOString() : '';
+  
+  // Use fallback URL if environment variable is not set
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.zeitflow.io';
+  const canonicalUrl = `${baseUrl}/blog/${post.slug}`;
+  const defaultImage = `${baseUrl}/logo.svg`;
 
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
     "headline": post.title,
     "description": metaDescription,
-    "image": post.featuredImage || `${process.env.NEXT_PUBLIC_APP_URL}/logo.svg`,
+    "image": post.featuredImage || defaultImage,
     "datePublished": publishedDate,
     "dateModified": modifiedDate,
     "author": {
-      "@type": "Organization",
-      "name": "ZeitFlow"
+      "@type": post.author.isAdmin ? "Organization" : "Person",
+      "name": authorName || 'ZeitFlow',
+      "url": post.author.isAdmin ? "https://www.zeitflow.io" : undefined
     },
     "publisher": {
       "@type": "Organization",
       "name": "ZeitFlow",
+      "url": "https://www.zeitflow.io",
       "logo": {
         "@type": "ImageObject",
-        "url": `${process.env.NEXT_PUBLIC_APP_URL}/logo.svg`
+        "url": defaultImage
       }
     },
     "mainEntityOfPage": {
       "@type": "WebPage",
-      "@id": `${process.env.NEXT_PUBLIC_APP_URL}/blog/${post.slug}`
+      "@id": canonicalUrl
     },
-    "keywords": tags.join(', ')
+    "keywords": tags.join(', '),
+    "about": {
+      "@type": "Thing",
+      "name": "AI Workflow Automation"
+    }
   };
 
   return (
@@ -102,12 +113,14 @@ export default function BlogPostPage({ post, notFound }: BlogPostPageProps) {
         <meta property="og:type" content="article" />
         <meta property="og:title" content={post.title} />
         <meta property="og:description" content={metaDescription} />
-        <meta property="og:image" content={post.featuredImage || `${process.env.NEXT_PUBLIC_APP_URL}/logo.svg`} />
-        <meta property="og:url" content={`${process.env.NEXT_PUBLIC_APP_URL}/blog/${post.slug}`} />
+        <meta property="og:image" content={post.featuredImage || defaultImage} />
+        <meta property="og:url" content={canonicalUrl} />
         <meta property="og:site_name" content="ZeitFlow" />
         <meta property="article:published_time" content={publishedDate} />
         <meta property="article:modified_time" content={modifiedDate} />
         <meta property="article:author" content={authorName || 'ZeitFlow'} />
+        <meta property="article:publisher" content="https://www.zeitflow.io" />
+        <meta property="article:section" content="AI Workflow Automation" />
         {tags.map((tag: string) => (
           <meta key={tag} property="article:tag" content={tag} />
         ))}
@@ -116,10 +129,12 @@ export default function BlogPostPage({ post, notFound }: BlogPostPageProps) {
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={post.title} />
         <meta name="twitter:description" content={metaDescription} />
-        <meta name="twitter:image" content={post.featuredImage || `${process.env.NEXT_PUBLIC_APP_URL}/logo.svg`} />
+        <meta name="twitter:image" content={post.featuredImage || defaultImage} />
+        <meta name="twitter:site" content="@zeitflow_io" />
+        <meta name="twitter:creator" content={post.author.isAdmin ? "@zeitflow_io" : undefined} />
         
         {/* Canonical URL */}
-        <link rel="canonical" href={`${process.env.NEXT_PUBLIC_APP_URL}/blog/${post.slug}`} />
+        <link rel="canonical" href={canonicalUrl} />
         
         {/* Structured Data */}
         <script
