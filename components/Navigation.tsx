@@ -27,6 +27,7 @@ export default function Navigation() {
             </Button>
           </div>
           <div className="flex items-center space-x-4">
+            <ThemeToggle />
             <Button
               href="/blog"
               variant="tertiary"
@@ -43,7 +44,6 @@ export default function Navigation() {
                 Manage
               </Button>
             )}
-            <ThemeToggle />
             {status === 'loading' ? (
               <div className="w-8 h-8 rounded-full bg-surface animate-pulse"></div>
             ) : status === 'authenticated' ? (
