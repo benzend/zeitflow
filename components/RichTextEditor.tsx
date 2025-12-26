@@ -141,7 +141,7 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
 
   const renderPreview = (text: string) => {
     // Simple markdown to HTML conversion for preview
-    let html = text
+    const html = text
       // Headers
       .replace(/^### (.*$)/gim, '<h3 class="text-lg font-semibold mb-2">$1</h3>')
       .replace(/^## (.*$)/gim, '<h2 class="text-xl font-semibold mb-3">$1</h2>')

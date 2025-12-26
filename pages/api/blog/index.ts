@@ -145,7 +145,7 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse<ResponseData>
   const publishedFilter = published === 'true' ? true : false;
   
   // Build query conditions
-  let whereConditions = [];
+  const whereConditions = [];
   if (published !== undefined && published !== null && published !== '') {
     whereConditions.push(eq(blogPostsTable.published, publishedFilter));
   }

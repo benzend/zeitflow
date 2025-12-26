@@ -81,7 +81,7 @@ export default function ComingSoon() {
         </div>
       </nav>
 
-      <div className="flex flex-col items-center justify-center min-h-screen pt-20 px-4">
+      <main className="flex flex-col items-center justify-center min-h-screen pt-20 px-4">
         <div className="text-center space-y-6 max-w-2xl mx-auto">
           <h1 className="text-5xl font-bold bg-gradient-to-r from-[#a3e635] to-[#bef264] bg-clip-text text-transparent animate-fade-in pb-4">
             Coming Soon
@@ -138,7 +138,7 @@ export default function ComingSoon() {
             </div>
           </form>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

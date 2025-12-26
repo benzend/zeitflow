@@ -114,7 +114,7 @@ export default function Blog({ posts, currentPage, totalPages, hasNext, hasPrevi
       <div className="min-h-screen bg-background text-foreground">
         <Navigation />
         
-        <div className="max-w-6xl mx-auto px-4 py-16 mt-10">
+        <main className="max-w-6xl mx-auto px-4 py-16 mt-10">
           {/* Header */}
           <div className="text-center mb-12 animate-slide-up-fade">
             <h1 className="text-4xl md:text-5xl font-bold mb-4 text-primary">
@@ -167,7 +167,7 @@ export default function Blog({ posts, currentPage, totalPages, hasNext, hasPrevi
               </div>
             </div>
           )}
-        </div>
+        </main>
       </div>
 
       <Footer />

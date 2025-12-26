@@ -5,7 +5,7 @@ export default function Privacy() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Navigation />
-      <div className="max-w-4xl mx-auto px-4 py-16 mt-10">
+      <main className="max-w-4xl mx-auto px-4 py-16 mt-10">
         <h1 className="text-4xl font-bold mb-12 text-primary">Privacy Policy</h1>
         
         <div className="space-y-8">
@@ -56,7 +56,7 @@ export default function Privacy() {
             </p>
           </section>
         </div>
-      </div>
+      </main>
 
       <Footer />
     </div>

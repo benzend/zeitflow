@@ -88,6 +88,7 @@ export default function FeaturedImageUpload({
               onClick={handleRemoveImage}
               className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
               title="Remove featured image"
+              aria-label="Remove featured image"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

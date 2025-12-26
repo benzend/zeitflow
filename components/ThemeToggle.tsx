@@ -12,6 +12,8 @@ export default function ThemeToggle() {
       onClick={toggleTheme}
       variant="tertiary"
       className="!bg-transparent p-2 rounded-full bg-surface hover:bg-surface-hover border border-border hover:border-border-hover transition-all duration-200 group"
+      aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
+      title={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
     >
       {theme === 'light' ? (
         <Moon className="w-5 h-5 text-text-muted group-hover:text-text-muted-hover transition-colors" />
