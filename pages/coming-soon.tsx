@@ -1,6 +1,6 @@
 'use client';
 
-import Logo from '@/app/components/Logo';
+import Logo from '../components/Logo';
 import { Button } from '@/components/Button';
 import { useState } from 'react';
 

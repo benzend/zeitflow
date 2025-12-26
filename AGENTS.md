@@ -18,10 +18,11 @@
 - **Database**: Use Drizzle ORM with parameterized queries, type inference from schema.ts
 - **Error Handling**: Wrap database operations in try-catch, return `{success: false, message: string}`
 - **Authentication**: Require session validation before protected operations
-- **Rate Limiting**: Apply `isRateLimited` helper with 1-hour windows to API endpoints
+- **Rate Limiting**: Apply `isRateLimited` helper with appropriate windows to API endpoints
 - **Naming**: camelCase for variables/functions, PascalCase for components/types/interfaces
 - **Components**: Functional components with TypeScript, hooks over class components
-- **Styling**: Tailwind CSS v4 with custom colors (primary: #a3e635, background: #2B2B2B, foreground: #434343)
+- **Styling**: Tailwind CSS v4 with custom CSS variables for colors and animations
+- **Validation**: Use Zod schemas for API request validation
 - **Testing**: Jest with jsdom environment, coverage from components/pages/lib, __tests__ folder structure
 
 ## Project Context

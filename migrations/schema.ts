@@ -1,4 +1,4 @@
-import { pgTable, text, integer, timestamp, foreignKey, serial, unique, varchar, primaryKey } from "drizzle-orm/pg-core"
+import { pgTable, text, integer, timestamp, foreignKey, serial, unique, varchar, primaryKey, boolean } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 
@@ -292,6 +292,27 @@ export const verificationTokens = pgTable("verificationTokens", {
 	primaryKey({ columns: [table.identifier, table.token], name: "verificationTokens_identifier_token_pk"}),
 ]);
 
+export const blogPosts = pgTable("blog_posts", {
+	id: serial().primaryKey().notNull(),
+	slug: text().notNull().unique(),
+	title: text().notNull(),
+	excerpt: text(),
+	content: text().notNull(),
+	published: boolean().default(false).notNull(),
+	authorId: text("author_id").notNull(),
+	featuredImage: text(),
+	tags: text("tags"), // JSON array
+	publishedAt: timestamp("published_at", { mode: 'string' }),
+	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	foreignKey({
+		columns: [table.authorId],
+		foreignColumns: [users.id],
+		name: "blog_posts_author_id_users_id_fk"
+	}).onDelete("cascade"),
+]);
+
 export const accounts = pgTable("accounts", {
 	userId: text("user_id").notNull(),
 	type: text().notNull(),
@@ -306,9 +327,9 @@ export const accounts = pgTable("accounts", {
 	sessionState: text("session_state"),
 }, (table) => [
 	foreignKey({
-			columns: [table.userId],
-			foreignColumns: [users.id],
-			name: "accounts_user_id_users_id_fk"
-		}).onDelete("cascade"),
+		columns: [table.userId],
+		foreignColumns: [users.id],
+		name: "accounts_user_id_users_id_fk"
+	}).onDelete("cascade"),
 	primaryKey({ columns: [table.provider, table.providerAccountId], name: "accounts_provider_providerAccountId_pk"}),
 ]);

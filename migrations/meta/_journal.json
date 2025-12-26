@@ -127,6 +127,13 @@
       "when": 1765259221091,
       "tag": "0017_bouncy_sunspot",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1766703518494,
+      "tag": "0018_flippant_groot",
+      "breakpoints": true
     }
   ]
 }

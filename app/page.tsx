@@ -2,10 +2,12 @@
 import { Button } from '../components/Button';
 import Logo from '@/app/components/Logo';
 import Navigation from '@/components/Navigation';
+import Providers from './providers';
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-surface to-surface-hover text-foreground flex flex-col">
+    <Providers>
+      <div className="min-h-screen bg-gradient-to-b from-surface to-surface-hover text-foreground flex flex-col">
       <Navigation />
 
       {/* Main Content */}
@@ -192,5 +194,6 @@ export default function Home() {
         </main>
       </div>
     </div>
+    </Providers>
   );
 }

@@ -5,9 +5,9 @@ import { VemetricScript } from '@vemetric/react';
 import 'react-tippy/dist/tippy.css';
 import { ThemeProvider } from '@/lib/theme-context';
 
-export default function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
+export default function MyApp({ Component, pageProps }: AppProps) {
   return (
-    <SessionProvider session={session} refetchOnWindowFocus={false}>
+    <SessionProvider session={pageProps.session} refetchOnWindowFocus={false}>
       <VemetricScript token={process.env.NEXT_PUBLIC_VEMETRIC_TOKEN!} />
       <ThemeProvider>
         <Component {...pageProps} />

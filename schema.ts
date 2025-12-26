@@ -6,6 +6,7 @@ import {
   integer,
   varchar,
   primaryKey,
+  boolean,
 } from "drizzle-orm/pg-core";
 
 export const rateLimitsTable = pgTable("rate_limits", {
@@ -322,6 +323,26 @@ export const chatMessagesTable = pgTable("chat_messages", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Blog posts table
+export const blogPostsTable = pgTable("blog_posts", {
+  id: serial("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  excerpt: text("excerpt"),
+  content: text("content").notNull(),
+  published: boolean("published").notNull().default(false),
+  authorId: text("author_id")
+    .notNull()
+    .references(() => usersTable.id, { onDelete: "cascade" }),
+  featuredImage: text("featured_image"),
+  tags: text("tags"), // JSON array of tags
+  publishedAt: timestamp("published_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .notNull()
+    .$onUpdateFn(() => new Date()),
+});
+
 export type InsertSubscriber = typeof subscribersTable.$inferInsert;
 export type InsertRateLimit = typeof rateLimitsTable.$inferInsert;
 
@@ -358,6 +379,10 @@ export type InsertChatThread = typeof chatThreadsTable.$inferInsert;
 export type SelectChatThread = typeof chatThreadsTable.$inferSelect;
 export type InsertChatMessage = typeof chatMessagesTable.$inferInsert;
 export type SelectChatMessage = typeof chatMessagesTable.$inferSelect;
+
+// Blog types
+export type InsertBlogPost = typeof blogPostsTable.$inferInsert;
+export type SelectBlogPost = typeof blogPostsTable.$inferSelect;
 
 // Add missing type for dashboard query
 export type SelectQueuedChainWithStatus = SelectQueuedChain & {
