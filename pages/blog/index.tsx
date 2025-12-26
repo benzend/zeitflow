@@ -12,6 +12,7 @@ interface BlogPost {
   slug: string;
   title: string;
   excerpt?: string;
+  content?: string;
   featuredImage?: string;
   tags?: string;
   publishedAt?: string;

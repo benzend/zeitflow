@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Button } from '../Button';
+import { calculateReadingTime } from '@/lib/reading-time';
 
 interface BlogPostCardProps {
   post: {
@@ -7,6 +8,7 @@ interface BlogPostCardProps {
     slug: string;
     title: string;
     excerpt?: string;
+    content?: string;
     featuredImage?: string;
     tags?: string;
     publishedAt?: string;
@@ -41,11 +43,16 @@ export const BlogPostCard = ({ post }: BlogPostCardProps) => {
       
       <div className="p-6">
         <div className="flex items-center justify-between mb-3">
-          {post.publishedAt && (
-            <time className="text-sm text-text-muted" dateTime={post.publishedAt}>
-              {formatDate(post.publishedAt)}
-            </time>
-          )}
+          <div className="flex items-center gap-4">
+            {post.publishedAt && (
+              <time className="text-sm text-text-muted" dateTime={post.publishedAt}>
+                {formatDate(post.publishedAt)}
+              </time>
+            )}
+            {post.content && (
+              <span className="text-sm text-text-muted">{calculateReadingTime(post.content)}</span>
+            )}
+          </div>
           {post.author.name && (
             <span className="text-sm text-text-muted">By {post.author.name}</span>
           )}

@@ -205,6 +205,24 @@ export default function BlogEdit() {
             />
           </div>
 
+          {/* Slug */}
+          <div>
+            <label htmlFor="slug" className="block text-sm font-medium text-foreground mb-2">
+              Slug (URL)
+            </label>
+            <input
+              type="text"
+              id="slug"
+              value={post.slug}
+              onChange={(e) => handleInputChange('slug', e.target.value)}
+              className="w-full px-4 py-2 bg-surface border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              placeholder="post-url-slug"
+            />
+            <p className="mt-1 text-sm text-text-muted">
+              URL-friendly version of the title. Use only lowercase letters, numbers, and hyphens.
+            </p>
+          </div>
+
           {/* Excerpt */}
           <div>
             <label htmlFor="excerpt" className="block text-sm font-medium text-foreground mb-2">
@@ -305,14 +323,20 @@ export default function BlogEdit() {
               >
                 Back to Manage
               </Button>
-              {post.published && (
-                <Button
-                  variant="clear"
-                  onClick={() => window.open(`/blog/${post.slug}`, '_blank')}
-                >
-                  View Post
-                </Button>
-              )}
+               {post.published && (
+                 <Button
+                   variant="clear"
+                   onClick={() => window.open(`/blog/${post.slug}`, '_blank')}
+                 >
+                   View Post
+                 </Button>
+               )}
+               <Button
+                 variant="clear"
+                 onClick={() => window.open(`/blog/${post.slug}`, '_blank')}
+               >
+                 Preview URL
+               </Button>
             </div>
           </div>
         </div>

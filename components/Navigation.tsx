@@ -5,6 +5,7 @@ import Logo from '@/app/components/Logo';
 import { Button } from './Button';
 import ThemeToggle from './ThemeToggle';
 import ProfileDropdown from './ProfileDropdown';
+import { GODMODE_EMAILS } from '@/lib/constants';
 
 export default function Navigation() {
   const { data: session, status } = useSession();
@@ -33,7 +34,7 @@ export default function Navigation() {
             >
               Blog
             </Button>
-            {status === 'authenticated' && session?.user?.email && (
+            {status === 'authenticated' && session?.user?.email && GODMODE_EMAILS.includes(session.user.email) && (
               <Button
                 href="/blog/manage"
                 variant="tertiary"

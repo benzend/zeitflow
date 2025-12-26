@@ -11,6 +11,7 @@ import { z } from 'zod';
 // Validation schema for blog post creation/update
 const blogPostSchema = z.object({
   title: z.string().min(1, 'Title is required'),
+  slug: z.string().optional(),
   excerpt: z.string().optional(),
   content: z.string().min(1, 'Content is required'),
   published: z.boolean().optional(),
@@ -338,6 +339,29 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse<ResponseData>
   const updateData: any = validationResult.data;
   if (updateData.published && !existingPost.published) {
     updateData.publishedAt = new Date();
+  }
+
+  // Handle slug update
+  if (updateData.slug && updateData.slug !== existingPost.slug) {
+    // Validate slug format
+    const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+    if (!slugRegex.test(updateData.slug)) {
+      return res
+        .status(400)
+        .json({ success: false, message: 'Invalid slug format. Use only lowercase letters, numbers, and hyphens.' });
+    }
+
+    // Check if slug already exists (excluding current post)
+    const [existingSlug] = await db
+      .select()
+      .from(blogPostsTable)
+      .where(eq(blogPostsTable.slug, updateData.slug));
+
+    if (existingSlug && existingSlug.id !== Number(id)) {
+      return res
+        .status(409)
+        .json({ success: false, message: 'Slug already exists. Please choose a different slug.' });
+    }
   }
 
   // Update blog post

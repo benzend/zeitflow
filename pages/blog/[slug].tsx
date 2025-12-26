@@ -6,6 +6,7 @@ import { Button } from "@/components/Button";
 import { db } from '@/lib/db';
 import { blogPostsTable, usersTable } from '@/schema';
 import { eq, and } from 'drizzle-orm';
+import { GODMODE_EMAILS } from '@/lib/constants';
 
 interface BlogPostData {
   id: number;
@@ -18,6 +19,8 @@ interface BlogPostData {
   publishedAt?: string;
   author: {
     name?: string;
+    email: string;
+    isAdmin: boolean;
   };
 }
 
@@ -119,6 +122,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       author: {
         name: post.authorName || undefined,
         email: post.authorEmail || '',
+        isAdmin: GODMODE_EMAILS.includes(post.authorEmail || ''),
       },
     };
 

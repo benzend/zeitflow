@@ -1,4 +1,5 @@
 import { marked } from 'marked';
+import { calculateReadingTime } from '@/lib/reading-time';
 
 interface BlogPostProps {
   post: {
@@ -12,12 +13,15 @@ interface BlogPostProps {
     publishedAt?: string;
     author: {
       name?: string;
+      email?: string;
+      isAdmin?: boolean;
     };
   };
 }
 
 export const BlogPost = ({ post }: BlogPostProps) => {
   const tags = post.tags ? JSON.parse(post.tags) : [];
+  const readingTime = calculateReadingTime(post.content);
   const formatDate = (dateString?: string) => {
     if (!dateString) return '';
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -45,13 +49,16 @@ export const BlogPost = ({ post }: BlogPostProps) => {
         )}
         
         <div className="flex items-center justify-between mb-4">
-          {post.publishedAt && (
-            <time className="text-sm text-text-muted" dateTime={post.publishedAt}>
-              {formatDate(post.publishedAt)}
-            </time>
-          )}
+          <div className="flex items-center gap-4">
+            {post.publishedAt && (
+              <time className="text-sm text-text-muted" dateTime={post.publishedAt}>
+                {formatDate(post.publishedAt)}
+              </time>
+            )}
+            <span className="text-sm text-text-muted">{readingTime}</span>
+          </div>
           {post.author.name && (
-            <span className="text-sm text-text-muted">By {post.author.name}</span>
+            <span className="text-sm text-text-muted">By {post.author.isAdmin ? 'ZeitFlow' : post.author.name}</span>
           )}
         </div>
         
