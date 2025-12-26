@@ -14,6 +14,8 @@ interface BlogPostCardProps {
     publishedAt?: string;
     author: {
       name?: string;
+      email?: string;
+      isAdmin?: boolean;
     };
   };
 }
@@ -54,7 +56,7 @@ export const BlogPostCard = ({ post }: BlogPostCardProps) => {
             )}
           </div>
           {post.author.name && (
-            <span className="text-sm text-text-muted">By {post.author.name}</span>
+            <span className="text-sm text-text-muted">By {post.author.isAdmin ? 'ZeitFlow' : post.author.name}</span>
           )}
         </div>
         

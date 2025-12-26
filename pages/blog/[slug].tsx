@@ -1,4 +1,5 @@
 import { GetServerSideProps } from 'next';
+import Head from 'next/head';
 import { Footer } from "@/components/Footer";
 import Navigation from "@/components/Navigation";
 import { BlogPost } from "@/components/blog";
@@ -17,6 +18,8 @@ interface BlogPostData {
   featuredImage?: string;
   tags?: string;
   publishedAt?: string;
+  updatedAt?: string;
+  createdAt?: string;
   author: {
     name?: string;
     email: string;
@@ -54,26 +57,97 @@ export default function BlogPostPage({ post, notFound }: BlogPostPageProps) {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-background text-foreground">
-      <Navigation />
-      
-      <div className="max-w-4xl mx-auto px-4 py-16 mt-10">
-        <div className="mb-8">
-          <Button 
-            href="/blog" 
-            variant="tertiary" 
-            className="!bg-transparent !p-0 text-text-muted hover:text-primary transition-colors duration-200 mb-8"
-          >
-            ← Back to Blog
-          </Button>
-        </div>
-        
-        <BlogPost post={post} />
-      </div>
+  const tags = post.tags ? JSON.parse(post.tags) : [];
+  const metaDescription = post.excerpt || post.content.substring(0, 160).replace(/[#*`]/g, '').trim() + '...';
+  const authorName = post.author.isAdmin ? 'ZeitFlow' : post.author.name;
+  const publishedDate = post.publishedAt ? new Date(post.publishedAt).toISOString() : '';
+  const modifiedDate = post.updatedAt ? new Date(post.updatedAt).toISOString() : '';
 
-      <Footer />
-    </div>
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": post.title,
+    "description": metaDescription,
+    "image": post.featuredImage || `${process.env.NEXT_PUBLIC_APP_URL}/logo.svg`,
+    "datePublished": publishedDate,
+    "dateModified": modifiedDate,
+    "author": {
+      "@type": "Organization",
+      "name": "ZeitFlow"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "ZeitFlow",
+      "logo": {
+        "@type": "ImageObject",
+        "url": `${process.env.NEXT_PUBLIC_APP_URL}/logo.svg`
+      }
+    },
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": `${process.env.NEXT_PUBLIC_APP_URL}/blog/${post.slug}`
+    },
+    "keywords": tags.join(', ')
+  };
+
+  return (
+    <>
+      <Head>
+        <title>{post.title} | ZeitFlow Blog</title>
+        <meta name="description" content={metaDescription} />
+        <meta name="keywords" content={tags.join(', ')} />
+        <meta name="author" content={authorName || 'ZeitFlow'} />
+        
+        {/* Open Graph */}
+        <meta property="og:type" content="article" />
+        <meta property="og:title" content={post.title} />
+        <meta property="og:description" content={metaDescription} />
+        <meta property="og:image" content={post.featuredImage || `${process.env.NEXT_PUBLIC_APP_URL}/logo.svg`} />
+        <meta property="og:url" content={`${process.env.NEXT_PUBLIC_APP_URL}/blog/${post.slug}`} />
+        <meta property="og:site_name" content="ZeitFlow" />
+        <meta property="article:published_time" content={publishedDate} />
+        <meta property="article:modified_time" content={modifiedDate} />
+        <meta property="article:author" content={authorName || 'ZeitFlow'} />
+        {tags.map((tag: string) => (
+          <meta key={tag} property="article:tag" content={tag} />
+        ))}
+        
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={post.title} />
+        <meta name="twitter:description" content={metaDescription} />
+        <meta name="twitter:image" content={post.featuredImage || `${process.env.NEXT_PUBLIC_APP_URL}/logo.svg`} />
+        
+        {/* Canonical URL */}
+        <link rel="canonical" href={`${process.env.NEXT_PUBLIC_APP_URL}/blog/${post.slug}`} />
+        
+        {/* Structured Data */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        />
+      </Head>
+      
+      <div className="min-h-screen bg-background text-foreground">
+        <Navigation />
+        
+        <div className="max-w-4xl mx-auto px-4 py-16 mt-10">
+          <div className="mb-8">
+            <Button 
+              href="/blog" 
+              variant="tertiary" 
+              className="!bg-transparent !p-0 text-text-muted hover:text-primary transition-colors duration-200 mb-8"
+            >
+              ← Back to Blog
+            </Button>
+          </div>
+          
+          <BlogPost post={post} />
+        </div>
+
+        <Footer />
+      </div>
+    </>
   );
 }
 
