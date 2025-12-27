@@ -69,19 +69,6 @@ export const BlogPost = ({ post }: BlogPostProps) => {
         <h1 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
           {post.title}
         </h1>
-        
-        {tags.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {tags.map((tag: string) => (
-              <span
-                key={tag}
-                className="px-3 py-1 text-sm font-medium bg-primary/10 text-primary rounded-md hover:bg-primary/20 transition-colors duration-200"
-              >
-                #{tag}
-              </span>
-            ))}
-          </div>
-        )}
       </header>
       
       <div 
