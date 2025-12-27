@@ -1,10 +1,28 @@
 "use client";
 import { Footer } from "@/components/Footer";
 import Navigation from "@/components/Navigation"
+import Head from "next/head"
 
 export default function Terms() {
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <Head>
+        <title>Terms of Service - ZeitFlow | AI Prompt Chain Management</title>
+        <meta name="description" content="Read ZeitFlow's terms of service to understand the rules and guidelines for using our AI prompt chain and workflow automation platform." />
+        <meta name="keywords" content="terms of service, terms, legal, ZeitFlow, AI prompt chains, workflow management, user agreement, service terms" />
+        <meta property="og:title" content="Terms of Service - ZeitFlow" />
+        <meta property="og:description" content="Read the terms and conditions for using ZeitFlow's AI prompt chain platform." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/terms`} />
+        <meta property="og:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/logo-on-black.png`} />
+        <meta property="og:site_name" content="ZeitFlow" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Terms of Service - ZeitFlow" />
+        <meta name="twitter:description" content="Read the terms and conditions for using ZeitFlow's AI prompt chain platform." />
+        <meta name="twitter:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/logo-on-black.png`} />
+        <meta name="robots" content="index, follow" />
+        <link rel="canonical" href={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/terms`} />
+      </Head>
       <Navigation />
       <main className="max-w-4xl mx-auto px-4 py-16 mt-10">
         <h1 className="text-4xl font-bold mb-12 text-primary">Terms of Service</h1>

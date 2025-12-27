@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Head from 'next/head';
 import Navigation from '@/components/Navigation';
 import { useSession } from 'next-auth/react';
 
@@ -93,6 +94,23 @@ export default function Pricing() {
 
   return (
     <div className="min-h-screen bg-background">
+      <Head>
+        <title>Pricing - ZeitFlow | AI Prompt Chain Management</title>
+        <meta name="description" content="Choose the perfect ZeitFlow plan for your AI prompt chain and workflow automation needs. Free, Pro, and Business options available." />
+        <meta name="keywords" content="pricing, plans, subscription, ZeitFlow, AI prompt chains, workflow management, automation, cost, pricing plans" />
+        <meta property="og:title" content="Pricing - ZeitFlow" />
+        <meta property="og:description" content="Choose the perfect plan for your AI prompt chain and workflow automation needs." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/pricing`} />
+        <meta property="og:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/logo-on-black.png`} />
+        <meta property="og:site_name" content="ZeitFlow" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Pricing - ZeitFlow" />
+        <meta name="twitter:description" content="Choose the perfect plan for your AI prompt chain and workflow automation needs." />
+        <meta name="twitter:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/logo-on-black.png`} />
+        <meta name="robots" content="index, follow" />
+        <link rel="canonical" href={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/pricing`} />
+      </Head>
       <Navigation />
 
       <div className="pt-24 pb-16">

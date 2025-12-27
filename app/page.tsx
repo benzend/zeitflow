@@ -3,12 +3,31 @@ import { Button } from '../components/Button';
 import Logo from '@/app/components/Logo';
 import Navigation from '@/components/Navigation';
 import Providers from './providers';
+import Head from 'next/head';
 
 export default function Home() {
   return (
-    <Providers>
-      <div className="min-h-screen bg-gradient-to-b from-surface to-surface-hover text-foreground flex flex-col">
-      <Navigation />
+    <>
+      <Head>
+        <title>ZeitFlow - AI Prompt Chain Management & Workflow Automation</title>
+        <meta name="description" content="Build thousands of AI workflows fast without complexity. ZeitFlow lets you create, manage, and automate AI prompt chains with powerful integrations and unlimited processing." />
+        <meta name="keywords" content="AI prompt chains, workflow automation, ZeitFlow, artificial intelligence, workflow management, API integration, AI workflows, business automation" />
+        <meta property="og:title" content="ZeitFlow - AI Prompt Chain Management & Workflow Automation" />
+        <meta property="og:description" content="Build thousands of AI workflows fast without complexity. Create powerful AI prompt chains with unlimited processing." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'} />
+        <meta property="og:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/logo-on-black.png`} />
+        <meta property="og:site_name" content="ZeitFlow" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="ZeitFlow - AI Prompt Chain Management & Workflow Automation" />
+        <meta name="twitter:description" content="Build thousands of AI workflows fast without complexity. Create powerful AI prompt chains with unlimited processing." />
+        <meta name="twitter:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/logo-on-black.png`} />
+        <meta name="robots" content="index, follow" />
+        <link rel="canonical" href={process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'} />
+      </Head>
+      <Providers>
+        <div className="min-h-screen bg-gradient-to-b from-surface to-surface-hover text-foreground flex flex-col">
+        <Navigation />
 
       {/* Main Content */}
       <div className="flex flex-col items-center justify-between p-8 font-sans pt-24">
@@ -193,7 +212,8 @@ export default function Home() {
           </section>
         </main>
       </div>
-    </div>
-    </Providers>
+      </div>
+      </Providers>
+    </>
   );
 }

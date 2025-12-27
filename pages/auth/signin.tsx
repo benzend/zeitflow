@@ -116,8 +116,21 @@ export default function SignIn({ providers }: { providers: Provider[] }) {
   return (
     <div>
       <Head>
-        <title>Sign In - ZeitFlow</title>
-        <meta name="description" content="Sign in to your ZeitFlow account" />
+        <title>Sign In - ZeitFlow | AI Prompt Chain Management</title>
+        <meta name="description" content="Sign in to your ZeitFlow account to access your AI prompt chains, manage workflows, and process intelligent automation sequences." />
+        <meta name="keywords" content="sign in, login, ZeitFlow, AI prompt chains, workflow management, automation, artificial intelligence" />
+        <meta property="og:title" content="Sign In - ZeitFlow" />
+        <meta property="og:description" content="Access your AI prompt chains and workflow management dashboard." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/auth/signin`} />
+        <meta property="og:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/logo-on-black.png`} />
+        <meta property="og:site_name" content="ZeitFlow" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Sign In - ZeitFlow" />
+        <meta name="twitter:description" content="Access your AI prompt chains and workflow management dashboard." />
+        <meta name="twitter:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/logo-on-black.png`} />
+        <meta name="robots" content="noindex, nofollow" />
+        <link rel="canonical" href={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/auth/signin`} />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 

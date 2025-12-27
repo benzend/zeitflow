@@ -84,8 +84,21 @@ export default function Register({ providers }: { providers: Provider[] }) {
   return (
     <div>
       <Head>
-        <title>Register - ZeitFlow</title>
-        <meta name="description" content="Create your ZeitFlow account" />
+        <title>Register - ZeitFlow | AI Prompt Chain Management</title>
+        <meta name="description" content="Create your ZeitFlow account and start building AI prompt chains, automate workflows, and process intelligent automation sequences." />
+        <meta name="keywords" content="register, sign up, ZeitFlow, AI prompt chains, workflow management, automation, artificial intelligence, create account" />
+        <meta property="og:title" content="Register - ZeitFlow" />
+        <meta property="og:description" content="Create your account and start building powerful AI prompt chains and automation workflows." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/auth/register`} />
+        <meta property="og:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/logo-on-black.png`} />
+        <meta property="og:site_name" content="ZeitFlow" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Register - ZeitFlow" />
+        <meta name="twitter:description" content="Create your account and start building powerful AI prompt chains and automation workflows." />
+        <meta name="twitter:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/logo-on-black.png`} />
+        <meta name="robots" content="noindex, nofollow" />
+        <link rel="canonical" href={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/auth/register`} />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
