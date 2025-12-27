@@ -1,67 +1,36 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
+import { AssetLibrary } from './AssetLibrary';
+import { AssetUpload } from './AssetUpload';
+import { Button } from './Button';
 
 interface FeaturedImageUploadProps {
   value?: string;
   onChange: (url: string) => void;
   label?: string;
   helperText?: string;
+  showAssetLibrary?: boolean;
 }
 
 export default function FeaturedImageUpload({ 
   value, 
   onChange, 
   label = "Featured Image",
-  helperText = "Upload a featured image for your blog post (optional)"
+  helperText = "Upload a featured image for your blog post (optional)",
+  showAssetLibrary = true
 }: FeaturedImageUploadProps) {
-  const [isUploading, setIsUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showAssetLibraryModal, setShowAssetLibraryModal] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    if (!allowedTypes.includes(file.type)) {
-      alert('Invalid file type. Only JPEG, PNG, GIF, and WebP images are allowed.');
-      return;
+  const handleUploadComplete = (files: { url: string; altText?: string }[]) => {
+    if (files && files.length > 0) {
+      onChange(files[0].url);
+      setShowUploadModal(false);
     }
+  };
 
-    // Validate file size (5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      alert('File size must be less than 5MB.');
-      return;
-    }
-
-    setIsUploading(true);
-
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        throw new Error(result.message || 'Upload failed');
-      }
-
-      onChange(result.url);
-
-    } catch (error) {
-      console.error('Upload error:', error);
-      alert(error instanceof Error ? error.message : 'Upload failed');
-    } finally {
-      setIsUploading(false);
-      // Reset file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    }
+  const handleAssetSelect = (asset: { url: string; altText?: string }) => {
+    onChange(asset.url);
+    setShowAssetLibraryModal(false);
   };
 
   const handleRemoveImage = () => {
@@ -109,48 +78,87 @@ export default function FeaturedImageUpload({
           </div>
         )}
 
-        {/* Upload Button */}
+        {/* Upload Buttons */}
         <div className="flex items-center space-x-3">
-          <button
+          <Button
             type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isUploading}
-            className="px-4 py-2 bg-primary text-background rounded-lg hover:bg-primary/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+            onClick={() => setShowUploadModal(true)}
           >
-            {isUploading ? (
-              <span className="flex items-center space-x-2">
-                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-                <span>Uploading...</span>
-              </span>
-            ) : value ? (
-              'Change Image'
-            ) : (
-              'Upload Image'
-            )}
-          </button>
+            {value ? 'Change Image' : 'Upload Image'}
+          </Button>
+
+          {showAssetLibrary && (
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setShowAssetLibraryModal(true)}
+            >
+              Browse Library
+            </Button>
+          )}
           
           {value && (
-            <div className="text-xs text-text-muted">
+            <div className="text-xs text-text-muted flex-1 truncate">
               Image URL: {value}
             </div>
           )}
         </div>
-
-        {/* Hidden File Input */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/jpeg,image/png,image/gif,image/webp"
-          onChange={handleImageUpload}
-          className="hidden"
-        />
       </div>
 
       {helperText && (
         <p className="mt-1 text-sm text-text-muted">{helperText}</p>
+      )}
+
+      {/* Asset Library Modal */}
+      {showAssetLibraryModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-surface border border-border rounded-lg max-w-6xl w-full max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between p-6 border-b border-border">
+              <h3 className="text-lg font-semibold">Select from Asset Library</h3>
+              <button
+                onClick={() => setShowAssetLibraryModal(false)}
+                className="text-text-muted hover:text-foreground"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6 max-h-[calc(90vh-120px)] overflow-y-auto">
+              <AssetLibrary 
+                onAssetSelect={handleAssetSelect}
+                allowMultiple={false}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Upload Modal */}
+      {showUploadModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-surface border border-border rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between p-6 border-b border-border">
+              <h3 className="text-lg font-semibold">Upload Featured Image</h3>
+              <button
+                onClick={() => setShowUploadModal(false)}
+                className="text-text-muted hover:text-foreground"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6 max-h-[calc(90vh-120px)] overflow-y-auto">
+              <AssetUpload
+                onUploadComplete={handleUploadComplete}
+                allowedTypes={['image/jpeg', 'image/png', 'image/gif', 'image/webp']}
+                maxSize={10 * 1024 * 1024}
+                defaultTags={['featured-image']}
+              />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

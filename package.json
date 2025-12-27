@@ -45,6 +45,7 @@
     "react-toastify": "^11.0.5",
     "resend": "^4.5.2",
     "stripe": "^18.2.1",
+    "uuid": "^13.0.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {
@@ -58,6 +59,7 @@
     "@types/node": "^22.15.18",
     "@types/react": "19.2.7",
     "@types/react-dom": "19.2.3",
+    "@types/uuid": "^11.0.0",
     "drizzle-kit": "^0.31.1",
     "eslint": "9.27.0",
     "eslint-config-next": "16.0.7",

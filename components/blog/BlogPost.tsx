@@ -1,4 +1,5 @@
 import { marked } from 'marked';
+import Image from 'next/image';
 import { calculateReadingTime } from '@/lib/reading-time';
 
 interface BlogPostProps {
@@ -39,11 +40,14 @@ export const BlogPost = ({ post }: BlogPostProps) => {
     <article className="max-w-4xl mx-auto">
       <header className="mb-8 animate-slide-up-fade">
         {post.featuredImage && (
-          <div className="mb-8 rounded-lg overflow-hidden">
-            <img
+          <div className="mb-8 rounded-lg overflow-hidden relative w-full aspect-[1938/1016]">
+            <Image
               src={post.featuredImage}
               alt={post.title}
-              className="w-full h-64 md:h-96 object-cover"
+              fill
+              className="object-cover"
+              priority
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw"
             />
           </div>
         )}
@@ -65,12 +69,6 @@ export const BlogPost = ({ post }: BlogPostProps) => {
         <h1 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
           {post.title}
         </h1>
-        
-        {post.excerpt && (
-          <p className="text-xl text-text-muted mb-4 leading-relaxed">
-            {post.excerpt}
-          </p>
-        )}
         
         {tags.length > 0 && (
           <div className="flex flex-wrap gap-2">

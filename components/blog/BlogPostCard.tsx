@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '../Button';
 import { calculateReadingTime } from '@/lib/reading-time';
 
@@ -34,11 +35,13 @@ export const BlogPostCard = ({ post }: BlogPostCardProps) => {
   return (
     <article className="bg-surface border border-border rounded-lg overflow-hidden hover:shadow-lg transition-all duration-300 animate-slide-up-fade">
       {post.featuredImage && (
-        <div className="aspect-w-16 aspect-h-9 bg-gradient-to-br from-primary/20 to-accent/20">
-          <img
+        <div className="bg-gradient-to-br from-primary/20 to-accent/20 relative w-full aspect-[1938/1016]">
+          <Image
             src={post.featuredImage}
             alt={post.title}
-            className="w-full h-48 object-cover"
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
         </div>
       )}

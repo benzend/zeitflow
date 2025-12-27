@@ -134,6 +134,27 @@
       "when": 1766703518494,
       "tag": "0018_flippant_groot",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1766797726867,
+      "tag": "0019_green_red_ghost",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1766799165667,
+      "tag": "0020_stormy_harpoon",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1766799979084,
+      "tag": "0021_flippant_squadron_sinister",
+      "breakpoints": true
     }
   ]
 }

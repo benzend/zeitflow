@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { AssetLibrary } from './AssetLibrary';
 
 interface RichTextEditorProps {
   value: string;
@@ -6,11 +7,18 @@ interface RichTextEditorProps {
   placeholder?: string;
 }
 
+interface ToolbarButton {
+  label: string;
+  icon: string;
+  action: () => void;
+  className: string;
+  isImageUpload?: boolean;
+}
+
 export default function RichTextEditor({ value, onChange, placeholder }: RichTextEditorProps) {
   const [isPreviewMode, setIsPreviewMode] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
+  const [showLibraryModal, setShowLibraryModal] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const insertText = (before: string, after: string = '') => {
     const textarea = textareaRef.current;
@@ -31,57 +39,21 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
     }, 0);
   };
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  const handleAssetSelect = (asset: { url: string; altText?: string }) => {
+    const imageMarkdown = `![${asset.altText || 'image'}](${asset.url})`;
+    insertText(imageMarkdown);
+    setShowLibraryModal(false);
+  };
 
-    // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    if (!allowedTypes.includes(file.type)) {
-      alert('Invalid file type. Only JPEG, PNG, GIF, and WebP images are allowed.');
-      return;
-    }
-
-    // Validate file size (5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      alert('File size must be less than 5MB.');
-      return;
-    }
-
-    setIsUploading(true);
-
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        throw new Error(result.message || 'Upload failed');
-      }
-
-      // Insert image markdown at cursor position
-      const imageMarkdown = `![${file.name}](${result.url})`;
+  const handleUploadComplete = (files: { url: string; altText?: string }[]) => {
+    if (files && files.length > 0) {
+      const imageMarkdown = `![${files[0].altText || 'image'}](${files[0].url})`;
       insertText(imageMarkdown);
-
-    } catch (error) {
-      console.error('Upload error:', error);
-      alert(error instanceof Error ? error.message : 'Upload failed');
-    } finally {
-      setIsUploading(false);
-      // Reset file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
+      setShowLibraryModal(false);
     }
   };
 
-  const toolbarButtons = [
+  const toolbarButtons: ToolbarButton[] = [
     {
       label: 'Bold',
       icon: 'B',
@@ -133,9 +105,9 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
     {
       label: 'Image',
       icon: '🖼️',
-      action: () => fileInputRef.current?.click(),
+      action: () => setShowLibraryModal(true),
       className: '',
-      isImageUpload: true
+      isImageUpload: false
     }
   ];
 
@@ -173,27 +145,21 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
       {/* Toolbar */}
       <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-surface/50">
         <div className="flex items-center space-x-1">
+          {/* eslint-disable-next-line react-hooks/refs */}
           {toolbarButtons.map((button, index) => (
             <button
               key={index}
               type="button"
               onClick={button.action}
-              disabled={isUploading && (button as any).isImageUpload}
+              disabled={button.isImageUpload}
               className={`p-2 text-xs rounded hover:bg-primary/10 transition-colors text-foreground ${button.className} ${
-                isUploading && (button as any).isImageUpload ? 'opacity-50 cursor-not-allowed' : ''
+                button.isImageUpload ? 'opacity-50 cursor-not-allowed' : ''
               }`}
               title={button.label}
             >
-              {isUploading && (button as any).isImageUpload ? '⏳' : button.icon}
+              {button.isImageUpload ? '⏳' : button.icon}
             </button>
           ))}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/jpeg,image/png,image/gif,image/webp"
-            onChange={handleImageUpload}
-            className="hidden"
-          />
         </div>
         <div className="flex items-center space-x-2">
           <button
@@ -242,6 +208,32 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
           Supports markdown: **bold**, *italic*, ## headings, `code`, [links](url), ![images](url), - lists, &gt; quotes
         </div>
       </div>
+
+      {/* Asset Library Modal with Upload */}
+      {showLibraryModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-surface border border-border rounded-lg max-w-6xl w-full max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between p-6 border-b border-border">
+              <h3 className="text-lg font-semibold">Choose or Upload Image</h3>
+              <button
+                onClick={() => setShowLibraryModal(false)}
+                className="text-text-muted hover:text-foreground"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6 max-h-[calc(90vh-120px)] overflow-y-auto">
+              <AssetLibrary 
+                onAssetSelect={handleAssetSelect}
+                onUploadComplete={handleUploadComplete}
+                allowMultiple={false}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -323,6 +323,25 @@ export const chatMessagesTable = pgTable("chat_messages", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Assets table for centralized media management
+export const assetsTable = pgTable("assets", {
+  id: serial("id").primaryKey(),
+  filename: text("filename").notNull(),
+  originalName: text("original_name").notNull(),
+  mimeType: text("mime_type").notNull(),
+  size: integer("size").notNull(), // bytes
+  url: text("url").notNull(),
+  altText: text("alt_text"),
+  description: text("description"),
+  tags: text("tags"), // JSON array of tags
+  uploadedBy: text("uploaded_by")
+    .references(() => usersTable.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .notNull()
+    .$onUpdateFn(() => new Date()),
+});
+
 // Blog posts table
 export const blogPostsTable = pgTable("blog_posts", {
   id: serial("id").primaryKey(),
@@ -379,6 +398,10 @@ export type InsertChatThread = typeof chatThreadsTable.$inferInsert;
 export type SelectChatThread = typeof chatThreadsTable.$inferSelect;
 export type InsertChatMessage = typeof chatMessagesTable.$inferInsert;
 export type SelectChatMessage = typeof chatMessagesTable.$inferSelect;
+
+// Asset types
+export type InsertAsset = typeof assetsTable.$inferInsert;
+export type SelectAsset = typeof assetsTable.$inferSelect;
 
 // Blog types
 export type InsertBlogPost = typeof blogPostsTable.$inferInsert;
