@@ -75,19 +75,6 @@ export const BlogPostCard = ({ post }: BlogPostCardProps) => {
           </p>
         )}
         
-        {tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-4">
-            {tags.map((tag: string) => (
-              <span
-                key={tag}
-                className="px-2 py-1 text-xs font-medium bg-primary/10 text-primary rounded-md hover:bg-primary/20 transition-colors duration-200"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        )}
-        
         <div className="flex items-center justify-between">
           <Button
             href={`/blog/${post.slug}`}
