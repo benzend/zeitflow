@@ -1,4 +1,3 @@
-import { Footer } from "@/components/Footer";
 import Navigation from "@/components/Navigation";
 import { BlogPostCard, BlogNavigation } from "@/components/blog";
 import { Button } from "@/components/Button";
@@ -214,8 +213,6 @@ export default async function Blog({ searchParams }: BlogPageProps) {
           )}
         </main>
       </div>
-
-      <Footer />
     </>
   );
 }

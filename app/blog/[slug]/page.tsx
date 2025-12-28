@@ -1,4 +1,3 @@
-import { Footer } from "@/components/Footer";
 import Navigation from "@/components/Navigation";
 import { BlogPost } from "@/components/blog";
 import { Button } from "@/components/Button";
@@ -211,8 +210,6 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             author: post.author,
           }} />
         </div>
-
-        <Footer />
       </div>
     </>
   );
