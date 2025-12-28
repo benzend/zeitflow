@@ -330,6 +330,9 @@ export const assetsTable = pgTable("assets", {
   originalName: text("original_name").notNull(),
   mimeType: text("mime_type").notNull(),
   size: integer("size").notNull(), // bytes
+  width: integer("width"), // Image width in pixels
+  height: integer("height"), // Image height in pixels
+  blurDataURL: text("blur_data_url"), // Blur placeholder for Next.js Image
   url: text("url").notNull(),
   altText: text("alt_text"),
   description: text("description"),

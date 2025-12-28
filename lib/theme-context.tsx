@@ -8,12 +8,14 @@ interface ThemeContextType {
   theme: Theme;
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
+  mounted: boolean;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>({
   theme: 'light',
   setTheme: () => {},
   toggleTheme: () => {},
+  mounted: false,
 });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
@@ -28,12 +30,14 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
       const initialTheme = savedTheme || systemTheme;
 
-      setTheme(initialTheme);
-      // Apply theme immediately to prevent flash
-      const root = document.documentElement;
-      root.setAttribute('data-theme', initialTheme);
-      localStorage.setItem('theme', initialTheme);
-      setMounted(true);
+      // Apply theme immediately to prevent flash of unstyled content
+      document.documentElement.setAttribute('data-theme', initialTheme);
+      
+      // Use requestAnimationFrame to avoid cascading renders
+      requestAnimationFrame(() => {
+        setMounted(true);
+        setTheme(initialTheme);
+      });
     }
   }, []);
 
@@ -50,7 +54,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setTheme(prev => prev === 'light' ? 'dark' : 'light');
   };
 
-  const contextValue = { theme, setTheme, toggleTheme };
+  const contextValue = { theme, setTheme, toggleTheme, mounted };
 
   return (
     <ThemeContext.Provider value={contextValue}>
@@ -67,6 +71,7 @@ export function useTheme() {
       theme: 'light' as Theme,
       setTheme: () => {},
       toggleTheme: () => {},
+      mounted: false,
     };
   }
   return context;

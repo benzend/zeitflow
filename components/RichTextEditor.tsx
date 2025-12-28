@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { AssetLibrary } from './AssetLibrary';
+import { MDXRenderer } from '@/lib/render-mdx';
 
 interface RichTextEditorProps {
   value: string;
@@ -111,33 +112,9 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
     }
   ];
 
+  // Use MDX for preview rendering
   const renderPreview = (text: string) => {
-    // Simple markdown to HTML conversion for preview
-    const html = text
-      // Headers
-      .replace(/^### (.*$)/gim, '<h3 class="text-lg font-semibold mb-2">$1</h3>')
-      .replace(/^## (.*$)/gim, '<h2 class="text-xl font-semibold mb-3">$1</h2>')
-      .replace(/^# (.*$)/gim, '<h1 class="text-2xl font-bold mb-4">$1</h1>')
-      // Bold
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      // Italic
-      .replace(/\*(.+?)\*/g, '<em>$1</em>')
-      // Code blocks
-      .replace(/```([\s\S]*?)```/g, '<pre class="bg-surface border border-border rounded p-3 mb-4 overflow-x-auto"><code>$1</code></pre>')
-      // Inline code
-      .replace(/`(.+?)`/g, '<code class="bg-surface border border-border rounded px-1 py-0.5 text-sm font-mono">$1</code>')
-      // Links
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-primary hover:underline" target="_blank" rel="noopener noreferrer">$1</a>')
-      // Images
-      .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" class="max-w-full h-auto rounded my-4" />')
-      // Lists
-      .replace(/^- (.+)$/gim, '<li class="ml-4">• $1</li>')
-      // Quotes
-      .replace(/^> (.+)$/gim, '<blockquote class="border-l-4 border-primary/30 pl-4 italic mb-2">$1</blockquote>')
-      // Line breaks
-      .replace(/\n/g, '<br />');
-
-    return { __html: html };
+    return <MDXRenderer content={text} />;
   };
 
   return (
@@ -181,10 +158,9 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
         {isPreviewMode ? (
           <div className="p-4 prose prose-invert max-w-none">
             {value ? (
-              <div 
-                dangerouslySetInnerHTML={renderPreview(value)}
-                className="text-foreground"
-              />
+              <div className="text-foreground">
+                {renderPreview(value)}
+              </div>
             ) : (
               <div className="text-text-muted italic">
                 Nothing to preview yet. Start writing...

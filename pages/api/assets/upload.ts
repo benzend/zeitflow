@@ -7,6 +7,8 @@ import { assetsTable, usersTable } from '@/schema';
 import { eq } from 'drizzle-orm';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
+import imageSize from 'image-size';
+import sharp from 'sharp';
 
 export const config = {
   api: {
@@ -88,6 +90,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const uploadedAssets = [];
     const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+    const assetsWithDefaultDimensions = []; // Track assets that got default dimensions
     
     // Ensure uploads directory exists
     await mkdir(uploadDir, { recursive: true });
@@ -121,6 +124,37 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const buffer = Buffer.from(base64Data, 'base64');
       await writeFile(filePath, buffer);
 
+      // Extract image dimensions for image files
+      let width = null;
+      let height = null;
+      let blurDataURL = null;
+
+      if (file.type.startsWith('image/')) {
+        try {
+          // Get image dimensions
+          const dimensions = imageSize(buffer);
+          width = dimensions.width;
+          height = dimensions.height;
+
+          // Generate blur placeholder for Next.js Image
+          const blurBuffer = await sharp(buffer)
+            .resize(20, 20, { fit: 'inside', withoutEnlargement: true })
+            .blur(10)
+            .png({ quality: 80, compressionLevel: 9 })
+            .toBuffer();
+          
+          blurDataURL = `data:image/png;base64,${blurBuffer.toString('base64')}`;
+        } catch (error) {
+          console.warn('Failed to process image dimensions:', error);
+          // Set default dimensions for failed processing
+          width = 800;
+          height = 600;
+          // Track this asset for notification
+          assetsWithDefaultDimensions.push(filename);
+          console.info('Using default dimensions (800x600) due to processing failure');
+        }
+      }
+
       // Create asset URL
       const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.HOST || 'http://localhost:3000';
       const assetUrl = `${baseUrl}/uploads/${filename}`;
@@ -131,6 +165,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         originalName: file.name,
         mimeType: file.type,
         size: buffer.length,
+        width,
+        height,
+        blurDataURL,
         url: assetUrl,
         altText: file.altText || '',
         description: file.description || '',
@@ -144,10 +181,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
+    let message = `${uploadedAssets.length} file(s) uploaded successfully`;
+    if (assetsWithDefaultDimensions.length > 0) {
+      message += `. Default dimensions (800x600) applied to ${assetsWithDefaultDimensions.length} file(s) due to processing issues.`;
+    }
+
     return res.status(201).json({ 
       success: true, 
-      message: `${uploadedAssets.length} file(s) uploaded successfully`,
-      data: uploadedAssets 
+      message,
+      data: uploadedAssets,
+      warnings: assetsWithDefaultDimensions.length > 0 ? [
+        `Default dimensions applied to: ${assetsWithDefaultDimensions.join(', ')}`
+      ] : undefined
     });
 
   } catch (error) {

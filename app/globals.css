@@ -305,7 +305,7 @@ body {
   font-style: italic;
   background-color: var(--surface);
   border-radius: 0 0.5em 0.5em 0;
-  color: var(--text-muted);
+  color: var(--foreground);
 }
 
 /* Links */
@@ -375,7 +375,8 @@ body {
 
 .prose del {
   text-decoration: line-through;
-  color: var(--text-muted);
+  color: var(--foreground);
+  opacity: 0.7;
 }
 
 .prose mark {

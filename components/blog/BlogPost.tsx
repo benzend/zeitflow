@@ -1,6 +1,7 @@
-import { marked } from 'marked';
 import Image from 'next/image';
 import { calculateReadingTime } from '@/lib/reading-time';
+import { MDXClientRenderer } from './MDXClientRenderer';
+import { enhanceMDXWithImageData } from '@/lib/mdx-enhancer';
 
 interface BlogPostProps {
   post: {
@@ -20,20 +21,26 @@ interface BlogPostProps {
   };
 }
 
-export const BlogPost = ({ post }: BlogPostProps) => {
-  const tags = post.tags ? JSON.parse(post.tags) : [];
+// Content renderer with image optimization
+async function BlogPostContent({ content }: { content: string }) {
+  // Enhance content with image metadata on server
+  const enhancedContent = await enhanceMDXWithImageData(content);
+  
+  // Use client renderer to avoid hydration issues
+  return <MDXClientRenderer content={enhancedContent} />;
+}
+
+export const BlogPost = async ({ post }: BlogPostProps) => {
   const readingTime = calculateReadingTime(post.content);
+
+  // Format dates consistently to avoid hydration mismatch
   const formatDate = (dateString?: string) => {
     if (!dateString) return '';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
-  const formatContent = (content: string) => {
-    return marked(content);
+    const date = new Date(dateString);
+    // Use consistent formatting that won't cause hydration issues
+    const months = ['January', 'February', 'March', 'April', 'May', 'June',
+                    'July', 'August', 'September', 'October', 'November', 'December'];
+    return `${months[date.getUTCMonth()]} ${date.getUTCDate()}, ${date.getUTCFullYear()}`;
   };
 
   return (
@@ -71,10 +78,9 @@ export const BlogPost = ({ post }: BlogPostProps) => {
         </h1>
       </header>
       
-      <div 
-        className="prose prose-lg max-w-none prose-headings:text-foreground prose-p:text-text-muted prose-strong:text-foreground prose-code:text-foreground prose-blockquote:text-text-muted prose-blockquote:border-primary prose-a:text-primary prose-a:hover:text-accent animate-slide-up-fade delay-100"
-        dangerouslySetInnerHTML={{ __html: formatContent(post.content) }}
-      />
+      <div className="animate-slide-up-fade delay-100">
+        <BlogPostContent content={post.content} />
+      </div>
       
       <footer className="mt-12 pt-8 border-t border-border animate-slide-up-fade delay-200">
         <div className="text-center">

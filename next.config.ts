@@ -1,8 +1,18 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    mdxRs: true, // Enable MDX Rust compiler for better performance
+  },
   images: {
-    domains: ['qki0mqoifs86lfat.public.blob.vercel-storage.com'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'qki0mqoifs86lfat.public.blob.vercel-storage.com',
+        pathname: '/**',
+      },
+    ],
+    domains: ['localhost'], // Keep for local development
   },
   async headers() {
     return [
