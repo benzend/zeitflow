@@ -78,11 +78,11 @@ export const BlogPost = async ({ post }: BlogPostProps) => {
         </h1>
       </header>
       
-      <div className="animate-slide-up-fade delay-100">
+      <main role="main" className="animate-slide-up-fade delay-100">
         <BlogPostContent content={post.content} />
-      </div>
+      </main>
       
-      <footer className="mt-12 pt-8 border-t border-border animate-slide-up-fade delay-200">
+      <footer role="contentinfo" className="mt-12 pt-8 border-t border-border animate-slide-up-fade delay-200">
         <div className="text-center">
           <p className="text-sm text-text-muted">
             Published on {formatDate(post.publishedAt)}

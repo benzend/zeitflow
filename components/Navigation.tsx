@@ -11,7 +11,7 @@ export default function Navigation() {
   const { data: session, status } = useSession();
 
   return (
-    <nav className="w-full bg-surface/80 backdrop-blur-sm border-b border-border fixed top-0 z-50 animate-slide-up-fade">
+    <nav role="navigation" className="w-full bg-surface/80 backdrop-blur-sm border-b border-border fixed top-0 z-50 animate-slide-up-fade">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
