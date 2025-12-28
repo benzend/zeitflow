@@ -30,7 +30,7 @@ export default function BlogEdit() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const params = useParams();
-  const id = params.id as string;
+  const id = params?.id as string;
   
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
