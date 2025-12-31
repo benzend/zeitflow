@@ -5,8 +5,7 @@ import { isRateLimited } from '@/lib/rate-limit';
 import { db } from '@/lib/db';
 import { assetsTable, usersTable } from '@/schema';
 import { eq } from 'drizzle-orm';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
+import { put } from '@vercel/blob';
 import imageSize from 'image-size';
 import sharp from 'sharp';
 
@@ -89,11 +88,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const uploadedAssets = [];
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads');
     const assetsWithDefaultDimensions = []; // Track assets that got default dimensions
-    
-    // Ensure uploads directory exists
-    await mkdir(uploadDir, { recursive: true });
 
     for (const file of files) {
       // Validate file data
@@ -115,14 +110,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Generate unique filename
       const timestamp = Date.now();
       const randomString = Math.random().toString(36).substring(2, 8);
-      const extension = path.extname(file.name);
-      const filename = `${timestamp}_${randomString}${extension}`;
-      const filePath = path.join(uploadDir, filename);
+      const extension = file.name.split('.').pop() || '';
+      const filename = `${timestamp}_${randomString}.${extension}`;
 
-      // Convert base64 to buffer and save file
+      // Convert base64 to buffer
       const base64Data = file.data.replace(/^data:.*?;base64,/, '');
       const buffer = Buffer.from(base64Data, 'base64');
-      await writeFile(filePath, buffer);
+
+      // Upload to Vercel Blob
+      const blob = await put(filename, buffer, {
+        access: 'public',
+        contentType: file.type,
+      });
 
       // Extract image dimensions for image files
       let width = null;
@@ -155,9 +154,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       }
 
-      // Create asset URL
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.HOST || 'http://localhost:3000';
-      const assetUrl = `${baseUrl}/uploads/${filename}`;
+      // Use blob URL
+      const assetUrl = blob.url;
 
       // Save asset to database
       const [newAsset] = await db.insert(assetsTable).values({
