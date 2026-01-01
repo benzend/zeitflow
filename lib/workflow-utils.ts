@@ -14,6 +14,8 @@ export const getNodeWidth = (type: string): number => {
   if (type === 'entry') return 98;
   if (type === 'ai') return 89;
   if (type === 'scheduler') return 103;
+  if (type === 'email') return 95;
+  if (type === 'slack') return 92;
   return 89; // review
 };
 
@@ -27,6 +29,10 @@ export const getNodeIcon = (node: NodeData): string => {
     return 'AI';
   } else if (node.type === 'scheduler') {
     return 'Scheduler';
+  } else if (node.type === 'email') {
+    return 'Email';
+  } else if (node.type === 'slack') {
+    return 'Slack';
   } else {
     return 'Review';
   }

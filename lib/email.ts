@@ -53,3 +53,37 @@ export async function sendMagicLinkEmail(email: string, url: string) {
     return { success: false, error: 'Failed to send email' }
   }
 }
+
+export async function sendWorkflowEmail(
+  config: { to: string[]; subject?: string; message?: string; from?: string },
+  variables?: Record<string, string>
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    // Replace variables in template using {{variable}} syntax
+    let subject = config.subject || 'Workflow Notification';
+    let message = config.message || '';
+    
+    if (variables) {
+      for (const [key, value] of Object.entries(variables)) {
+        subject = subject.replace(new RegExp(`{{${key}}}`, 'g'), value);
+        message = message.replace(new RegExp(`{{${key}}}`, 'g'), value);
+      }
+    }
+
+    const { error } = await resend.emails.send({
+      from: config.from || process.env.RESEND_FROM_EMAIL!,
+      to: config.to,
+      subject,
+      text: message, // Plain text only
+    });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error sending workflow email:', error);
+    return { success: false, error: 'Failed to send email' };
+  }
+}

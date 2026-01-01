@@ -30,9 +30,22 @@ export interface ReviewConfig {
   meetingConfirmed?: boolean;
 }
 
+export interface EmailConfig {
+  to: string[];
+  subject?: string;
+  message?: string;
+  from?: string; // Defaults to noreply@zeitflow.io
+}
+
+export interface SlackConfig {
+  botId?: number; // Reference to slackBotsTable.id
+  channel: string;
+  message?: string;
+}
+
 export interface NodeData {
   id: string;
-  type: 'entry' | 'ai' | 'scheduler' | 'review' | 'slack';
+  type: 'entry' | 'ai' | 'scheduler' | 'review' | 'slack' | 'email';
   x: number;
   y: number;
   label: string;
@@ -41,6 +54,8 @@ export interface NodeData {
   aiConfig?: AINodeConfig;
   schedulerConfig?: SchedulerConfig;
   reviewConfig?: ReviewConfig;
+  emailConfig?: EmailConfig;
+  slackConfig?: SlackConfig;
 }
 
 export interface Connection {

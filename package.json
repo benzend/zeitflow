@@ -21,6 +21,8 @@
     "@neondatabase/serverless": "^1.0.0",
     "@next/third-parties": "16.0.7",
     "@openrouter/ai-sdk-provider": "^0.7.2",
+    "@slack/oauth": "^3.0.4",
+    "@slack/web-api": "^7.13.0",
     "@stripe/stripe-js": "^7.3.1",
     "@types/formidable": "^3.4.6",
     "@types/mdx": "^2.0.13",

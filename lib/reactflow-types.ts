@@ -1,16 +1,18 @@
 import { Node, Edge } from '@xyflow/react';
-import { NodeData, Connection, Field, AINodeConfig, SchedulerConfig, ReviewConfig } from './workflow-types';
+import { NodeData, Connection, Field, AINodeConfig, SchedulerConfig, ReviewConfig, EmailConfig, SlackConfig } from './workflow-types';
 
 // React Flow node data type (without x, y since those are handled by React Flow)
 export interface ReactFlowNodeData extends Record<string, unknown> {
   id: string;
-  type: 'entry' | 'ai' | 'scheduler' | 'review' | 'slack';
+  type: 'entry' | 'ai' | 'scheduler' | 'review' | 'slack' | 'email';
   label: string;
   fields?: Field[];
   entryType?: string;
   aiConfig?: AINodeConfig;
   schedulerConfig?: SchedulerConfig;
   reviewConfig?: ReviewConfig;
+  emailConfig?: EmailConfig;
+  slackConfig?: SlackConfig;
 }
 
 // React Flow compatible node type
@@ -37,7 +39,9 @@ export const convertToReactFlow = (
         entryType: node.entryType,
         aiConfig: node.aiConfig,
         schedulerConfig: node.schedulerConfig,
-        reviewConfig: node.reviewConfig
+        reviewConfig: node.reviewConfig,
+        emailConfig: node.emailConfig,
+        slackConfig: node.slackConfig
       }
     })),
     edges: connections.map((conn, index) => ({
@@ -65,7 +69,9 @@ export const convertFromReactFlow = (
       entryType: node.data.entryType,
       aiConfig: node.data.aiConfig,
       schedulerConfig: node.data.schedulerConfig,
-      reviewConfig: node.data.reviewConfig
+      reviewConfig: node.data.reviewConfig,
+      emailConfig: node.data.emailConfig,
+      slackConfig: node.data.slackConfig
     })),
     connections: edges.map(edge => ({
       from: edge.source,

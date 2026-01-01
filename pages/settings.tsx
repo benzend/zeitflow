@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { Button } from "@/components/Button";
 import ProfileDropdown from "@/components/ProfileDropdown";
 import SubscriptionModal from "@/components/SubscriptionCard";
+import SlackBotManager from "@/components/SlackBotManager";
 
 export default function Settings() {
   const { data: session, status } = useSession();
@@ -136,6 +137,17 @@ export default function Settings() {
                     <p className="text-gray-400">{session.user?.email}</p>
                   </div>
                 </div>
+              </div>
+            </section>
+
+            {/* Slack Integration */}
+            <section>
+              <h2 className="text-xl font-semibold text-foreground mb-4">Slack Integration</h2>
+              <div className="bg-background-light-light p-4 rounded-lg">
+                <p className="text-gray-400 mb-4">
+                  Configure Slack bots for workflow notifications. Bots can send messages to channels and users.
+                </p>
+                <SlackBotManager />
               </div>
             </section>
 

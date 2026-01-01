@@ -345,6 +345,24 @@ export const assetsTable = pgTable("assets", {
     .$onUpdateFn(() => new Date()),
 });
 
+// Slack bots table for workflow integration
+export const slackBotsTable = pgTable("slack_bots", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => usersTable.id, { onDelete: "cascade" }),
+  name: text("name").notNull().default("ZeitFlow Bot"),
+  botToken: text("bot_token").notNull(),
+  teamId: text("team_id").notNull(),
+  teamName: text("team_name"),
+  botUserId: text("bot_user_id").notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .notNull()
+    .$onUpdateFn(() => new Date()),
+});
+
 // Blog posts table
 export const blogPostsTable = pgTable("blog_posts", {
   id: serial("id").primaryKey(),
@@ -405,6 +423,10 @@ export type SelectChatMessage = typeof chatMessagesTable.$inferSelect;
 // Asset types
 export type InsertAsset = typeof assetsTable.$inferInsert;
 export type SelectAsset = typeof assetsTable.$inferSelect;
+
+// Slack bot types
+export type InsertSlackBot = typeof slackBotsTable.$inferInsert;
+export type SelectSlackBot = typeof slackBotsTable.$inferSelect;
 
 // Blog types
 export type InsertBlogPost = typeof blogPostsTable.$inferInsert;

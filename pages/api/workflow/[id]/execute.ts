@@ -2,11 +2,13 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../auth/[...nextauth]";
 import { db } from "@/lib/db";
-import { workflowsTable, workflowNodesTable, workflowConnectionsTable, workflowExecutionsTable, usersTable } from "@/schema";
+import { workflowsTable, workflowNodesTable, workflowConnectionsTable, workflowExecutionsTable, usersTable, slackBotsTable } from "@/schema";
 import { eq } from "drizzle-orm";
 
 import { chat } from "@/lib/openrouter";
 import { extractVariables } from "@/lib/variables-client";
+import { sendWorkflowEmail } from "@/lib/email";
+import { sendSlackMessage } from "@/lib/slack";
 
 export default async function handler(
   req: NextApiRequest,
@@ -31,7 +33,7 @@ export default async function handler(
   // Map database nodes to WorkflowNode interface
   const nodes: WorkflowNode[] = dbNodes.map(node => ({
     id: node.id,
-    type: node.type as 'entry' | 'ai' | 'scheduler' | 'review' | 'slack',
+    type: node.type as 'entry' | 'ai' | 'scheduler' | 'review' | 'slack' | 'email',
     label: node.label,
     entryType: node.entryType || undefined,
     config: node.config || undefined,
@@ -145,7 +147,7 @@ interface WorkflowConnection {
 
 interface WorkflowNode {
   id: string;
-  type: 'entry' | 'ai' | 'scheduler' | 'review' | 'slack';
+  type: 'entry' | 'ai' | 'scheduler' | 'review' | 'slack' | 'email';
   label: string;
   entryType?: string;
   config?: string;
@@ -310,7 +312,98 @@ async function executeWorkflow(
         // TODO: Implement review call
         break;
       case 'slack':
-        // TODO: Implement slack call
+        const slackConfig = config.slackConfig || {};
+        
+        // Collect available variables from connected nodes
+        const slackVariables = collectAvailableVariables(node.id, connections, nodes, inputData, outputData);
+        
+        // Substitute variables in message
+        const slackMessage = slackConfig.message 
+          ? substituteVariables(slackConfig.message, slackVariables)
+          : '';
+        
+        // Substitute variables in channel
+        const slackChannel = slackConfig.channel 
+          ? substituteVariables(slackConfig.channel, slackVariables)
+          : '';
+        
+        try {
+          // Use specific bot from config if provided, otherwise find any bot for this user
+          let botToUse;
+          
+          if (slackConfig.botId) {
+            const [specificBot] = await db
+              .select()
+              .from(slackBotsTable)
+              .where(eq(slackBotsTable.id, slackConfig.botId))
+              .limit(1);
+            
+            if (!specificBot || specificBot.userId !== userId) {
+              outputData[node.id] = { error: 'Specified Slack bot not found or unauthorized' };
+              break;
+            }
+            botToUse = specificBot;
+          } else {
+            // Find any bot for this user
+            const [userBot] = await db
+              .select()
+              .from(slackBotsTable)
+              .where(eq(slackBotsTable.userId, userId))
+              .limit(1);
+
+            if (!userBot) {
+              outputData[node.id] = { error: 'No Slack bot configured for this user' };
+              break;
+            }
+            botToUse = userBot;
+          }
+
+          const slackResponse = await sendSlackMessage(
+            { botId: botToUse.id, channel: slackChannel, message: slackMessage }
+          );
+          
+          if (!slackResponse.success) {
+            outputData[node.id] = { error: slackResponse.error };
+            console.error('Slack call error:', slackResponse.error);
+            break;
+          }
+          outputData[node.id] = { success: true };
+        } catch (error) {
+          outputData[node.id] = { error: 'Failed to send Slack message' };
+          console.error('Slack call error:', error);
+        }
+        break;
+      case 'email':
+        const emailConfig = config.emailConfig || {};
+        
+        // Collect available variables from connected nodes
+        const emailVariables = collectAvailableVariables(node.id, connections, nodes, inputData, outputData);
+        
+        // Substitute variables in message
+        const emailMessage = emailConfig.message 
+          ? substituteVariables(emailConfig.message, emailVariables)
+          : '';
+        
+        // Substitute variables in recipients array
+        const emailRecipients = emailConfig.to 
+          ? emailConfig.to.map((recipient: string) => substituteVariables(recipient, emailVariables))
+          : [];
+        
+        try {
+          const emailResponse = await sendWorkflowEmail(
+            { to: emailRecipients, message: emailMessage }
+          );
+          
+          if (!emailResponse.success) {
+            outputData[node.id] = { error: emailResponse.error };
+            console.error('Email call error:', emailResponse.error);
+            break;
+          }
+          outputData[node.id] = { success: true };
+        } catch (error) {
+          outputData[node.id] = { error: 'Failed to send email' };
+          console.error('Email call error:', error);
+        }
         break;
     }
 

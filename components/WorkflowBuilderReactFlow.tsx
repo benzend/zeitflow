@@ -28,6 +28,8 @@ import EntryNode from './reactflow-nodes/EntryNode';
 import AINode from './reactflow-nodes/AINode';
 import SchedulerNode from './reactflow-nodes/SchedulerNode';
 import ReviewNode from './reactflow-nodes/ReviewNode';
+import EmailNode from './reactflow-nodes/EmailNode';
+import SlackNode from './reactflow-nodes/SlackNode';
 import Dropdown, { DropdownOption } from './Dropdown';
 
 interface WorkflowBuilderProps {
@@ -47,6 +49,8 @@ const nodeTypes: NodeTypes = {
   ai: AINode,
   scheduler: SchedulerNode,
   review: ReviewNode,
+  email: EmailNode,
+  slack: SlackNode,
 };
 
 const FIELD_TYPE_OPTIONS: DropdownOption[] = [
@@ -78,6 +82,8 @@ const ENTRY_TYPE_OPTIONS: DropdownOption[] = [
 const NODE_TYPE_OPTIONS: DropdownOption[] = [
   { value: 'entry', label: 'Entry' },
   { value: 'ai', label: 'AI Model' },
+  // { value: 'email', label: 'Email' },
+  // { value: 'slack', label: 'Slack' },
 ];
 
 // Wrapper component to provide React Flow context
@@ -104,8 +110,25 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [newPersonName, setNewPersonName] = useState('');
   const [showAddDropdown, setShowAddDropdown] = useState(false);
+  const [slackBots, setSlackBots] = useState<{ id: number; name: string; teamName: string }[]>([]);
 
   const { screenToFlowPosition } = useReactFlow();
+
+  // Fetch Slack bots on component mount
+  useEffect(() => {
+    const fetchSlackBots = async () => {
+      try {
+        const response = await fetch('/api/slack/bots');
+        const data = await response.json();
+        if (data.success) {
+          setSlackBots(data.bots);
+        }
+      } catch (error) {
+        console.error('Failed to fetch Slack bots:', error);
+      }
+    };
+    fetchSlackBots();
+  }, []);
 
   // Handle new connections
   const onConnect = useCallback(
@@ -133,7 +156,7 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
   }, []);
 
   // Add new node
-  const addNode = useCallback((type: 'entry' | 'ai' | 'scheduler' | 'review') => {
+  const addNode = useCallback((type: 'entry' | 'ai' | 'scheduler' | 'review' | 'email' | 'slack') => {
     const centerPosition = screenToFlowPosition({
       x: window.innerWidth / 2,
       y: window.innerHeight / 2
@@ -145,7 +168,7 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
       data: {
         id: generateNodeId(),
         type,
-        label: type === 'entry' ? 'Entry' : type === 'ai' ? 'AI Model' : type === 'scheduler' ? 'Scheduler' : 'Review',
+        label: type === 'entry' ? 'Entry' : type === 'ai' ? 'AI Model' : type === 'scheduler' ? 'Scheduler' : type === 'email' ? 'Email' : type === 'slack' ? 'Slack' : 'Review',
         ...(type === 'entry' ? { fields: [], entryType: 'api' } :
           type === 'ai' ? {
             aiConfig: {
@@ -162,6 +185,18 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
               people: [],
               minTimeRequirement: '',
               calendar: ''
+            }
+          } : type === 'email' ? {
+            emailConfig: {
+              to: [],
+              subject: 'Workflow Notification',
+              message: 'Workflow update: {{previousOutput}}',
+              from: 'noreply@zeitflow.io'
+            }
+          } : type === 'slack' ? {
+            slackConfig: {
+              channel: '#general',
+              message: 'Workflow update: {{previousOutput}}'
             }
           } : {
             reviewConfig: {
@@ -356,6 +391,15 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
       });
     }
   }, [selectedNode, nodes, updateNodeData]);
+  const updateNodeConfig = useCallback((configType: 'emailConfig' | 'slackConfig', updates: object) => {
+    if (!selectedNode) return;
+    const currentNode = nodes.find(n => n.id === selectedNode);
+    if (currentNode?.data[configType]) {
+      updateNodeData(selectedNode, { 
+        [configType]: { ...currentNode.data[configType], ...updates } 
+      });
+    }
+  }, [selectedNode, nodes, updateNodeData]);
 
   const addPerson = useCallback(() => {
     if (!selectedNode || !newPersonName.trim()) return;
@@ -464,7 +508,7 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
                 <Button
                   key={option.value}
                   onClick={() => {
-                    addNode(option.value as 'entry' | 'ai' | 'scheduler');
+                    addNode(option.value as 'entry' | 'ai' | 'scheduler' | 'email' | 'slack');
                     setShowAddDropdown(false);
                   }}
                   variant="tertiary"
@@ -1078,6 +1122,135 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
                 </div>
               </div>
             </div>
+          ) : selectedNodeData.type === 'email' ? (
+            <>
+              <div className="mb-[12px]">
+                <h3 className="text-foreground text-lg font-bold mb-[4px]">
+                  Email Configuration
+                </h3>
+                <p className="text-text-muted text-sm leading-relaxed">
+                  Configure email recipients, subject, and message content
+                </p>
+              </div>
+
+              <div className="mb-[16px]">
+                <label className="block text-foreground-light font-medium mb-[8px]">
+                  To (comma-separated)
+                </label>
+                <input
+                  type="text"
+                  value={selectedNodeData.emailConfig?.to?.join(', ') || ''}
+                  onChange={(e) => updateNodeConfig('emailConfig', { 
+                    ...selectedNodeData.emailConfig, 
+                    to: e.target.value.split(',').map(email => email.trim()).filter(email => email) 
+                  })}
+                  className="w-full bg-background-extra-light border-border border-[0.5px] h-[32px] rounded-[8px] overflow-hidden px-[12px] text-[12px] text-foreground placeholder-text-placeholder outline-none"
+                  placeholder="user@example.com, admin@example.com"
+                />
+              </div>
+
+              <div className="mb-[16px]">
+                <label className="block text-foreground-light font-medium mb-[8px]">
+                  Subject
+                </label>
+                <input
+                  type="text"
+                  value={selectedNodeData.emailConfig?.subject || ''}
+                  onChange={(e) => updateNodeConfig('emailConfig', { 
+                    ...selectedNodeData.emailConfig, 
+                    subject: e.target.value 
+                  })}
+                  className="w-full bg-background-extra-light border-border border-[0.5px] h-[32px] rounded-[8px] overflow-hidden px-[12px] text-[12px] text-foreground placeholder-text-placeholder outline-none"
+                  placeholder="Workflow Notification"
+                />
+              </div>
+
+              <div className="mb-[16px]">
+                <label className="block text-foreground-light font-medium mb-[8px]">
+                  Message
+                </label>
+                <div className="bg-background-extra-light mt-[4px] rounded">
+                  <TypeaheadTextarea
+                    value={selectedNodeData.emailConfig?.message || ''}
+                    onChange={(value) => updateNodeConfig('emailConfig', { 
+                      ...selectedNodeData.emailConfig, 
+                      message: value 
+                    })}
+                    suggestions={getFieldSuggestions(selectedNode!)}
+                    className="bg-transparent font-['Inter:Regular',_sans-serif] font-normal h-[119px] leading-[normal] not-italic outline-none p-4 resize-none text-sm text-foreground w-full"
+                    placeholder="Workflow update: {{previousOutput}}"
+                    hintNoSuggestionsMessage={"No variables found"}
+                  />
+                </div>
+              </div>
+            </>
+          ) : selectedNodeData.type === 'slack' ? (
+            <>
+              <div className="mb-[12px]">
+                <h3 className="text-foreground text-lg font-bold mb-[4px]">
+                  Slack Configuration
+                </h3>
+                <p className="text-text-muted text-sm leading-relaxed">
+                  Configure Slack bot, channel, and message content
+                </p>
+              </div>
+
+              <div className="mb-[16px]">
+                <label className="block text-foreground-light font-medium mb-[8px]">
+                  Slack Bot
+                </label>
+                <select
+                  value={selectedNodeData.slackConfig?.botId || ''}
+                  onChange={(e) => updateNodeConfig('slackConfig', { 
+                    ...selectedNodeData.slackConfig, 
+                    botId: e.target.value ? Number(e.target.value) : undefined 
+                  })}
+                  className="w-full bg-background-extra-light border-border border-[0.5px] h-[32px] rounded-[8px] overflow-hidden px-[12px] text-[12px] text-foreground outline-none"
+                >
+                  <option value="">Select a bot</option>
+                  {slackBots.map((bot) => (
+                    <option key={bot.id} value={bot.id}>
+                      {bot.name} ({bot.teamName})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="mb-[16px]">
+                <label className="block text-foreground-light font-medium mb-[8px]">
+                  Channel
+                </label>
+                <input
+                  type="text"
+                  value={selectedNodeData.slackConfig?.channel || ''}
+                  onChange={(e) => updateNodeConfig('slackConfig', { 
+                    ...selectedNodeData.slackConfig, 
+                    channel: e.target.value 
+                  })}
+                  className="w-full bg-background-extra-light border-border border-[0.5px] h-[32px] rounded-[8px] overflow-hidden px-[12px] text-[12px] text-foreground placeholder-text-placeholder outline-none"
+                  placeholder="#general"
+                />
+              </div>
+
+              <div className="mb-[16px]">
+                <label className="block text-foreground-light font-medium mb-[8px]">
+                  Message
+                </label>
+                <div className="bg-background-extra-light mt-[4px] rounded">
+                  <TypeaheadTextarea
+                    value={selectedNodeData.slackConfig?.message || ''}
+                    onChange={(value) => updateNodeConfig('slackConfig', { 
+                      ...selectedNodeData.slackConfig, 
+                      message: value 
+                    })}
+                    suggestions={getFieldSuggestions(selectedNode!)}
+                    className="bg-transparent font-['Inter:Regular',_sans-serif] font-normal h-[119px] leading-[normal] not-italic outline-none p-4 resize-none text-sm text-foreground w-full"
+                    placeholder="Workflow update: {{previousOutput}}"
+                    hintNoSuggestionsMessage={"No variables found"}
+                  />
+                </div>
+              </div>
+            </>
           ) : !selectedNodeData && (
              <div className="mt-[20px] px-[20px] pb-[20px]">
                <p className="text-text-muted text-sm">Select a node to configure its properties</p>

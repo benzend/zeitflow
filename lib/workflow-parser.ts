@@ -150,6 +150,11 @@ function validateYamlNode(yamlNode: Record<string, unknown>, type: string): { is
         return { isValid: false, error: 'Slack nodes require a channel' };
       }
       break;
+    case 'email':
+      if (!yamlNode.to || !Array.isArray(yamlNode.to)) {
+        return { isValid: false, error: 'Email nodes require a to array' };
+      }
+      break;
     case 'review':
       // Review nodes don't require additional properties
       break;
@@ -166,7 +171,7 @@ function convertYamlNodeToNodeData(yamlNode: Record<string, unknown>, allNodes: 
   }
 
   const type = yamlNode.type;
-  const VALID_NODE_TYPES = ['entry', 'form', 'ai', 'scheduler', 'review', 'slack'];
+  const VALID_NODE_TYPES = ['entry', 'form', 'ai', 'scheduler', 'review', 'slack', 'email'];
   
   if (typeof type !== 'string' || !VALID_NODE_TYPES.includes(type)) {
     return null;
@@ -219,6 +224,16 @@ function convertYamlNodeToNodeData(yamlNode: Record<string, unknown>, allNodes: 
     };
   } else if (nodeType === 'slack' && yamlNode.channel) {
     node.label = `Slack: ${yamlNode.channel}`;
+  } else if (nodeType === 'email') {
+    node.emailConfig = {
+      to: (yamlNode.to && Array.isArray(yamlNode.to)) ? yamlNode.to : [],
+      subject: typeof yamlNode.subject === 'string' ? yamlNode.subject : undefined,
+      message: typeof yamlNode.message === 'string' ? yamlNode.message : undefined,
+      from: typeof yamlNode.from === 'string' ? yamlNode.from : undefined
+    };
+    if (yamlNode.to && Array.isArray(yamlNode.to) && yamlNode.to.length > 0) {
+      node.label = `Email: ${yamlNode.to[0]}`;
+    }
   }
 
   return node;
@@ -240,6 +255,8 @@ function getDefaultLabel(type: string): string {
       return 'Review & Confirm';
     case 'slack':
       return 'Send to Slack';
+    case 'email':
+      return 'Send Email';
     default:
       return type.charAt(0).toUpperCase() + type.slice(1);
   }
