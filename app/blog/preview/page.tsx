@@ -19,10 +19,15 @@ interface PostData {
   title: string;
   excerpt?: string;
   content: string;
+  published: boolean;
   featuredImage?: string;
   tags?: string;
   publishedAt?: string;
+  createdAt?: string;
   updatedAt?: string;
+  authorId: string;
+  authorName?: string;
+  authorEmail: string;
 }
 
 async function getPostData(id: string): Promise<PostData | null> {
@@ -55,10 +60,20 @@ async function getPostData(id: string): Promise<PostData | null> {
     }
 
     return {
-      ...post,
+      id: post.id,
+      slug: post.slug,
+      title: post.title,
+      excerpt: post.excerpt || undefined,
+      content: post.content,
+      published: post.published,
+      featuredImage: post.featuredImage || undefined,
       tags: post.tags || undefined,
       publishedAt: post.publishedAt?.toISOString() || undefined,
+      createdAt: post.createdAt?.toISOString() || undefined,
       updatedAt: post.updatedAt?.toISOString() || undefined,
+      authorId: post.authorId,
+      authorName: post.authorName || undefined,
+      authorEmail: post.authorEmail || '',
     };
   } catch (error) {
     console.error('Error fetching post for preview:', error);

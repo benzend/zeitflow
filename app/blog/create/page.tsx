@@ -12,6 +12,7 @@ import { GODMODE_EMAILS } from '@/lib/constants';
 
 interface BlogPost {
   id?: number;
+  slug: string;
   title: string;
   excerpt: string;
   content: string;
@@ -30,6 +31,7 @@ export default function BlogCreate() {
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
   
   const [post, setPost] = useState<BlogPost>({
+    slug: '',
     title: '',
     excerpt: '',
     content: '',
@@ -167,6 +169,41 @@ export default function BlogCreate() {
             />
           </div>
 
+          {/* Slug */}
+          <div>
+            <label htmlFor="slug" className="block text-sm font-medium text-foreground mb-2">
+              URL Slug *
+            </label>
+            <input
+              type="text"
+              id="slug"
+              value={post.slug}
+              onChange={(e) => {
+                // Allow user to type freely, only lowercase and replace spaces/underscores with dashes
+                const slug = e.target.value
+                  .toLowerCase()
+                  .replace(/[ _]+/g, '-');
+                handleInputChange('slug', slug);
+              }}
+              onBlur={(e) => {
+                // Format and validate on blur
+                const formatted = e.target.value
+                  .toLowerCase()
+                  .replace(/[^a-z0-9]+/g, '-')
+                  .replace(/(^-|-$)/g, '');
+                handleInputChange('slug', formatted);
+              }}
+              className="w-full px-4 py-2 bg-surface border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              placeholder="your-post-url"
+              required
+            />
+            <p className="mt-1 text-sm text-text-muted">
+              This will be used in the URL: /blog/{post.slug || 'your-post-slug'}
+              <br />
+              <span className="text-xs">Use lowercase letters, numbers, and hyphens. Auto-formatted when you click away.</span>
+            </p>
+          </div>
+
           {/* Excerpt */}
           <div>
             <label htmlFor="excerpt" className="block text-sm font-medium text-foreground mb-2">
@@ -224,7 +261,7 @@ export default function BlogCreate() {
               <Button
                 variant="secondary"
                 onClick={() => handleSave(false)}
-                disabled={isSaving || !post.title.trim() || !post.content.trim()}
+                disabled={isSaving || !post.title.trim() || !post.content.trim() || !post.slug.trim()}
               >
                 {isSaving ? 'Saving...' : 'Save Draft'}
               </Button>
@@ -237,14 +274,14 @@ export default function BlogCreate() {
                   }));
                   window.open(`/blog/preview?data=${previewData}`, '_blank');
                 }}
-                disabled={!post.title.trim() || !post.content.trim()}
+                disabled={!post.title.trim() || !post.content.trim() || !post.slug.trim()}
               >
                 Preview
               </Button>
               <Button
                 variant="primary"
                 onClick={() => handleSave(true)}
-                disabled={isSaving || !post.title.trim() || !post.content.trim()}
+                disabled={isSaving || !post.title.trim() || !post.content.trim() || !post.slug.trim()}
               >
                 {isSaving ? 'Publishing...' : 'Publish Post'}
               </Button>

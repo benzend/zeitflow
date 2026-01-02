@@ -1,22 +1,17 @@
-// This API is no longer needed since preview page now handles authentication server-side
-// Keeping this file for backwards compatibility but it's deprecated
+// This API handles preview functionality for blog posts
 
 import type { NextApiRequest, NextApiResponse } from 'next';
-
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  res.status(410).json({ 
-    success: false, 
-    message: 'This endpoint is deprecated. Preview functionality is now handled server-side in the preview page.' 
-  });
-}
+import { getServerSession } from 'next-auth';
+import { eq } from 'drizzle-orm';
+import { db } from '@/lib/db';
+import { blogPostsTable, usersTable } from '@/schema';
+import { authOptions } from '@/pages/api/auth/[...nextauth]';
+import { GODMODE_EMAILS } from '@/lib/constants';
 
 type ResponseData = {
   success: boolean;
   message: string;
-  post?: TransformedPost;
+  post?: any;
 };
 
 export default async function handler(
@@ -79,7 +74,7 @@ export default async function handler(
     }
 
     // Transform the data to match the expected format
-    const transformedPost: TransformedPost = {
+    const transformedPost = {
       id: post.id,
       slug: post.slug,
       title: post.title,
@@ -99,12 +94,6 @@ export default async function handler(
       },
     };
     
-    return res.status(200).json({
-      success: true,
-      message: 'Post retrieved successfully for preview',
-      post: transformedPost,
-    });
-
     return res.status(200).json({
       success: true,
       message: 'Post retrieved successfully for preview',

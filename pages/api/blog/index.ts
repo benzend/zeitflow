@@ -250,11 +250,31 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse<ResponseData
       .json({ success: false, message: 'User not found' });
   }
 
-  // Generate slug from title
-  const slug = title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '') + '-' + Date.now();
+  // Use provided slug or generate one from title
+  let slug: string;
+  if (validationResult.data.slug && validationResult.data.slug.trim()) {
+    slug = validationResult.data.slug.trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+  } else {
+    // Generate slug from title
+    slug = title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '') + '-' + Date.now();
+  }
+
+  // Check if slug already exists and make it unique if needed
+  const existingPost = await db
+    .select({ id: blogPostsTable.id })
+    .from(blogPostsTable)
+    .where(eq(blogPostsTable.slug, slug))
+    .limit(1);
+
+  if (existingPost.length > 0) {
+    slug = slug + '-' + Date.now();
+  }
 
   // Create blog post
   const insertData: any = {

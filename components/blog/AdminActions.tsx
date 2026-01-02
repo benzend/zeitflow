@@ -9,6 +9,7 @@ interface AdminActionsProps {
 }
 
 export function AdminActions({ postId, slug, isAdmin }: AdminActionsProps) {
+  // slug is available for future use (e.g., direct blog URL generation)
   if (!isAdmin) {
     return null;
   }
