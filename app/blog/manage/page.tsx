@@ -321,30 +321,46 @@ export default function BlogManage() {
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-2 ml-4">
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => handleTogglePublish(post)}
-                    >
-                      {post.published ? 'Unpublish' : 'Publish'}
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => router.push(`/blog/edit/${post.id}`)}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      variant="clear"
-                      size="sm"
-                      onClick={() => handleDelete(post.id)}
-                      className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                    >
-                      Delete
-                    </Button>
-                  </div>
+                   <div className="flex items-center gap-2 ml-4">
+                     <Button
+                       variant="tertiary"
+                       size="sm"
+                       onClick={() => window.open(`/blog/preview?id=${post.id}`, '_blank')}
+                     >
+                       Preview
+                     </Button>
+                     <Button
+                       variant="secondary"
+                       size="sm"
+                       onClick={() => handleTogglePublish(post)}
+                     >
+                       {post.published ? 'Unpublish' : 'Publish'}
+                     </Button>
+                     <Button
+                       variant="secondary"
+                       size="sm"
+                       onClick={() => router.push(`/blog/edit/${post.id}`)}
+                     >
+                       Edit
+                     </Button>
+                     {post.published && (
+                       <Button
+                         variant="clear"
+                         size="sm"
+                         onClick={() => window.open(`/blog/${post.slug}`, '_blank')}
+                       >
+                         View
+                       </Button>
+                     )}
+                     <Button
+                       variant="clear"
+                       size="sm"
+                       onClick={() => handleDelete(post.id)}
+                       className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                     >
+                       Delete
+                     </Button>
+                   </div>
                 </div>
               </div>
             ))}

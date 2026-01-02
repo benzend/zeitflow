@@ -294,6 +294,17 @@ export default function BlogEdit() {
               >
                 {isSaving ? 'Saving...' : 'Save Changes'}
               </Button>
+              <Button
+                variant="tertiary"
+                onClick={() => {
+                  if (post.id) {
+                    window.open(`/blog/preview?id=${post.id}`, '_blank');
+                  }
+                }}
+                disabled={!post.title.trim() || !post.content.trim()}
+              >
+                Preview
+              </Button>
               {!post.published && (
                 <Button
                   variant="primary"

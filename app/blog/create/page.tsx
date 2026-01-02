@@ -229,6 +229,19 @@ export default function BlogCreate() {
                 {isSaving ? 'Saving...' : 'Save Draft'}
               </Button>
               <Button
+                variant="tertiary"
+                onClick={() => {
+                  const previewData = encodeURIComponent(JSON.stringify({
+                    ...post,
+                    publishedAt: new Date().toISOString(),
+                  }));
+                  window.open(`/blog/preview?data=${previewData}`, '_blank');
+                }}
+                disabled={!post.title.trim() || !post.content.trim()}
+              >
+                Preview
+              </Button>
+              <Button
                 variant="primary"
                 onClick={() => handleSave(true)}
                 disabled={isSaving || !post.title.trim() || !post.content.trim()}

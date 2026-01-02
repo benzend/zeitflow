@@ -1,6 +1,7 @@
 import Navigation from "@/components/Navigation";
 import { BlogPost } from "@/components/blog";
 import { Button } from "@/components/Button";
+import { AdminActions } from "@/components/blog/AdminActions";
 import { db } from '@/lib/db';
 import { blogPostsTable, usersTable } from '@/schema';
 import { eq, and } from 'drizzle-orm';
@@ -197,6 +198,12 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               ← Back to Blog
             </Button>
           </div>
+          
+          <AdminActions 
+            postId={post.id}
+            slug={post.slug}
+            isAdmin={post.author.isAdmin}
+          />
           
           <BlogPost post={{
             id: post.id,

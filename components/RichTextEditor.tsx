@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { AssetLibrary } from './AssetLibrary';
-import { MDXRenderer } from '@/lib/render-mdx';
+import { MDXClientRenderer } from '@/components/blog';
 
 interface RichTextEditorProps {
   value: string;
@@ -114,7 +114,7 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
 
   // Use MDX for preview rendering
   const renderPreview = (text: string) => {
-    return <MDXRenderer content={text} />;
+    return <MDXClientRenderer content={text} />;
   };
 
   return (
