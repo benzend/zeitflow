@@ -72,12 +72,7 @@ async function getBlogPosts(page: number = 1) {
       },
     }));
 
-    const totalCountResult = await db
-      .select({ count: blogPostsTable.id })
-      .from(blogPostsTable)
-      .where(eq(blogPostsTable.published, true));
-    
-    const total = totalCountResult.length;
+    const total = await db.$count(blogPostsTable, eq(blogPostsTable.published, true));
     const totalPages = Math.ceil(total / limit);
     const hasNext = page < totalPages;
     const hasPrevious = page > 1;
