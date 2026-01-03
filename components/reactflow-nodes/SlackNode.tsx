@@ -15,16 +15,16 @@ const SlackNode = memo(({ data, selected }: SlackNodeProps) => {
       <Handle type="target" position={Position.Left} />
       <Handle type="source" position={Position.Right} />
 
-      <div className="flex items-center justify-center">
-        <div className="absolute left-3 top-2">
-          <p className="text-xs" style={{ color }}>Slack</p>
-          <div className="h-0 mt-0.5 w-1">
-            <svg className="block w-full h-full" fill="none" viewBox="0 0 4 1">
-              <line stroke={color} strokeWidth="0.5" x2="4" y1="0.75" y2="0.75" />
-            </svg>
-          </div>
+      <div className="flex items-center gap-2">
+        <div className="w-4 h-3 flex-shrink-0">
+          <svg width="14" height="13" viewBox="0 0 14 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="5.5" width="2" height="6" rx="0.5" fill={color} />
+            <rect x="5" y="2.5" width="2" height="9" rx="0.5" fill={color} />
+            <rect x="8" y="4" width="2" height="7.5" rx="0.5" fill={color} />
+            <rect x="11" y="6.5" width="1.5" height="5" rx="0.5" fill={color} />
+          </svg>
         </div>
-        <span className="text-xs text-foreground ml-5 whitespace-nowrap">{data.label}</span>
+        <span className="text-xs text-foreground whitespace-nowrap">{data.label}</span>
       </div>
     </div>
   );

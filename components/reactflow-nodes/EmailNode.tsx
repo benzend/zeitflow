@@ -15,16 +15,14 @@ const EmailNode = memo(({ data, selected }: EmailNodeProps) => {
       <Handle type="target" position={Position.Left} />
       <Handle type="source" position={Position.Right} />
 
-      <div className="flex items-center justify-center">
-        <div className="absolute left-3 top-2">
-          <p className="text-xs" style={{ color }}>Email</p>
-          <div className="h-0 mt-0.5 w-1">
-            <svg className="block w-full h-full" fill="none" viewBox="0 0 4 1">
-              <line stroke={color} strokeWidth="0.5" x2="4" y1="0.75" y2="0.75" />
-            </svg>
-          </div>
+      <div className="flex items-center gap-2">
+        <div className="w-4 h-3 flex-shrink-0">
+          <svg width="14" height="11" viewBox="0 0 14 11" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="0.5" y="0.5" width="13" height="10" rx="0.5" stroke={color} strokeWidth="0.5" fill="none" />
+            <path d="M0.5 1 L7 6 L13.5 1" stroke={color} strokeWidth="0.5" fill="none" />
+          </svg>
         </div>
-        <span className="text-xs text-foreground ml-5 whitespace-nowrap">{data.label}</span>
+        <span className="text-xs text-foreground whitespace-nowrap">{data.label}</span>
       </div>
     </div>
   );

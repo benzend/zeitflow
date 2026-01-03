@@ -62,6 +62,8 @@ export default function WorkflowBuilderPage() {
             aiConfig?: unknown;
             schedulerConfig?: unknown;
             reviewConfig?: unknown;
+            emailConfig?: unknown;
+            slackConfig?: unknown;
           } = {};
           try {
             config = JSON.parse(node.config || '{}');
@@ -69,18 +71,22 @@ export default function WorkflowBuilderPage() {
             console.error('Failed to parse node config:', error, node.config);
             config = {};
           }
-           return {
-             id: node.id,
-             type: node.type as 'entry' | 'ai' | 'scheduler' | 'review' | 'slack',
-             x: node.positionX,
-             y: node.positionY,
-             label: node.label,
-             fields: config.fields,
-             aiConfig: config.aiConfig,
-             schedulerConfig: config.schedulerConfig,
-             reviewConfig: config.reviewConfig,
-             entryType: node.entryType
-           };
+            const parsedNode = {
+              id: node.id,
+              type: node.type as 'entry' | 'ai' | 'scheduler' | 'review' | 'slack' | 'email',
+              x: node.positionX,
+              y: node.positionY,
+              label: node.label,
+              fields: config.fields,
+              aiConfig: config.aiConfig,
+              schedulerConfig: config.schedulerConfig,
+              reviewConfig: config.reviewConfig,
+              emailConfig: config.emailConfig,
+              slackConfig: config.slackConfig,
+              entryType: node.entryType
+            };
+
+            return parsedNode;
         });
 
         // Parse connections from database format
@@ -94,7 +100,7 @@ export default function WorkflowBuilderPage() {
 
         setNodes(parsedNodes);
         setConnections(parsedConnections);
-        
+
         // Store original and current state for change detection
         originalNodes.current = [...parsedNodes];
         originalConnections.current = [...parsedConnections];
@@ -129,7 +135,9 @@ export default function WorkflowBuilderPage() {
         entryType: node.entryType,
         aiConfig: node.aiConfig,
         schedulerConfig: node.schedulerConfig,
-        reviewConfig: node.reviewConfig
+        reviewConfig: node.reviewConfig,
+        emailConfig: node.emailConfig,
+        slackConfig: node.slackConfig
       }));
 
       const response = await fetch(`/api/workflow/${workflow.id}`, {
@@ -177,14 +185,14 @@ export default function WorkflowBuilderPage() {
   // Check for changes using debounced comparison
   const checkForChanges = useCallback(() => {
     if (originalNodes.current.length === 0) return;
-    
+
     const hasChanges = !areWorkflowStatesEqual(
       originalNodes.current,
       originalConnections.current,
       currentNodes.current,
       currentConnections.current
     );
-    
+
     setHasUnsavedChanges(hasChanges);
     if (hasChanges) {
       triggerSave();
@@ -206,7 +214,7 @@ export default function WorkflowBuilderPage() {
     // Store current state for comparison
     currentNodes.current = updatedNodes;
     currentConnections.current = updatedConnections;
-    
+
     // Trigger debounced change detection
     triggerChangeCheck();
   }, [triggerChangeCheck]);

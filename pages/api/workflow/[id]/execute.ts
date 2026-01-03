@@ -209,34 +209,59 @@ function collectAvailableVariables(
         variables['scheduled_time'] = schedulerOutput.scheduledTime || '';
         variables['calendar_link'] = schedulerOutput.calendarLink || '';
       }
+
+      // Add email output variables
+      if (sourceNode.type === 'email' && nodeOutputs[sourceNode.id]) {
+        const emailOutput = nodeOutputs[sourceNode.id] as { success?: boolean; error?: string };
+        const nodeLabel = sourceNode.label || sourceNode.id;
+        const variableName = nodeLabel.toLowerCase().replace(/\s+/g, '_');
+        variables[`${variableName}_status`] = emailOutput.success ? 'sent' : 'failed';
+        if (emailOutput.error) {
+          variables[`${variableName}_error`] = emailOutput.error;
+        }
+      }
+
+      // Add slack output variables
+      if (sourceNode.type === 'slack' && nodeOutputs[sourceNode.id]) {
+        const slackOutput = nodeOutputs[sourceNode.id] as { success?: boolean; error?: string };
+        const nodeLabel = sourceNode.label || sourceNode.id;
+        const variableName = nodeLabel.toLowerCase().replace(/\s+/g, '_');
+        variables[`${variableName}_status`] = slackOutput.success ? 'sent' : 'failed';
+        if (slackOutput.error) {
+          variables[`${variableName}_error`] = slackOutput.error;
+        }
+      }
     }
   });
-  
+
   return variables;
 }
 
 /**
  * Substitutes variables in a prompt string with their values
+ * Supports variable names with spaces, dots, underscores, etc.
  */
 function substituteVariables(prompt: string, variables: Record<string, unknown>): string {
   let processedPrompt = prompt;
-  
+
   // Extract all variables from the prompt
   const extractedVars = extractVariables(prompt);
-  
+
   // Replace each variable with its value
   extractedVars.forEach(varName => {
-    const regex = new RegExp(`\\{\\{${varName}\\}\\}`, 'g');
+    // Escape special regex characters in variable name
+    const escapedVarName = varName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`\\{\\{${escapedVarName}\\}\\}`, 'g');
     const value = variables[varName];
     if (value !== undefined && value !== null) {
       processedPrompt = processedPrompt.replace(regex, String(value));
     } else {
-      console.warn(`Variable ${varName} not found in available variables`);
+      console.warn(`Variable "${varName}" not found in available variables. Available:`, Object.keys(variables));
       // Replace with empty string if variable not found
       processedPrompt = processedPrompt.replace(regex, '');
     }
   });
-  
+
   return processedPrompt;
 }
 
@@ -313,20 +338,27 @@ async function executeWorkflow(
         break;
       case 'slack':
         const slackConfig = config.slackConfig || {};
-        
+
         // Collect available variables from connected nodes
         const slackVariables = collectAvailableVariables(node.id, connections, nodes, inputData, outputData);
-        
+
+        console.log(`Slack Node ${node.id} - Available variables:`, Object.keys(slackVariables));
+        console.log(`Slack Node ${node.id} - Original message:`, slackConfig.message);
+        console.log(`Slack Node ${node.id} - Original channel:`, slackConfig.channel);
+
         // Substitute variables in message
-        const slackMessage = slackConfig.message 
+        const slackMessage = slackConfig.message
           ? substituteVariables(slackConfig.message, slackVariables)
           : '';
-        
+
         // Substitute variables in channel
-        const slackChannel = slackConfig.channel 
+        const slackChannel = slackConfig.channel
           ? substituteVariables(slackConfig.channel, slackVariables)
           : '';
-        
+
+        console.log(`Slack Node ${node.id} - Processed message:`, slackMessage);
+        console.log(`Slack Node ${node.id} - Processed channel:`, slackChannel);
+
         try {
           // Use specific bot from config if provided, otherwise find any bot for this user
           let botToUse;
@@ -375,23 +407,46 @@ async function executeWorkflow(
         break;
       case 'email':
         const emailConfig = config.emailConfig || {};
-        
+
         // Collect available variables from connected nodes
         const emailVariables = collectAvailableVariables(node.id, connections, nodes, inputData, outputData);
-        
+
+        console.log(`Email Node ${node.id} - Available variables:`, Object.keys(emailVariables));
+        console.log(`Email Node ${node.id} - Original message:`, emailConfig.message);
+        console.log(`Email Node ${node.id} - Original subject:`, emailConfig.subject);
+
         // Substitute variables in message
-        const emailMessage = emailConfig.message 
+        const emailMessage = emailConfig.message
           ? substituteVariables(emailConfig.message, emailVariables)
           : '';
-        
+
+        // Substitute variables in subject
+        const emailSubject = emailConfig.subject
+          ? substituteVariables(emailConfig.subject, emailVariables)
+          : undefined;
+
+        // Substitute variables in from
+        const emailFrom = emailConfig.from
+          ? substituteVariables(emailConfig.from, emailVariables)
+          : undefined;
+
         // Substitute variables in recipients array
-        const emailRecipients = emailConfig.to 
+        const emailRecipients = emailConfig.to
           ? emailConfig.to.map((recipient: string) => substituteVariables(recipient, emailVariables))
           : [];
-        
+
+        console.log(`Email Node ${node.id} - Processed message:`, emailMessage);
+        console.log(`Email Node ${node.id} - Processed subject:`, emailSubject);
+        console.log(`Email Node ${node.id} - Recipients:`, emailRecipients);
+
         try {
           const emailResponse = await sendWorkflowEmail(
-            { to: emailRecipients, message: emailMessage }
+            {
+              to: emailRecipients,
+              subject: emailSubject,
+              message: emailMessage,
+              from: emailFrom
+            }
           );
           
           if (!emailResponse.success) {

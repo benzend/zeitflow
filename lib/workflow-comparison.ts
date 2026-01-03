@@ -76,6 +76,16 @@ function areNodesEqual(node1: NodeData, node2: NodeData): boolean {
     return false;
   }
 
+  // Compare email configs
+  if (!areObjectsEqual(node1.emailConfig, node2.emailConfig, areEmailConfigsEqual)) {
+    return false;
+  }
+
+  // Compare slack configs
+  if (!areObjectsEqual(node1.slackConfig, node2.slackConfig, areSlackConfigsEqual)) {
+    return false;
+  }
+
   return true;
 }
 
@@ -124,9 +134,33 @@ function areSchedulerConfigsEqual(config1: NodeData['schedulerConfig'], config2:
 function areReviewConfigsEqual(config1: NodeData['reviewConfig'], config2: NodeData['reviewConfig']): boolean {
   if (!config1 && !config2) return true;
   if (!config1 || !config2) return false;
-  
+
   return JSON.stringify(config1.validationSteps) === JSON.stringify(config2.validationSteps) &&
          config1.meetingConfirmed === config2.meetingConfirmed;
+}
+
+/**
+ * Compares two email config objects
+ */
+function areEmailConfigsEqual(config1: NodeData['emailConfig'], config2: NodeData['emailConfig']): boolean {
+  if (!config1 && !config2) return true;
+  if (!config1 || !config2) return false;
+
+  return JSON.stringify(config1.to) === JSON.stringify(config2.to) &&
+         config1.subject === config2.subject &&
+         config1.message === config2.message;
+}
+
+/**
+ * Compares two slack config objects
+ */
+function areSlackConfigsEqual(config1: NodeData['slackConfig'], config2: NodeData['slackConfig']): boolean {
+  if (!config1 && !config2) return true;
+  if (!config1 || !config2) return false;
+
+  return config1.botId === config2.botId &&
+         config1.channel === config2.channel &&
+         config1.message === config2.message;
 }
 
 /**

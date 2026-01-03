@@ -6,14 +6,15 @@
 /**
  * Extracts variable names from a prompt string
  * Variables are defined as {{variableName}}
+ * Supports spaces, dots, underscores, and other characters
  */
 export function extractVariables(prompt: string): string[] {
-  const regex = /\{\{(\w+)\}\}/g;
+  const regex = /\{\{([^}]+)\}\}/g;
   const variables = [];
   let match;
 
   while ((match = regex.exec(prompt)) !== null) {
-    variables.push(match[1]);
+    variables.push(match[1].trim());
   }
 
   // Remove duplicates and return
@@ -57,7 +58,7 @@ export function validateVariables(
  * Checks if a prompt contains any variables
  */
 export function hasVariables(prompt: string): boolean {
-  return /\{\{\w+\}\}/.test(prompt);
+  return /\{\{[^}]+\}\}/.test(prompt);
 }
 
 /**

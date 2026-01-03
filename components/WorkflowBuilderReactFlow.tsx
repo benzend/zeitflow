@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo, forwardRef, useImperativeHandle, useEffect } from 'react';
+import { useState, useCallback, useMemo, forwardRef, useImperativeHandle, useEffect, useRef } from 'react';
 import {
   ReactFlow,
   addEdge,
@@ -16,6 +16,8 @@ import '@xyflow/react/dist/style.css';
 
 import { Plus, Trash2 } from 'lucide-react';
 import { Button } from './Button';
+import { EmailIcon } from './icons/Email';
+import { SlackIcon } from './icons/Slack';
 import { NodeData, Connection as WorkflowConnection, Field } from '@/lib/workflow-types';
 import { Connection as ReactFlowConnection } from '@xyflow/react';
 import { generateNodeId } from '@/lib/workflow-utils';
@@ -82,7 +84,7 @@ const ENTRY_TYPE_OPTIONS: DropdownOption[] = [
 const NODE_TYPE_OPTIONS: DropdownOption[] = [
   { value: 'entry', label: 'Entry' },
   { value: 'ai', label: 'AI Model' },
-  // { value: 'email', label: 'Email' },
+  { value: 'email', label: 'Email' },
   // { value: 'slack', label: 'Slack' },
 ];
 
@@ -109,8 +111,15 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialFlowData.edges);
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [newPersonName, setNewPersonName] = useState('');
+  const [emailWarning, setEmailWarning] = useState('');
+  const [rawEmailInput, setRawEmailInput] = useState('');
+  const [rawSubjectInput, setRawSubjectInput] = useState('');
+  const [rawMessageInput, setRawMessageInput] = useState('');
+  const [rawSlackChannelInput, setRawSlackChannelInput] = useState('');
+  const [rawSlackMessageInput, setRawSlackMessageInput] = useState('');
   const [showAddDropdown, setShowAddDropdown] = useState(false);
   const [slackBots, setSlackBots] = useState<{ id: number; name: string; teamName: string }[]>([]);
+  const previousSelectedNode = useRef<string | null>(null);
 
   const { screenToFlowPosition } = useReactFlow();
 
@@ -128,9 +137,44 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
       }
     };
     fetchSlackBots();
-  }, []);
+   }, []);
 
-  // Handle new connections
+   // Sync raw input states ONLY when selected node ID changes (not when nodes array updates)
+   useEffect(() => {
+     // Only sync if the selected node ID has actually changed
+     if (previousSelectedNode.current !== selectedNode) {
+       previousSelectedNode.current = selectedNode;
+
+       if (selectedNode) {
+         const selectedData = nodes.find(n => n.id === selectedNode)?.data;
+         if (selectedData?.emailConfig) {
+           setRawEmailInput(selectedData.emailConfig.to?.join(', ') || '');
+           setRawSubjectInput(selectedData.emailConfig.subject || '');
+           setRawMessageInput(selectedData.emailConfig.message || '');
+         } else {
+           setRawEmailInput('');
+           setRawSubjectInput('');
+           setRawMessageInput('');
+         }
+         if (selectedData?.slackConfig) {
+           setRawSlackChannelInput(selectedData.slackConfig.channel || '');
+           setRawSlackMessageInput(selectedData.slackConfig.message || '');
+         } else {
+           setRawSlackChannelInput('');
+           setRawSlackMessageInput('');
+         }
+       } else {
+         // Clear all raw inputs when no node is selected
+         setRawEmailInput('');
+         setRawSubjectInput('');
+         setRawMessageInput('');
+         setRawSlackChannelInput('');
+         setRawSlackMessageInput('');
+       }
+     }
+   }, [selectedNode, nodes]);
+
+   // Handle new connections
   const onConnect = useCallback(
     (params: ReactFlowConnection) => setEdges((eds) => addEdge({
       ...params,
@@ -143,6 +187,7 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
   // Handle node selection
   const onNodeClick = useCallback((_event: React.MouseEvent, node: { id: string }) => {
     setSelectedNode(node.id);
+    setEmailWarning('');
   }, []);
 
   const findEntryNode = () => {
@@ -153,6 +198,7 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
   const onPaneClick = useCallback(() => {
     setSelectedNode(null);
     setShowAddDropdown(false);
+    setEmailWarning('');
   }, []);
 
   // Add new node
@@ -220,11 +266,29 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
     }
     
     setNodes((nds) => nds.filter((node) => node.id !== selectedNode));
-    setEdges((eds) => eds.filter((edge) => 
+    setEdges((eds) => eds.filter((edge) =>
       edge.source !== selectedNode && edge.target !== selectedNode
     ));
     setSelectedNode(null);
   }, [selectedNode, setNodes, setEdges]);
+
+  // Shared function to serialize nodes (saves all configs, even partial ones)
+  const serializeNodes = useCallback((workflowNodes: NodeData[]) => {
+    return workflowNodes.map(node => ({
+      id: node.id,
+      type: node.type,
+      x: node.x,
+      y: node.y,
+      label: node.label,
+      fields: node.fields,
+      entryType: node.entryType,
+      aiConfig: node.aiConfig,
+      schedulerConfig: node.schedulerConfig,
+      reviewConfig: node.reviewConfig,
+      emailConfig: node.emailConfig,
+      slackConfig: node.slackConfig,
+    }));
+  }, []);
 
   // Save workflow
   const handleSave = useCallback(() => {
@@ -253,48 +317,23 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
           arr.findIndex(c => c.from === conn.from && c.to === conn.to) === index
         );
 
-      // Create a deep copy of serializable data only
-      const serializableNodes = workflowNodes.map(node => ({
-        id: node.id,
-        type: node.type,
-        x: node.x,
-        y: node.y,
-        label: node.label,
-        fields: node.fields,
-        entryType: node.entryType,
-        aiConfig: node.aiConfig,
-        schedulerConfig: node.schedulerConfig,
-        reviewConfig: node.reviewConfig
-      }));
-
+      const serializableNodes = serializeNodes(workflowNodes);
       onSave(serializableNodes, validConnections);
     }
-  }, [nodes, edges, onSave]);
+  }, [nodes, edges, onSave, serializeNodes]);
 
   // Get current workflow state
   const getCurrentState = useCallback(() => {
     const { nodes: workflowNodes, connections: workflowConnections } =
       convertFromReactFlow(nodes, edges);
-    
-    // Create a deep copy of serializable data only
-    const serializableNodes = workflowNodes.map(node => ({
-      id: node.id,
-      type: node.type,
-      x: node.x,
-      y: node.y,
-      label: node.label,
-      fields: node.fields,
-      entryType: node.entryType,
-      aiConfig: node.aiConfig,
-      schedulerConfig: node.schedulerConfig,
-      reviewConfig: node.reviewConfig
-    }));
+
+    const serializableNodes = serializeNodes(workflowNodes);
 
     return {
       nodes: serializableNodes,
       connections: workflowConnections
     };
-  }, [nodes, edges]);
+  }, [nodes, edges, serializeNodes]);
 
   // Notify parent of changes
   useEffect(() => {
@@ -312,11 +351,13 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
 
   // Helper functions for updating node data
   const updateNodeData = useCallback((nodeId: string, updates: Partial<ReactFlowNodeData>) => {
-    setNodes((nds) => nds.map((node) =>
-      node.id === nodeId
-        ? { ...node, data: { ...node.data, ...updates } }
-        : node
-    ));
+    setNodes((nds) =>
+      nds.map((node) =>
+        node.id === nodeId
+          ? { ...node, data: { ...node.data, ...updates } }
+          : node
+      )
+    );
   }, [setNodes]);
 
   const addField = useCallback(() => {
@@ -392,14 +433,44 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
     }
   }, [selectedNode, nodes, updateNodeData]);
   const updateNodeConfig = useCallback((configType: 'emailConfig' | 'slackConfig', updates: object) => {
-    if (!selectedNode) return;
+    if (!selectedNode) {
+      return;
+    }
     const currentNode = nodes.find(n => n.id === selectedNode);
-    if (currentNode?.data[configType]) {
-      updateNodeData(selectedNode, { 
-        [configType]: { ...currentNode.data[configType], ...updates } 
+    if (currentNode) {
+      // Always update the config, even if it doesn't exist yet
+      const currentConfig = currentNode.data[configType] || {};
+      const newConfig = { ...currentConfig, ...updates };
+      updateNodeData(selectedNode, {
+        [configType]: newConfig
       });
     }
   }, [selectedNode, nodes, updateNodeData]);
+
+  // Improved email validation function
+  const validateEmail = useCallback((email: string): boolean => {
+    const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+    return emailRegex.test(email);
+  }, []);
+
+  // Process email recipients with validation
+  const processEmailRecipients = useCallback((emailsString: string): string[] => {
+    const allEmails = emailsString
+      .split(',')
+      .map(email => email.trim())
+      .filter(email => email);
+    
+    const validEmails = allEmails.filter(email => validateEmail(email));
+    const invalidEmails = allEmails.filter(email => !validateEmail(email));
+    
+    if (invalidEmails.length > 0) {
+      setEmailWarning(`Invalid email format: ${invalidEmails.join(', ')}`);
+    } else {
+      setEmailWarning('');
+    }
+    
+    return validEmails;
+  }, [validateEmail]);
 
   const addPerson = useCallback(() => {
     if (!selectedNode || !newPersonName.trim()) return;
@@ -634,6 +705,20 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
                       Review
                     </p>
                   </>
+                ) : selectedNodeData?.type === 'email' ? (
+                  <>
+                    <EmailIcon className="size-[18px]" />
+                    <p className="font-['Inter:Regular',_sans-serif] font-normal leading-[normal] not-italic text-[20px] text-nowrap text-foreground whitespace-pre">
+                      Email
+                    </p>
+                  </>
+                ) : selectedNodeData?.type === 'slack' ? (
+                  <>
+                    <SlackIcon className="size-[18px]" />
+                    <p className="font-['Inter:Regular',_sans-serif] font-normal leading-[normal] not-italic text-[20px] text-nowrap text-foreground whitespace-pre">
+                      Slack
+                    </p>
+                  </>
                 ) : null}
                 {selectedNodeData?.type === 'entry' ? (
                   <>
@@ -659,6 +744,18 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
                   <div className="bg-success py-[3px] overflow-clip rounded-[10px] w-[42px]">
                     <p className="font-['Inter:Regular',_sans-serif] font-normal leading-[normal] not-italic text-[6px] text-foreground text-nowrap top-px whitespace-pre text-center">
                       Validation
+                    </p>
+                  </div>
+                ) : selectedNodeData?.type === 'email' ? (
+                  <div className="bg-info py-[3px] overflow-clip rounded-[10px] w-[42px]">
+                    <p className="font-['Inter:Regular',_sans-serif] font-normal leading-[normal] not-italic text-[6px] text-foreground text-nowrap top-px whitespace-pre text-center">
+                      Communication
+                    </p>
+                  </div>
+                ) : selectedNodeData?.type === 'slack' ? (
+                  <div className="bg-info py-[3px] overflow-clip rounded-[10px] w-[42px]">
+                    <p className="font-['Inter:Regular',_sans-serif] font-normal leading-[normal] not-italic text-[6px] text-foreground text-nowrap top-px whitespace-pre text-center">
+                      Communication
                     </p>
                   </div>
                 ) : null}
@@ -1139,14 +1236,23 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
                 </label>
                 <input
                   type="text"
-                  value={selectedNodeData.emailConfig?.to?.join(', ') || ''}
-                  onChange={(e) => updateNodeConfig('emailConfig', { 
-                    ...selectedNodeData.emailConfig, 
-                    to: e.target.value.split(',').map(email => email.trim()).filter(email => email) 
-                  })}
+                  value={rawEmailInput}
+                  onChange={(e) => {
+                    setRawEmailInput(e.target.value);
+                    const validEmails = processEmailRecipients(e.target.value);
+                    updateNodeConfig('emailConfig', {
+                      ...selectedNodeData.emailConfig,
+                      to: validEmails
+                    });
+                  }}
                   className="w-full bg-background-extra-light border-border border-[0.5px] h-[32px] rounded-[8px] overflow-hidden px-[12px] text-[12px] text-foreground placeholder-text-placeholder outline-none"
                   placeholder="user@example.com, admin@example.com"
                 />
+                {emailWarning && (
+                  <p className="text-warning text-[11px] mt-[4px] px-[2px]">
+                    {emailWarning}
+                  </p>
+                )}
               </div>
 
               <div className="mb-[16px]">
@@ -1155,11 +1261,14 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
                 </label>
                 <input
                   type="text"
-                  value={selectedNodeData.emailConfig?.subject || ''}
-                  onChange={(e) => updateNodeConfig('emailConfig', { 
-                    ...selectedNodeData.emailConfig, 
-                    subject: e.target.value 
-                  })}
+                  value={rawSubjectInput}
+                  onChange={(e) => {
+                    setRawSubjectInput(e.target.value);
+                    updateNodeConfig('emailConfig', { 
+                      ...selectedNodeData.emailConfig, 
+                      subject: e.target.value 
+                    });
+                  }}
                   className="w-full bg-background-extra-light border-border border-[0.5px] h-[32px] rounded-[8px] overflow-hidden px-[12px] text-[12px] text-foreground placeholder-text-placeholder outline-none"
                   placeholder="Workflow Notification"
                 />
@@ -1171,11 +1280,14 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
                 </label>
                 <div className="bg-background-extra-light mt-[4px] rounded">
                   <TypeaheadTextarea
-                    value={selectedNodeData.emailConfig?.message || ''}
-                    onChange={(value) => updateNodeConfig('emailConfig', { 
-                      ...selectedNodeData.emailConfig, 
-                      message: value 
-                    })}
+                    value={rawMessageInput}
+                    onChange={(value) => {
+                      setRawMessageInput(value);
+                      updateNodeConfig('emailConfig', { 
+                        ...selectedNodeData.emailConfig, 
+                        message: value 
+                      });
+                    }}
                     suggestions={getFieldSuggestions(selectedNode!)}
                     className="bg-transparent font-['Inter:Regular',_sans-serif] font-normal h-[119px] leading-[normal] not-italic outline-none p-4 resize-none text-sm text-foreground w-full"
                     placeholder="Workflow update: {{previousOutput}}"
@@ -1222,11 +1334,14 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
                 </label>
                 <input
                   type="text"
-                  value={selectedNodeData.slackConfig?.channel || ''}
-                  onChange={(e) => updateNodeConfig('slackConfig', { 
-                    ...selectedNodeData.slackConfig, 
-                    channel: e.target.value 
-                  })}
+                  value={rawSlackChannelInput}
+                  onChange={(e) => {
+                    setRawSlackChannelInput(e.target.value);
+                    updateNodeConfig('slackConfig', { 
+                      ...selectedNodeData.slackConfig, 
+                      channel: e.target.value 
+                    });
+                  }}
                   className="w-full bg-background-extra-light border-border border-[0.5px] h-[32px] rounded-[8px] overflow-hidden px-[12px] text-[12px] text-foreground placeholder-text-placeholder outline-none"
                   placeholder="#general"
                 />
@@ -1238,11 +1353,14 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
                 </label>
                 <div className="bg-background-extra-light mt-[4px] rounded">
                   <TypeaheadTextarea
-                    value={selectedNodeData.slackConfig?.message || ''}
-                    onChange={(value) => updateNodeConfig('slackConfig', { 
-                      ...selectedNodeData.slackConfig, 
-                      message: value 
-                    })}
+                    value={rawSlackMessageInput}
+                    onChange={(value) => {
+                      setRawSlackMessageInput(value);
+                      updateNodeConfig('slackConfig', { 
+                        ...selectedNodeData.slackConfig, 
+                        message: value 
+                      });
+                    }}
                     suggestions={getFieldSuggestions(selectedNode!)}
                     className="bg-transparent font-['Inter:Regular',_sans-serif] font-normal h-[119px] leading-[normal] not-italic outline-none p-4 resize-none text-sm text-foreground w-full"
                     placeholder="Workflow update: {{previousOutput}}"

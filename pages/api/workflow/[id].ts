@@ -159,6 +159,8 @@ export default async function handler(
             aiConfig?: unknown;
             schedulerConfig?: unknown;
             reviewConfig?: unknown;
+            emailConfig?: unknown;
+            slackConfig?: unknown;
             entryType?: string;
           }) => ({
             id: node.id,
@@ -171,7 +173,9 @@ export default async function handler(
               fields: node.fields,
               aiConfig: node.aiConfig,
               schedulerConfig: node.schedulerConfig,
-              reviewConfig: node.reviewConfig
+              reviewConfig: node.reviewConfig,
+              emailConfig: node.emailConfig,
+              slackConfig: node.slackConfig
             }),
             entryType: node.entryType
           }));
