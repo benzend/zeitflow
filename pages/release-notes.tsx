@@ -11,6 +11,34 @@ type ReleaseNote = {
 
 const releaseNotes: ReleaseNote[] = [
   {
+    version: "1.9.0",
+    date: "2026-01-03",
+    features: [
+      "Added Email nodes for sending automated emails directly from workflows via Resend",
+      "Added Slack nodes for posting messages to Slack channels from workflows",
+      "Implemented Slack Bot Manager with OAuth integration for workspace connections",
+      "Added blog post preview mode with dedicated preview page and real-time MDX rendering",
+      "Introduced asset metadata backfill script for automatic image dimension extraction",
+      "Created slack_bots table for OAuth token storage and management",
+    ],
+    improvements: [
+      "Enhanced workflow execution engine to support email and Slack node processing",
+      "Improved workflow builder UI with new communication node types",
+      "Optimized blog post rendering performance with improved MDX processing",
+      "Enhanced image handling with automatic dimension extraction and blur placeholders",
+      "Added comprehensive variable support for email and Slack node content",
+      "Improved blog preview functionality across create and edit workflows",
+      "Updated documentation with workflow node types and Slack integration guide",
+    ],
+    fixes: [
+      "Fixed blog posts list not displaying all published posts",
+      "Resolved blog preview and slug editing issues with proper validation",
+      "Fixed featured image upload process for blog posts",
+      "Corrected accessibility issues with proper ARIA landmarks",
+      "Fixed blog preview functionality across multiple interfaces",
+    ],
+  },
+  {
     version: "1.8.0",
     date: "2025-12-10",
     features: [
