@@ -5,6 +5,8 @@ import { db } from "@/lib/db";
 import { workflowsTable, workflowNodesTable, workflowConnectionsTable, usersTable } from "@/schema";
 import { eq, and } from "drizzle-orm";
 import { isRateLimited } from "@/lib/rate-limit";
+import { serializeNodeConfigsToJSON } from "@/lib/node-utils";
+import { ALL_CONFIG_KEYS } from "@/lib/node-registry";
 
 export default async function handler(
   req: NextApiRequest,
@@ -155,30 +157,35 @@ export default async function handler(
             x: number;
             y: number;
             label: string;
-            fields?: unknown[];
-            aiConfig?: unknown;
-            schedulerConfig?: unknown;
-            reviewConfig?: unknown;
-            emailConfig?: unknown;
-            slackConfig?: unknown;
             entryType?: string;
-          }) => ({
-            id: node.id,
-            workflowId,
-            type: node.type,
-            positionX: Math.round(node.x),
-            positionY: Math.round(node.y),
-            label: node.label,
-            config: JSON.stringify({
-              fields: node.fields,
-              aiConfig: node.aiConfig,
-              schedulerConfig: node.schedulerConfig,
-              reviewConfig: node.reviewConfig,
-              emailConfig: node.emailConfig,
-              slackConfig: node.slackConfig
-            }),
-            entryType: node.entryType
-          }));
+            [key: string]: unknown; // Allow any config properties
+          }) => {
+            // Build config object with all possible configs automatically
+            const config: Record<string, unknown> = {};
+
+            // Add fields for entry nodes
+            if (node.fields) {
+              config.fields = node.fields;
+            }
+
+            // Add all config types from registry
+            ALL_CONFIG_KEYS.forEach(configKey => {
+              if (node[configKey]) {
+                config[configKey] = node[configKey];
+              }
+            });
+
+            return {
+              id: node.id,
+              workflowId,
+              type: node.type,
+              positionX: Math.round(node.x),
+              positionY: Math.round(node.y),
+              label: node.label,
+              config: JSON.stringify(config),
+              entryType: node.entryType
+            };
+          });
 
           await tx.insert(workflowNodesTable).values(nodeInserts);
         }

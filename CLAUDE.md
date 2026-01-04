@@ -50,6 +50,7 @@ This is a Next.js application (Pages Router) that implements **ZeitFlow** - a vi
   - `review` - Manual validation/approval steps
   - `email` - Email notifications via Resend
   - `slack` - Slack messaging via Slack Web API
+  - `sms` - SMS/text messaging via Twilio
 - **Workflow Execution**: Track execution state through `workflow_executions` table
 - **YAML Parsing**: AI can generate workflows from natural language via `lib/workflow-parser.ts`
 
@@ -180,6 +181,7 @@ Required in `.env.local`:
 Optional integrations:
 - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` - OAuth & Calendar API
 - `RESEND_API_KEY` - Email sending
+- `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER` - SMS sending
 - `SLACK_CLIENT_ID`, `SLACK_CLIENT_SECRET` - Slack OAuth
 - `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` - Payments
 - `NEXT_PUBLIC_VEMETRIC_ID` - Analytics
@@ -201,6 +203,7 @@ Optional integrations:
 - **AI**: OpenRouter (multi-model support)
 - **Auth**: NextAuth.js (credentials + OAuth)
 - **Email**: Resend
+- **SMS**: Twilio
 - **Payments**: Stripe
 - **Calendar**: Google Calendar API
 - **Chat**: Slack Web API

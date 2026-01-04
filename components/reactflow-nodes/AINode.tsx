@@ -11,7 +11,7 @@ const AINode = memo(({ data, selected }: AINodeProps) => {
   const color = selected ? 'var(--success)' : 'var(--foreground)';
 
   return (
-    <div className={`px-3 py-2 bg-background-light rounded-lg relative min-w-[89px] ${selected ? 'ring-2 ring-success' : ''}`}>
+    <div className={`px-3 py-2 bg-background-light border rounded-lg ${selected ? 'border-success' : 'border-border'} min-w-[89px]`}>
       <Handle type="target" position={Position.Left} />
       <Handle type="source" position={Position.Right} />
 

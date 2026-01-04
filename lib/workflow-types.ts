@@ -43,9 +43,14 @@ export interface SlackConfig {
   message?: string;
 }
 
+export interface SMSConfig {
+  to: string[]; // Array of recipient phone numbers in E.164 format
+  message?: string; // Message body (160 chars for single SMS)
+}
+
 export interface NodeData {
   id: string;
-  type: 'entry' | 'ai' | 'scheduler' | 'review' | 'slack' | 'email';
+  type: 'entry' | 'ai' | 'scheduler' | 'review' | 'slack' | 'email' | 'sms';
   x: number;
   y: number;
   label: string;
@@ -56,6 +61,7 @@ export interface NodeData {
   reviewConfig?: ReviewConfig;
   emailConfig?: EmailConfig;
   slackConfig?: SlackConfig;
+  smsConfig?: SMSConfig;
 }
 
 export interface Connection {

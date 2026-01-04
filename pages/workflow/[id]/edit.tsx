@@ -10,6 +10,8 @@ import WorkflowBuilderReactFlow, { WorkflowBuilderRef } from "@/components/Workf
 import { NodeData, Connection } from '@/lib/workflow-types';
 import { areWorkflowStatesEqual } from '@/lib/workflow-comparison';
 import WorkflowEditSkeleton from "@/components/WorkflowEditSkeleton";
+import { parseNodeConfigsFromJSON, serializeNode } from '@/lib/node-utils';
+import { NodeType } from '@/lib/node-registry';
 
 interface Workflow {
   id: number;
@@ -57,36 +59,20 @@ export default function WorkflowBuilderPage() {
           config: string;
           entryType?: string;
         }) => {
-          let config: {
-            fields?: unknown[];
-            aiConfig?: unknown;
-            schedulerConfig?: unknown;
-            reviewConfig?: unknown;
-            emailConfig?: unknown;
-            slackConfig?: unknown;
-          } = {};
-          try {
-            config = JSON.parse(node.config || '{}');
-          } catch (error) {
-            console.error('Failed to parse node config:', error, node.config);
-            config = {};
-          }
-            const parsedNode = {
-              id: node.id,
-              type: node.type as 'entry' | 'ai' | 'scheduler' | 'review' | 'slack' | 'email',
-              x: node.positionX,
-              y: node.positionY,
-              label: node.label,
-              fields: config.fields,
-              aiConfig: config.aiConfig,
-              schedulerConfig: config.schedulerConfig,
-              reviewConfig: config.reviewConfig,
-              emailConfig: config.emailConfig,
-              slackConfig: config.slackConfig,
-              entryType: node.entryType
-            };
+          // Use utility function to parse all configs automatically
+          const configs = parseNodeConfigsFromJSON(node.config);
 
-            return parsedNode;
+          const parsedNode = {
+            id: node.id,
+            type: node.type as NodeType,
+            x: node.positionX,
+            y: node.positionY,
+            label: node.label,
+            entryType: node.entryType,
+            ...configs // Spread all configs (fields, aiConfig, schedulerConfig, etc.)
+          };
+
+          return parsedNode;
         });
 
         // Parse connections from database format
@@ -124,21 +110,8 @@ export default function WorkflowBuilderPage() {
     try {
       setSaving(true);
 
-      // Create serializable copies to avoid circular references
-      const serializableNodes = updatedNodes.map(node => ({
-        id: node.id,
-        type: node.type,
-        x: node.x,
-        y: node.y,
-        label: node.label,
-        fields: node.fields,
-        entryType: node.entryType,
-        aiConfig: node.aiConfig,
-        schedulerConfig: node.schedulerConfig,
-        reviewConfig: node.reviewConfig,
-        emailConfig: node.emailConfig,
-        slackConfig: node.slackConfig
-      }));
+      // Use utility function to serialize nodes - handles all configs automatically
+      const serializableNodes = updatedNodes.map(node => serializeNode(node));
 
       const response = await fetch(`/api/workflow/${workflow.id}`, {
         method: "POST",

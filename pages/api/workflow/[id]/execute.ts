@@ -9,6 +9,7 @@ import { chat } from "@/lib/openrouter";
 import { extractVariables } from "@/lib/variables-client";
 import { sendWorkflowEmail } from "@/lib/email";
 import { sendSlackMessage } from "@/lib/slack";
+import { sendWorkflowSMS } from "@/lib/sms";
 
 export default async function handler(
   req: NextApiRequest,
@@ -33,7 +34,7 @@ export default async function handler(
   // Map database nodes to WorkflowNode interface
   const nodes: WorkflowNode[] = dbNodes.map(node => ({
     id: node.id,
-    type: node.type as 'entry' | 'ai' | 'scheduler' | 'review' | 'slack' | 'email',
+    type: node.type as 'entry' | 'ai' | 'scheduler' | 'review' | 'slack' | 'email' | 'sms',
     label: node.label,
     entryType: node.entryType || undefined,
     config: node.config || undefined,
@@ -147,7 +148,7 @@ interface WorkflowConnection {
 
 interface WorkflowNode {
   id: string;
-  type: 'entry' | 'ai' | 'scheduler' | 'review' | 'slack' | 'email';
+  type: 'entry' | 'ai' | 'scheduler' | 'review' | 'slack' | 'email' | 'sms';
   label: string;
   entryType?: string;
   config?: string;
@@ -231,6 +232,17 @@ function collectAvailableVariables(
           variables[`${variableName}_error`] = slackOutput.error;
         }
       }
+
+      // Add SMS output variables
+      if (sourceNode.type === 'sms' && nodeOutputs[sourceNode.id]) {
+        const smsOutput = nodeOutputs[sourceNode.id] as { success?: boolean; error?: string };
+        const nodeLabel = sourceNode.label || sourceNode.id;
+        const variableName = nodeLabel.toLowerCase().replace(/\s+/g, '_');
+        variables[`${variableName}_status`] = smsOutput.success ? 'sent' : 'failed';
+        if (smsOutput.error) {
+          variables[`${variableName}_error`] = smsOutput.error;
+        }
+      }
     }
   });
 
@@ -265,23 +277,101 @@ function substituteVariables(prompt: string, variables: Record<string, unknown>)
   return processedPrompt;
 }
 
+/**
+ * Builds graph data structures for BFS traversal
+ */
+function buildGraphStructures(nodes: WorkflowNode[], connections: WorkflowConnection[]) {
+  const inDegree = new Map<string, number>();
+  const adjacencyList = new Map<string, string[]>();
+  const nodeMap = new Map<string, WorkflowNode>();
+
+  // Initialize all nodes with in-degree 0 and empty adjacency list
+  for (const node of nodes) {
+    inDegree.set(node.id, 0);
+    adjacencyList.set(node.id, []);
+    nodeMap.set(node.id, node);
+  }
+
+  // Build in-degree counts and adjacency lists
+  for (const conn of connections) {
+    inDegree.set(conn.toNodeId, (inDegree.get(conn.toNodeId) || 0) + 1);
+    adjacencyList.get(conn.fromNodeId)?.push(conn.toNodeId);
+  }
+
+  return { inDegree, adjacencyList, nodeMap };
+}
+
+/**
+ * Finds root nodes (nodes with no incoming connections)
+ */
+function findRootNodes(inDegree: Map<string, number>): string[] {
+  const rootNodes: string[] = [];
+  for (const [nodeId, degree] of inDegree.entries()) {
+    if (degree === 0) {
+      rootNodes.push(nodeId);
+    }
+  }
+  return rootNodes;
+}
+
+/**
+ * Validates that all referenced nodes in connections exist in the nodes array
+ */
+function validateNodesExist(nodes: WorkflowNode[], connections: WorkflowConnection[]) {
+  const nodeIds = new Set(nodes.map(n => n.id));
+  for (const conn of connections) {
+    if (!nodeIds.has(conn.fromNodeId)) {
+      throw new Error(`Invalid connection: fromNodeId ${conn.fromNodeId} does not exist`);
+    }
+    if (!nodeIds.has(conn.toNodeId)) {
+      throw new Error(`Invalid connection: toNodeId ${conn.toNodeId} does not exist`);
+    }
+  }
+}
+
 async function executeWorkflow(
-  workflowId: number, 
-  userId: string, 
-  inputData: Record<string, unknown>, 
-  connections: WorkflowConnection[], 
+  workflowId: number,
+  userId: string,
+  inputData: Record<string, unknown>,
+  connections: WorkflowConnection[],
   nodes: WorkflowNode[]
 ) {
-  let currentNodeId = connections.find(c => !connections.some(other => other.toNodeId === c.fromNodeId))?.fromNodeId;
+  // Build graph structures for BFS traversal
+  const { inDegree, adjacencyList, nodeMap } = buildGraphStructures(nodes, connections);
 
+  // Validate graph and find root nodes
+  validateNodesExist(nodes, connections);
+  const rootNodes = findRootNodes(inDegree);
+
+  if (rootNodes.length === 0) {
+    throw new Error('No entry nodes found (all nodes have incoming connections). Check for cycles.');
+  }
+
+  // Initialize BFS
+  const readyQueue = [...rootNodes];
+  const executed = new Set<string>();
   const outputData: Record<string, unknown> = {};
 
-  while (currentNodeId) {
-    const node = nodes.find(n => n.id === currentNodeId);
-    if (!node) break;
+  // Execute nodes in BFS order
+  while (readyQueue.length > 0) {
+    const currentNodeId = readyQueue.shift()!;
+    const node = nodeMap.get(currentNodeId);
 
+    if (!node) {
+      throw new Error(`Node ${currentNodeId} not found in node map`);
+    }
+
+    // Cycle detection: if already executed, we have a cycle
+    if (executed.has(currentNodeId)) {
+      throw new Error(`Cycle detected: node ${currentNodeId} (${node.label}) is being executed multiple times`);
+    }
+
+    executed.add(currentNodeId);
+
+    // Parse config
     const config = JSON.parse(node.config || '{}');
 
+    // Execute node based on type
     switch (node.type) {
       case 'entry':
         switch (node.entryType) {
@@ -300,17 +390,17 @@ async function executeWorkflow(
          break;
       case 'ai':
         const aiConfig = config.aiConfig || {};
-        
+
         // Collect available variables from connected nodes
         const availableVariables = collectAvailableVariables(node.id, connections, nodes, inputData, outputData);
-        
+
         // Substitute variables in system prompt
-        const systemPrompt = aiConfig.systemPrompt 
+        const systemPrompt = aiConfig.systemPrompt
           ? substituteVariables(aiConfig.systemPrompt, availableVariables)
           : '';
-        
+
         // Substitute variables in user prompt
-        const userPrompt = aiConfig.userPrompt 
+        const userPrompt = aiConfig.userPrompt
           ? substituteVariables(aiConfig.userPrompt, availableVariables)
           : '';
 
@@ -362,14 +452,14 @@ async function executeWorkflow(
         try {
           // Use specific bot from config if provided, otherwise find any bot for this user
           let botToUse;
-          
+
           if (slackConfig.botId) {
             const [specificBot] = await db
               .select()
               .from(slackBotsTable)
               .where(eq(slackBotsTable.id, slackConfig.botId))
               .limit(1);
-            
+
             if (!specificBot || specificBot.userId !== userId) {
               outputData[node.id] = { error: 'Specified Slack bot not found or unauthorized' };
               break;
@@ -393,7 +483,7 @@ async function executeWorkflow(
           const slackResponse = await sendSlackMessage(
             { botId: botToUse.id, channel: slackChannel, message: slackMessage }
           );
-          
+
           if (!slackResponse.success) {
             outputData[node.id] = { error: slackResponse.error };
             console.error('Slack call error:', slackResponse.error);
@@ -448,7 +538,7 @@ async function executeWorkflow(
               from: emailFrom
             }
           );
-          
+
           if (!emailResponse.success) {
             outputData[node.id] = { error: emailResponse.error };
             console.error('Email call error:', emailResponse.error);
@@ -460,11 +550,74 @@ async function executeWorkflow(
           console.error('Email call error:', error);
         }
         break;
+      case 'sms':
+        const smsConfig = config.smsConfig || {};
+
+        // Collect available variables from connected nodes
+        const smsVariables = collectAvailableVariables(node.id, connections, nodes, inputData, outputData);
+
+        console.log(`SMS Node ${node.id} - Available variables:`, Object.keys(smsVariables));
+        console.log(`SMS Node ${node.id} - Original message:`, smsConfig.message);
+
+        // Substitute variables in message
+        const smsMessage = smsConfig.message
+          ? substituteVariables(smsConfig.message, smsVariables)
+          : '';
+
+        // Substitute variables in recipients array
+        const smsRecipients = smsConfig.to
+          ? smsConfig.to.map((recipient: string) => substituteVariables(recipient, smsVariables))
+          : [];
+
+        console.log(`SMS Node ${node.id} - Processed message:`, smsMessage);
+        console.log(`SMS Node ${node.id} - Recipients:`, smsRecipients);
+
+        try {
+          const smsResponse = await sendWorkflowSMS(
+            {
+              to: smsRecipients,
+              message: smsMessage
+            }
+          );
+
+          if (!smsResponse.success) {
+            outputData[node.id] = { error: smsResponse.error };
+            console.error('SMS call error:', smsResponse.error);
+            break;
+          }
+          outputData[node.id] = { success: true };
+        } catch (error) {
+          outputData[node.id] = { error: 'Failed to send SMS' };
+          console.error('SMS call error:', error);
+        }
+        break;
     }
 
-    // Move to next node
-    const nextConnection = connections.find(c => c.fromNodeId === currentNodeId);
-    currentNodeId = nextConnection?.toNodeId;
+    // Update successors and add ready ones to queue
+    const successors = adjacencyList.get(currentNodeId) || [];
+    for (const successorId of successors) {
+      const newDegree = (inDegree.get(successorId) || 0) - 1;
+      inDegree.set(successorId, newDegree);
+
+      // Add to queue if all dependencies met
+      if (newDegree === 0) {
+        readyQueue.push(successorId);
+      } else if (newDegree < 0) {
+        throw new Error(`Invalid graph state: node ${successorId} has negative in-degree`);
+      }
+    }
+  }
+
+  // Verify all nodes executed
+  if (executed.size < nodes.length) {
+    const unexecuted = nodes
+      .filter(n => !executed.has(n.id))
+      .map(n => `${n.label} (${n.id})`)
+      .join(', ');
+    throw new Error(
+      `Workflow incomplete: ${nodes.length - executed.size} nodes not executed: ${unexecuted}. ` +
+      `This indicates either a cycle or disconnected nodes.`
+    );
   }
 
   return outputData;

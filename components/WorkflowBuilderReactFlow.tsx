@@ -18,11 +18,14 @@ import { Plus, Trash2 } from 'lucide-react';
 import { Button } from './Button';
 import { EmailIcon } from './icons/Email';
 import { SlackIcon } from './icons/Slack';
-import { NodeData, Connection as WorkflowConnection, Field } from '@/lib/workflow-types';
+import { SMSIcon } from './icons/SMS';
+import { NodeData, Connection as WorkflowConnection, Field, EmailConfig, SlackConfig, SMSConfig, SchedulerConfig, AINodeConfig, ReviewConfig } from '@/lib/workflow-types';
 import { Connection as ReactFlowConnection } from '@xyflow/react';
 import { generateNodeId } from '@/lib/workflow-utils';
 import { convertToReactFlow, convertFromReactFlow, ReactFlowNodeData } from '@/lib/reactflow-types';
 import { AI_MODELS } from '@/lib/constants';
+import { getDefaultConfig, NODE_CONFIGS, NodeType, NodeConfigKey } from '@/lib/node-registry';
+import { serializeNode } from '@/lib/node-utils';
 import TypeaheadTextarea from './TypeaheadTextarea';
 import { ToastContainer, toast } from 'react-toastify';
 
@@ -32,6 +35,7 @@ import SchedulerNode from './reactflow-nodes/SchedulerNode';
 import ReviewNode from './reactflow-nodes/ReviewNode';
 import EmailNode from './reactflow-nodes/EmailNode';
 import SlackNode from './reactflow-nodes/SlackNode';
+import SMSNode from './reactflow-nodes/SMSNode';
 import Dropdown, { DropdownOption } from './Dropdown';
 
 interface WorkflowBuilderProps {
@@ -53,6 +57,7 @@ const nodeTypes: NodeTypes = {
   review: ReviewNode,
   email: EmailNode,
   slack: SlackNode,
+  sms: SMSNode,
 };
 
 const FIELD_TYPE_OPTIONS: DropdownOption[] = [
@@ -85,7 +90,8 @@ const NODE_TYPE_OPTIONS: DropdownOption[] = [
   { value: 'entry', label: 'Entry' },
   { value: 'ai', label: 'AI Model' },
   { value: 'email', label: 'Email' },
-  // { value: 'slack', label: 'Slack' },
+  { value: 'slack', label: 'Slack' },
+  // { value: 'sms', label: 'SMS' },
 ];
 
 // Wrapper component to provide React Flow context
@@ -117,6 +123,9 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
   const [rawMessageInput, setRawMessageInput] = useState('');
   const [rawSlackChannelInput, setRawSlackChannelInput] = useState('');
   const [rawSlackMessageInput, setRawSlackMessageInput] = useState('');
+  const [smsWarning, setSmsWarning] = useState('');
+  const [rawSMSRecipientsInput, setRawSMSRecipientsInput] = useState('');
+  const [rawSMSMessageInput, setRawSMSMessageInput] = useState('');
   const [showAddDropdown, setShowAddDropdown] = useState(false);
   const [slackBots, setSlackBots] = useState<{ id: number; name: string; teamName: string }[]>([]);
   const previousSelectedNode = useRef<string | null>(null);
@@ -145,32 +154,48 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
      if (previousSelectedNode.current !== selectedNode) {
        previousSelectedNode.current = selectedNode;
 
-       if (selectedNode) {
-         const selectedData = nodes.find(n => n.id === selectedNode)?.data;
-         if (selectedData?.emailConfig) {
-           setRawEmailInput(selectedData.emailConfig.to?.join(', ') || '');
-           setRawSubjectInput(selectedData.emailConfig.subject || '');
-           setRawMessageInput(selectedData.emailConfig.message || '');
-         } else {
-           setRawEmailInput('');
-           setRawSubjectInput('');
-           setRawMessageInput('');
-         }
-         if (selectedData?.slackConfig) {
-           setRawSlackChannelInput(selectedData.slackConfig.channel || '');
-           setRawSlackMessageInput(selectedData.slackConfig.message || '');
-         } else {
-           setRawSlackChannelInput('');
-           setRawSlackMessageInput('');
-         }
-       } else {
-         // Clear all raw inputs when no node is selected
-         setRawEmailInput('');
-         setRawSubjectInput('');
-         setRawMessageInput('');
-         setRawSlackChannelInput('');
-         setRawSlackMessageInput('');
-       }
+        // Batch state updates to prevent cascading renders
+        setTimeout(() => {
+          if (selectedNode) {
+            const selectedData = nodes.find(n => n.id === selectedNode)?.data;
+            
+            // Reset all states first
+            setRawEmailInput('');
+            setRawSubjectInput('');
+            setRawMessageInput('');
+            setRawSlackChannelInput('');
+            setRawSlackMessageInput('');
+            setRawSMSRecipientsInput('');
+            setRawSMSMessageInput('');
+            
+            // Then set values based on config
+            if (selectedData?.emailConfig) {
+              const emailConfig = selectedData.emailConfig as EmailConfig;
+              setRawEmailInput(emailConfig.to?.join(', ') || '');
+              setRawSubjectInput(emailConfig.subject || '');
+              setRawMessageInput(emailConfig.message || '');
+            }
+            if (selectedData?.slackConfig) {
+              const slackConfig = selectedData.slackConfig as SlackConfig;
+              setRawSlackChannelInput(slackConfig.channel || '');
+              setRawSlackMessageInput(slackConfig.message || '');
+            }
+            if (selectedData?.smsConfig) {
+              const smsConfig = selectedData.smsConfig as SMSConfig;
+              setRawSMSRecipientsInput(smsConfig.to?.join(', ') || '');
+              setRawSMSMessageInput(smsConfig.message || '');
+            }
+          } else {
+            // Clear all raw inputs when no node is selected
+            setRawEmailInput('');
+            setRawSubjectInput('');
+            setRawMessageInput('');
+            setRawSlackChannelInput('');
+            setRawSlackMessageInput('');
+            setRawSMSRecipientsInput('');
+            setRawSMSMessageInput('');
+          }
+        }, 0);
      }
    }, [selectedNode, nodes]);
 
@@ -199,58 +224,52 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
     setSelectedNode(null);
     setShowAddDropdown(false);
     setEmailWarning('');
+    setSmsWarning('');
   }, []);
 
   // Add new node
-  const addNode = useCallback((type: 'entry' | 'ai' | 'scheduler' | 'review' | 'email' | 'slack') => {
+  const addNode = useCallback((type: NodeType) => {
     const centerPosition = screenToFlowPosition({
       x: window.innerWidth / 2,
       y: window.innerHeight / 2
     });
+
+    // Get label for node type
+    const labelMap: Record<NodeType, string> = {
+      entry: 'Entry',
+      ai: 'AI Model',
+      scheduler: 'Scheduler',
+      review: 'Review',
+      email: 'Email',
+      slack: 'Slack',
+      sms: 'SMS',
+    };
+
+    // Build node data using registry
+    const nodeData: Record<string, unknown> = {
+      id: generateNodeId(),
+      type,
+      label: labelMap[type],
+    };
+
+    // Add entry-specific fields
+    if (type === 'entry') {
+      nodeData.fields = [];
+      nodeData.entryType = 'api';
+    }
+
+    // Add config from registry
+    const configKey = NODE_CONFIGS[type].configKey;
+    const defaultConfig = getDefaultConfig(type);
+    if (configKey && defaultConfig) {
+      nodeData[configKey] = defaultConfig;
+    }
+
     const newNode = {
       id: generateNodeId(),
       type,
       position: centerPosition,
-      data: {
-        id: generateNodeId(),
-        type,
-        label: type === 'entry' ? 'Entry' : type === 'ai' ? 'AI Model' : type === 'scheduler' ? 'Scheduler' : type === 'email' ? 'Email' : type === 'slack' ? 'Slack' : 'Review',
-        ...(type === 'entry' ? { fields: [], entryType: 'api' } :
-          type === 'ai' ? {
-            aiConfig: {
-              model: 'google/gemini-2.0-flash-001',
-              systemPrompt: '',
-              userPrompt: '',
-              outputType: 'JSON',
-              outputStructure: '',
-              hasTemplate: false,
-              templateText: ''
-            }
-          } : type === 'scheduler' ? {
-            schedulerConfig: {
-              people: [],
-              minTimeRequirement: '',
-              calendar: ''
-            }
-          } : type === 'email' ? {
-            emailConfig: {
-              to: [],
-              subject: 'Workflow Notification',
-              message: 'Workflow update: {{previousOutput}}',
-              from: 'noreply@zeitflow.io'
-            }
-          } : type === 'slack' ? {
-            slackConfig: {
-              channel: '#general',
-              message: 'Workflow update: {{previousOutput}}'
-            }
-          } : {
-            reviewConfig: {
-              validationSteps: [],
-              meetingConfirmed: false
-            }
-          })
-      }
+      data: nodeData as ReactFlowNodeData,
     };
 
     setNodes((nds) => [...nds, newNode]);
@@ -274,20 +293,8 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
 
   // Shared function to serialize nodes (saves all configs, even partial ones)
   const serializeNodes = useCallback((workflowNodes: NodeData[]) => {
-    return workflowNodes.map(node => ({
-      id: node.id,
-      type: node.type,
-      x: node.x,
-      y: node.y,
-      label: node.label,
-      fields: node.fields,
-      entryType: node.entryType,
-      aiConfig: node.aiConfig,
-      schedulerConfig: node.schedulerConfig,
-      reviewConfig: node.reviewConfig,
-      emailConfig: node.emailConfig,
-      slackConfig: node.slackConfig,
-    }));
+    // Use the utility function - automatically handles all node configs!
+    return workflowNodes.map(node => serializeNode(node));
   }, []);
 
   // Save workflow
@@ -372,19 +379,18 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
 
     if (!currentNode) return console.warn('No current node found');
 
-    if (!currentNode.data.fields) {
-      currentNode.data.fields = [];
-    }
+    const currentFields = (currentNode.data.fields as Field[] | undefined) || [];
 
-    updateNodeData(selectedNode, { fields: [...currentNode.data.fields, newField] });
+    updateNodeData(selectedNode, { fields: [...currentFields, newField] });
   }, [selectedNode, nodes, updateNodeData]);
 
   const removeField = useCallback((fieldId: string) => {
     if (!selectedNode) return;
     const currentNode = nodes.find(n => n.id === selectedNode);
     if (currentNode?.data.fields) {
-      updateNodeData(selectedNode, { 
-        fields: currentNode.data.fields.filter(f => f.id !== fieldId) 
+      const fields = currentNode.data.fields as Field[];
+      updateNodeData(selectedNode, {
+        fields: fields.filter(f => f.id !== fieldId)
       });
     }
   }, [selectedNode, nodes, updateNodeData]);
@@ -393,10 +399,11 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
     if (!selectedNode) return;
     const currentNode = nodes.find(n => n.id === selectedNode);
     if (currentNode?.data.fields) {
-      updateNodeData(selectedNode, { 
-        fields: currentNode.data.fields.map(f => 
+      const fields = currentNode.data.fields as Field[];
+      updateNodeData(selectedNode, {
+        fields: fields.map(f =>
           f.id === fieldId ? { ...f, ...updates } : f
-        ) 
+        )
       });
     }
   }, [selectedNode, nodes, updateNodeData]);
@@ -432,7 +439,7 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
       });
     }
   }, [selectedNode, nodes, updateNodeData]);
-  const updateNodeConfig = useCallback((configType: 'emailConfig' | 'slackConfig', updates: object) => {
+  const updateNodeConfig = useCallback((configType: NodeConfigKey, updates: object) => {
     if (!selectedNode) {
       return;
     }
@@ -472,12 +479,38 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
     return validEmails;
   }, [validateEmail]);
 
+  // Validate phone number (E.164 format)
+  const validatePhoneNumber = useCallback((phone: string): boolean => {
+    const phoneRegex = /^\+[1-9]\d{1,14}$/;
+    return phoneRegex.test(phone);
+  }, []);
+
+  // Process SMS recipients with validation
+  const processSMSRecipients = useCallback((phonesString: string): string[] => {
+    const allPhones = phonesString
+      .split(',')
+      .map(phone => phone.trim())
+      .filter(phone => phone);
+
+    const validPhones = allPhones.filter(phone => validatePhoneNumber(phone));
+    const invalidPhones = allPhones.filter(phone => !validatePhoneNumber(phone));
+
+    if (invalidPhones.length > 0) {
+      setSmsWarning(`Invalid phone format: ${invalidPhones.join(', ')}. Use E.164 format (e.g., +12345678900)`);
+    } else {
+      setSmsWarning('');
+    }
+
+    return validPhones;
+  }, [validatePhoneNumber]);
+
   const addPerson = useCallback(() => {
     if (!selectedNode || !newPersonName.trim()) return;
     const currentNode = nodes.find(n => n.id === selectedNode);
     if (currentNode?.data.schedulerConfig) {
+      const schedulerConfig = currentNode.data.schedulerConfig as SchedulerConfig;
       updateSchedulerConfig({
-        people: [...currentNode.data.schedulerConfig.people, newPersonName.trim()]
+        people: [...schedulerConfig.people, newPersonName.trim()]
       });
     }
     setNewPersonName('');
@@ -487,8 +520,9 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
     if (!selectedNode) return;
     const currentNode = nodes.find(n => n.id === selectedNode);
     if (currentNode?.data.schedulerConfig) {
+      const schedulerConfig = currentNode.data.schedulerConfig as SchedulerConfig;
       updateSchedulerConfig({
-        people: currentNode.data.schedulerConfig.people.filter(p => p !== personName)
+        people: schedulerConfig.people.filter(p => p !== personName)
       });
     }
   }, [selectedNode, nodes, updateSchedulerConfig]);
@@ -510,7 +544,8 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
         
         // Add fields from entry nodes
         if (nodeData.type === 'entry' && nodeData.fields) {
-          nodeData.fields.forEach((field: Field) => {
+          const fields = nodeData.fields as Field[];
+          fields.forEach((field: Field) => {
             suggestions.push({
               name: field.key,
               description: `${nodeData.label} - ${field.type}`
@@ -579,7 +614,7 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
                 <Button
                   key={option.value}
                   onClick={() => {
-                    addNode(option.value as 'entry' | 'ai' | 'scheduler' | 'email' | 'slack');
+                    addNode(option.value as NodeType);
                     setShowAddDropdown(false);
                   }}
                   variant="tertiary"
@@ -719,6 +754,13 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
                       Slack
                     </p>
                   </>
+                ) : selectedNodeData?.type === 'sms' ? (
+                  <>
+                    <SMSIcon className="size-[18px]" />
+                    <p className="font-['Inter:Regular',_sans-serif] font-normal leading-[normal] not-italic text-[20px] text-nowrap text-foreground whitespace-pre">
+                      SMS
+                    </p>
+                  </>
                 ) : null}
                 {selectedNodeData?.type === 'entry' ? (
                   <>
@@ -753,6 +795,12 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
                     </p>
                   </div>
                 ) : selectedNodeData?.type === 'slack' ? (
+                  <div className="bg-info py-[3px] overflow-clip rounded-[10px] w-[42px]">
+                    <p className="font-['Inter:Regular',_sans-serif] font-normal leading-[normal] not-italic text-[6px] text-foreground text-nowrap top-px whitespace-pre text-center">
+                      Communication
+                    </p>
+                  </div>
+                ) : selectedNodeData?.type === 'sms' ? (
                   <div className="bg-info py-[3px] overflow-clip rounded-[10px] w-[42px]">
                     <p className="font-['Inter:Regular',_sans-serif] font-normal leading-[normal] not-italic text-[6px] text-foreground text-nowrap top-px whitespace-pre text-center">
                       Communication
@@ -813,7 +861,7 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
                     </p>
                   </div>
 
-                  {(selectedNodeData.fields || []).map((field) => (
+                  {((selectedNodeData.fields as Field[] | undefined) || []).map((field) => (
                     <div key={field.id} className="space-y-2">
                       <div className="grid grid-cols-2 gap-4">
                         <div className="bg-background-extra-light border-border border-[0.5px] h-[32px] rounded-[8px] overflow-hidden">
@@ -879,7 +927,7 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
                     </p>
                   </div>
 
-                  {(selectedNodeData.fields || []).map((field) => (
+                  {((selectedNodeData.fields as Field[] | undefined) || []).map((field) => (
                     <div key={field.id} className="space-y-2">
                       <div className="grid grid-cols-2 gap-4">
                         <div className="bg-background-extra-light border-border border-[0.5px] h-[32px] rounded-[8px] overflow-hidden">
@@ -944,7 +992,7 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
                    AI Model
                  </label>
                  <Dropdown
-                   value={selectedNodeData.aiConfig.model}
+                   value={(selectedNodeData.aiConfig as AINodeConfig).model}
                    onChange={(value) => updateAIConfig({ model: value })}
                    options={AI_MODELS}
                    className="h-[32px]"
@@ -973,7 +1021,7 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
 
                <div className="bg-background-extra-light mt-[4px] rounded">
                 <TypeaheadTextarea
-                  value={selectedNodeData.aiConfig.systemPrompt || ""}
+                  value={(selectedNodeData.aiConfig as AINodeConfig).systemPrompt || ""}
                   onChange={(value) => updateAIConfig({ systemPrompt: value })}
                   suggestions={getFieldSuggestions(selectedNode!)}
                   className="bg-transparent font-['Inter:Regular',_sans-serif] font-normal h-[119px] leading-[normal] not-italic outline-none p-4 resize-none text-sm text-foreground w-full"
@@ -991,7 +1039,7 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
                <div>
                  <div className="bg-background-extra-light mt-[4px] rounded">
                    <TypeaheadTextarea
-                     value={selectedNodeData.aiConfig.userPrompt}
+                     value={(selectedNodeData.aiConfig as AINodeConfig).userPrompt}
                      onChange={(value) => updateAIConfig({ userPrompt: value })}
                      suggestions={getFieldSuggestions(selectedNode!)}
                      className="bg-transparent font-['Inter:Regular',_sans-serif] font-normal h-[119px] leading-[normal] not-italic outline-none p-4 resize-none text-sm text-foreground w-full"
@@ -1020,7 +1068,7 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
 
               <div className="bg-background-extra-light border-border border-[0.5px] mt-[4px] min-h-[71px] overflow-clip p-[7px] rounded-[10px]">
                 <div className="flex flex-wrap gap-[3px]">
-                  {selectedNodeData.schedulerConfig.people.map((person, idx) => (
+                  {(selectedNodeData.schedulerConfig as SchedulerConfig).people.map((person, idx) => (
                     <div key={idx} className="bg-success flex h-[18px] items-center overflow-clip px-[9px] relative rounded-[10px]">
                       <p className="font-['Inter:Regular',_sans-serif] font-normal leading-[normal] not-italic text-[8px] text-foreground text-nowrap whitespace-pre">
                         {person}
@@ -1070,7 +1118,7 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
               <div className="bg-background-extra-light border-border border-[0.5px] h-[26px] mt-[4px] overflow-clip rounded-[10px]">
                 <input
                   type="text"
-                  value={selectedNodeData.schedulerConfig.minTimeRequirement}
+                  value={(selectedNodeData.schedulerConfig as SchedulerConfig).minTimeRequirement}
                   onChange={(e) => updateSchedulerConfig({ minTimeRequirement: e.target.value })}
                   className="bg-transparent font-['Inter:Regular',_sans-serif] font-normal h-full leading-[normal] not-italic outline-none px-[11px] text-sm text-nowrap text-foreground w-full"
                 />
@@ -1085,7 +1133,7 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
               <div className="bg-background-extra-light border-border border-[0.5px] h-[26px] mt-[4px] overflow-clip rounded-[10px]">
                 <input
                   type="text"
-                  value={selectedNodeData.schedulerConfig.calendar}
+                  value={(selectedNodeData.schedulerConfig as SchedulerConfig).calendar}
                   onChange={(e) => updateSchedulerConfig({ calendar: e.target.value })}
                   className="bg-transparent font-['Inter:Regular',_sans-serif] font-normal h-full leading-[normal] not-italic outline-none px-[11px] text-sm text-nowrap text-foreground w-full"
                 />
@@ -1103,7 +1151,7 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
               </div>
               <div className="space-y-[8px]">
                 {nodes.filter(n => n.data.type !== 'review').map((node) => {
-                  const validationStep = selectedNodeData.reviewConfig!.validationSteps.find(s => s.nodeId === node.id);
+                  const validationStep = (selectedNodeData.reviewConfig as ReviewConfig).validationSteps.find(s => s.nodeId === node.id);
                   const isValidated = validationStep?.validated || false;
 
                   return (
@@ -1111,11 +1159,11 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
                       key={node.id}
                       className={`${isValidated ? 'bg-surface-hover' : 'bg-surface'} cursor-pointer h-[37px] overflow-clip relative rounded-[10px] transition-colors hover:bg-surface-hover`}
                       onClick={() => {
-                        const updatedSteps = selectedNodeData.reviewConfig!.validationSteps.map(step =>
+                        const updatedSteps = (selectedNodeData.reviewConfig as ReviewConfig).validationSteps.map(step =>
                           step.nodeId === node.id ? { ...step, validated: !step.validated } : step
                         );
                         updateNodeData(selectedNode!, { 
-                          reviewConfig: { ...selectedNodeData.reviewConfig!, validationSteps: updatedSteps } 
+                          reviewConfig: { ...(selectedNodeData.reviewConfig as ReviewConfig), validationSteps: updatedSteps } 
                         });
                       }}
                     >
@@ -1181,12 +1229,12 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
                    Meeting Creation
                  </h3>
                 <div
-                  className={`cursor-pointer h-[37px] overflow-clip relative rounded-[10px] transition-colors hover:bg-surface-hover ${selectedNodeData.reviewConfig!.meetingConfirmed ? 'bg-surface-hover' : 'bg-surface'}`}
+                  className={`cursor-pointer h-[37px] overflow-clip relative rounded-[10px] transition-colors hover:bg-surface-hover ${(selectedNodeData.reviewConfig as ReviewConfig).meetingConfirmed ? 'bg-surface-hover' : 'bg-surface'}`}
                   onClick={() => {
                     updateNodeData(selectedNode!, { 
                       reviewConfig: { 
-                        ...selectedNodeData.reviewConfig!, 
-                        meetingConfirmed: !selectedNodeData.reviewConfig!.meetingConfirmed 
+                        ...(selectedNodeData.reviewConfig as ReviewConfig), 
+                        meetingConfirmed: !(selectedNodeData.reviewConfig as ReviewConfig).meetingConfirmed 
                       } 
                     });
                   }}
@@ -1195,19 +1243,19 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
                     <div className="flex items-center">
                       <div className="mr-[13px] size-[18px]">
                         <svg className="block size-full" fill="none" viewBox="0 0 18 18">
-                         <rect x="1" y="3" width="16" height="12" rx="2" stroke={selectedNodeData.reviewConfig!.meetingConfirmed ? "var(--foreground)" : "var(--text-muted)"} strokeWidth="1" />
-                         <line x1="1" y1="7" x2="17" y2="7" stroke={selectedNodeData.reviewConfig!.meetingConfirmed ? "var(--foreground)" : "var(--text-muted)"} strokeWidth="1" />
-                         <line x1="5" y1="11" x2="13" y2="11" stroke={selectedNodeData.reviewConfig!.meetingConfirmed ? "var(--foreground)" : "var(--text-muted)"} strokeWidth="1" />
-                         <line x1="5" y1="13" x2="11" y2="13" stroke={selectedNodeData.reviewConfig!.meetingConfirmed ? "var(--foreground)" : "var(--text-muted)"} strokeWidth="1" />
+                         <rect x="1" y="3" width="16" height="12" rx="2" stroke={(selectedNodeData.reviewConfig as ReviewConfig).meetingConfirmed ? "var(--foreground)" : "var(--text-muted)"} strokeWidth="1" />
+                         <line x1="1" y1="7" x2="17" y2="7" stroke={(selectedNodeData.reviewConfig as ReviewConfig).meetingConfirmed ? "var(--foreground)" : "var(--text-muted)"} strokeWidth="1" />
+                         <line x1="5" y1="11" x2="13" y2="11" stroke={(selectedNodeData.reviewConfig as ReviewConfig).meetingConfirmed ? "var(--foreground)" : "var(--text-muted)"} strokeWidth="1" />
+                         <line x1="5" y1="13" x2="11" y2="13" stroke={(selectedNodeData.reviewConfig as ReviewConfig).meetingConfirmed ? "var(--foreground)" : "var(--text-muted)"} strokeWidth="1" />
                         </svg>
                       </div>
-                      <p className={`font-['Inter:Bold',_sans-serif] font-bold leading-[normal] not-italic text-lg text-nowrap whitespace-pre`} style={{ color: selectedNodeData.reviewConfig!.meetingConfirmed ? "var(--foreground)" : "var(--text-muted)" }}>
+                      <p className={`font-['Inter:Bold',_sans-serif] font-bold leading-[normal] not-italic text-lg text-nowrap whitespace-pre`} style={{ color: (selectedNodeData.reviewConfig as ReviewConfig).meetingConfirmed ? "var(--foreground)" : "var(--text-muted)" }}>
                         Create Meeting
                       </p>
                     </div>
                     <div className="absolute right-[15px] rounded-[2px] size-[9px]">
-                      <div className={`border ${selectedNodeData.reviewConfig!.meetingConfirmed ? 'border-foreground' : 'border-text-muted'} border-solid inset-0 rounded-[2px]`}>
-                        {selectedNodeData.reviewConfig!.meetingConfirmed && (
+                      <div className={`border ${(selectedNodeData.reviewConfig as ReviewConfig).meetingConfirmed ? 'border-foreground' : 'border-text-muted'} border-solid inset-0 rounded-[2px]`}>
+                        {(selectedNodeData.reviewConfig as ReviewConfig).meetingConfirmed && (
                           <svg className="block size-full" fill="none" viewBox="0 0 7 6" style={{ transform: 'translate(1px, 2px) scale(0.8)' }}>
                             <line stroke="var(--foreground)" x1="0.299998" x2="2.96666" y1="3.6" y2="5.59997" />
                             <line stroke="var(--foreground)" x1="2.2719" x2="6.16078" y1="5.693" y2="0.693011" />
@@ -1220,7 +1268,7 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
               </div>
             </div>
           ) : selectedNodeData.type === 'email' ? (
-            <>
+            <div className="mt-[20px] px-[20px] pb-[20px]">
               <div className="mb-[12px]">
                 <h3 className="text-foreground text-lg font-bold mb-[4px]">
                   Email Configuration
@@ -1241,7 +1289,7 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
                     setRawEmailInput(e.target.value);
                     const validEmails = processEmailRecipients(e.target.value);
                     updateNodeConfig('emailConfig', {
-                      ...selectedNodeData.emailConfig,
+                      ...(selectedNodeData.emailConfig as EmailConfig),
                       to: validEmails
                     });
                   }}
@@ -1265,7 +1313,7 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
                   onChange={(e) => {
                     setRawSubjectInput(e.target.value);
                     updateNodeConfig('emailConfig', { 
-                      ...selectedNodeData.emailConfig, 
+                      ...(selectedNodeData.emailConfig as EmailConfig), 
                       subject: e.target.value 
                     });
                   }}
@@ -1284,7 +1332,7 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
                     onChange={(value) => {
                       setRawMessageInput(value);
                       updateNodeConfig('emailConfig', { 
-                        ...selectedNodeData.emailConfig, 
+                        ...(selectedNodeData.emailConfig as EmailConfig), 
                         message: value 
                       });
                     }}
@@ -1295,9 +1343,9 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
                   />
                 </div>
               </div>
-            </>
+            </div>
           ) : selectedNodeData.type === 'slack' ? (
-            <>
+            <div className="mt-[20px] px-[20px] pb-[20px]">
               <div className="mb-[12px]">
                 <h3 className="text-foreground text-lg font-bold mb-[4px]">
                   Slack Configuration
@@ -1312,10 +1360,10 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
                   Slack Bot
                 </label>
                 <select
-                  value={selectedNodeData.slackConfig?.botId || ''}
-                  onChange={(e) => updateNodeConfig('slackConfig', { 
-                    ...selectedNodeData.slackConfig, 
-                    botId: e.target.value ? Number(e.target.value) : undefined 
+                  value={(selectedNodeData.slackConfig as SlackConfig | undefined)?.botId || ''}
+                  onChange={(e) => updateNodeConfig('slackConfig', {
+                    ...(selectedNodeData.slackConfig as SlackConfig),
+                    botId: e.target.value ? Number(e.target.value) : undefined
                   })}
                   className="w-full bg-background-extra-light border-border border-[0.5px] h-[32px] rounded-[8px] overflow-hidden px-[12px] text-[12px] text-foreground outline-none"
                 >
@@ -1338,7 +1386,7 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
                   onChange={(e) => {
                     setRawSlackChannelInput(e.target.value);
                     updateNodeConfig('slackConfig', { 
-                      ...selectedNodeData.slackConfig, 
+                      ...(selectedNodeData.slackConfig as SlackConfig), 
                       channel: e.target.value 
                     });
                   }}
@@ -1357,7 +1405,7 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
                     onChange={(value) => {
                       setRawSlackMessageInput(value);
                       updateNodeConfig('slackConfig', { 
-                        ...selectedNodeData.slackConfig, 
+                        ...(selectedNodeData.slackConfig as SlackConfig), 
                         message: value 
                       });
                     }}
@@ -1368,7 +1416,68 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
                   />
                 </div>
               </div>
-            </>
+            </div>
+          ) : selectedNodeData.type === 'sms' ? (
+            <div className="mt-[20px] px-[20px] pb-[20px]">
+              <div className="mb-[12px]">
+                <h3 className="text-foreground text-lg font-bold mb-[4px]">
+                  SMS Configuration
+                </h3>
+                <p className="text-text-muted text-sm leading-relaxed">
+                  Configure SMS recipients and message content
+                </p>
+              </div>
+
+              <div className="mb-[16px]">
+                <label className="block text-foreground-light font-medium mb-[8px]">
+                  To (comma-separated, E.164 format)
+                </label>
+                <input
+                  type="text"
+                  value={rawSMSRecipientsInput}
+                  onChange={(e) => {
+                    setRawSMSRecipientsInput(e.target.value);
+                    const validPhones = processSMSRecipients(e.target.value);
+                    updateNodeConfig('smsConfig', {
+                      ...(selectedNodeData.smsConfig as SMSConfig),
+                      to: validPhones
+                    });
+                  }}
+                  className="w-full bg-background-extra-light border-border border-[0.5px] h-[32px] rounded-[8px] overflow-hidden px-[12px] text-[12px] text-foreground placeholder-text-placeholder outline-none"
+                  placeholder="+12345678900, +19876543210"
+                />
+                {smsWarning && (
+                  <p className="text-warning text-[11px] mt-[4px] px-[2px]">
+                    {smsWarning}
+                  </p>
+                )}
+              </div>
+
+              <div className="mb-[16px]">
+                <label className="block text-foreground-light font-medium mb-[8px]">
+                  Message
+                </label>
+                <div className="bg-background-extra-light mt-[4px] rounded">
+                  <TypeaheadTextarea
+                    value={rawSMSMessageInput}
+                    onChange={(value) => {
+                      setRawSMSMessageInput(value);
+                      updateNodeConfig('smsConfig', {
+                        ...(selectedNodeData.smsConfig as SMSConfig),
+                        message: value
+                      });
+                    }}
+                    suggestions={getFieldSuggestions(selectedNode!)}
+                    className="bg-transparent font-['Inter:Regular',_sans-serif] font-normal h-[119px] leading-[normal] not-italic outline-none p-4 resize-none text-sm text-foreground w-full"
+                    placeholder="Workflow update: {{previousOutput}}"
+                    hintNoSuggestionsMessage={"No variables found"}
+                  />
+                </div>
+                <p className="text-text-muted text-[10px] mt-[4px] px-[2px]">
+                  {rawSMSMessageInput.length}/160 chars ({Math.ceil(rawSMSMessageInput.length / 160) || 1} SMS)
+                </p>
+              </div>
+            </div>
           ) : !selectedNodeData && (
              <div className="mt-[20px] px-[20px] pb-[20px]">
                <p className="text-text-muted text-sm">Select a node to configure its properties</p>
