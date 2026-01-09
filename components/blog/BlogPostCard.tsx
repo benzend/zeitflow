@@ -36,13 +36,15 @@ export const BlogPostCard = ({ post }: BlogPostCardProps) => {
     <article className="bg-surface border border-border rounded-lg overflow-hidden hover:shadow-lg transition-all duration-300 animate-slide-up-fade">
       {post.featuredImage && (
         <div className="bg-gradient-to-br from-primary/20 to-accent/20 relative w-full aspect-[1938/1016]">
-          <Image
-            src={post.featuredImage}
-            alt={post.title}
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          />
+          <Link href={`/blog/${post.slug}`}>
+            <Image
+              src={post.featuredImage}
+              alt={post.title}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+          </Link>
         </div>
       )}
       
