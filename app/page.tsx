@@ -98,7 +98,7 @@ export default function Home() {
                   <div className="h-20 bg-surface rounded-xl flex items-center justify-center group-hover:shadow-2xl/20 transition-shadow duration-300 shadow-lg group-hover:animate-pulse-glow">
                     <img src={item.icon} alt={item.title} className="w-full h-full object-contain" />
                   </div>
-                  <span className="font-semibold text-primary text-lg">
+                  <span className="font-semibold text-primary text-lg text-center">
                     {item.title}
                   </span>
                   <p className="text-base text-center text-text-muted">

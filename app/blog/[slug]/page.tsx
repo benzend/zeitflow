@@ -1,4 +1,5 @@
 import Navigation from "@/components/Navigation";
+import AnimatedBackground from "@/app/components/AnimatedBackground";
 import { BlogPost } from "@/components/blog";
 import { Button } from "@/components/Button";
 import { AdminActions } from "@/components/blog/AdminActions";
@@ -188,10 +189,11 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
       
-      <div className="min-h-screen bg-background text-foreground">
+      <div className="min-h-screen bg-background text-foreground relative">
+        <AnimatedBackground />
         <Navigation />
-        
-        <div className="max-w-4xl mx-auto px-4 py-16 mt-10">
+
+        <div className="max-w-4xl mx-auto px-4 py-16 mt-10 relative z-10">
           <div className="mb-8">
             <Button 
               href="/blog" 

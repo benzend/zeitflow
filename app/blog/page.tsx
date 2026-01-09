@@ -1,4 +1,5 @@
 import Navigation from "@/components/Navigation";
+import AnimatedBackground from "@/app/components/AnimatedBackground";
 import { BlogPostCard, BlogNavigation } from "@/components/blog";
 import { Button } from "@/components/Button";
 import { db } from '@/lib/db';
@@ -153,10 +154,11 @@ export default async function Blog({ searchParams }: BlogPageProps) {
         <link rel="next" href={`${baseUrl}/blog?page=${page + 1}`} />
       )}
       
-      <div className="min-h-screen bg-background text-foreground">
+      <div className="min-h-screen bg-background text-foreground relative">
+        <AnimatedBackground />
         <Navigation />
-        
-        <main className="max-w-6xl mx-auto px-4 py-16 mt-10">
+
+        <main className="max-w-6xl mx-auto px-4 py-16 mt-10 relative z-10">
           {/* Header */}
           <div className="text-center mb-12 animate-slide-up-fade">
             <h1 className="text-4xl md:text-5xl font-bold mb-4 text-primary">
