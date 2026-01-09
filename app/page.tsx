@@ -4,6 +4,7 @@ import Logo from '@/app/components/Logo';
 import Navigation from '@/components/Navigation';
 import Providers from './providers';
 import Head from 'next/head';
+import AnimatedBackground from '@/app/components/AnimatedBackground';
 
 export default function Home() {
   return (
@@ -26,7 +27,8 @@ export default function Home() {
         <link rel="canonical" href={process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'} />
       </Head>
       <Providers>
-        <div className="min-h-screen bg-gradient-to-b from-surface to-surface-hover text-foreground flex flex-col">
+        <div className="min-h-screen bg-gradient-to-b from-surface to-surface-hover text-foreground flex flex-col relative">
+        <AnimatedBackground />
         <Navigation />
 
       {/* Main Content */}

@@ -42,6 +42,7 @@ const config: Config = {
         'fade-in-delay-3': 'fadeIn 0.5s ease-out 0.6s both',
         'slide-down': 'slideDown 0.5s ease-out',
         'slide-up': 'slideUp 0.5s ease-out',
+        'pulse-glow': 'pulseGlow 2s ease-in-out infinite',
       },
       keyframes: {
         spinReverse: {
@@ -63,6 +64,10 @@ const config: Config = {
         slideUp: {
           '0%': { transform: 'translateY(20px)', opacity: '0' },
           '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+        pulseGlow: {
+          '0%, 100%': { opacity: '1', filter: 'brightness(1)' },
+          '50%': { opacity: '0.8', filter: 'brightness(1.2)' },
         },
       },
     },
