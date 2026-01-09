@@ -7,6 +7,7 @@ import { isRateLimited } from '@/lib/rate-limit';
 import { isAdmin } from '@/lib/admin';
 import { eq, desc, and, like } from 'drizzle-orm';
 import { z } from 'zod';
+import { revalidatePath } from 'next/cache';
 
 // Validation schema for blog post creation/update
 const blogPostSchema = z.object({
@@ -294,6 +295,10 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse<ResponseData
     .values(insertData)
     .returning();
 
+  // Revalidate blog pages to show new post
+  revalidatePath('/blog');
+  revalidatePath(`/blog/${slug}`);
+
   return res.status(201).json({
     success: true,
     message: 'Post created successfully',
@@ -391,6 +396,13 @@ async function handlePut(req: NextApiRequest, res: NextApiResponse<ResponseData>
     .where(eq(blogPostsTable.id, Number(id)))
     .returning();
 
+  // Revalidate blog pages to show updated post
+  revalidatePath('/blog');
+  revalidatePath(`/blog/${existingPost.slug}`); // Old slug
+  if (updatedPost.slug !== existingPost.slug) {
+    revalidatePath(`/blog/${updatedPost.slug}`); // New slug if changed
+  }
+
   return res.status(200).json({
     success: true,
     message: 'Post updated successfully',
@@ -449,6 +461,10 @@ async function handleDelete(req: NextApiRequest, res: NextApiResponse<ResponseDa
   await db
     .delete(blogPostsTable)
     .where(eq(blogPostsTable.id, Number(id)));
+
+  // Revalidate blog pages to remove deleted post
+  revalidatePath('/blog');
+  revalidatePath(`/blog/${existingPost.slug}`);
 
   return res.status(200).json({
     success: true,

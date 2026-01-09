@@ -79,6 +79,9 @@ async function getBlogPost(slug: string): Promise<BlogPostData | null> {
   }
 }
 
+// Force dynamic rendering to ensure fresh blog post content
+export const dynamic = 'force-dynamic';
+
 export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
   const { slug } = await params;
   const post = await getBlogPost(slug);

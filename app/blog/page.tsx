@@ -27,6 +27,9 @@ export const metadata: Metadata = {
   },
 };
 
+// Force dynamic rendering to ensure fresh blog posts
+export const dynamic = 'force-dynamic';
+
 async function getBlogPosts(page: number = 1) {
   const limit = 12;
   const offset = (page - 1) * limit;
