@@ -16,7 +16,7 @@ export default function Navigation() {
     <nav role="navigation" className="w-full bg-surface/80 backdrop-blur-sm border-b border-border fixed top-0 z-50 animate-slide-up-fade">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <div className="flex items-center">
+          <div className="flex items-center space-x-6">
             <Button href="/" variant="tertiary" className="flex items-center space-x-2 group !bg-transparent !p-0 !h-auto">
               <div className="relative w-8 h-8 animate-scale-in">
                 <Logo
@@ -27,18 +27,27 @@ export default function Navigation() {
                 ZeitFlow
               </span>
             </Button>
+            <div className="hidden lg:flex items-center space-x-4">
+              <Button
+                href="/blog"
+                variant="tertiary"
+                className="!bg-transparent !p-0 text-text-muted hover:text-primary transition-colors duration-200 animate-slide-up-fade delay-200"
+              >
+                Blog
+              </Button>
+              <Button
+                href="/pricing"
+                variant="tertiary"
+                className="!bg-transparent !p-0 text-text-muted hover:text-primary transition-colors duration-200 animate-slide-up-fade delay-200"
+              >
+                Pricing
+              </Button>
+            </div>
           </div>
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-4">
             <ThemeToggle />
-            <Button
-              href="/blog"
-              variant="tertiary"
-              className="!bg-transparent !p-0 text-text-muted hover:text-primary transition-colors duration-200 animate-slide-up-fade delay-200"
-            >
-              Blog
-            </Button>
             {status === 'authenticated' && (
               <Button
                 href="/dashboard"
@@ -108,6 +117,14 @@ export default function Navigation() {
               onClick={() => setMobileMenuOpen(false)}
             >
               Blog
+            </Button>
+            <Button
+              href="/pricing"
+              variant="tertiary"
+              className="!bg-transparent !p-2 text-text-muted hover:text-primary transition-colors duration-200 w-full text-left"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Pricing
             </Button>
             {status === 'authenticated' && (
               <Button
