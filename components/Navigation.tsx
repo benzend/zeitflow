@@ -1,7 +1,8 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import Logo from '@/app/components/Logo';
 import { Button } from './Button';
 import ThemeToggle from './ThemeToggle';
@@ -11,9 +12,33 @@ import { GODMODE_EMAILS } from '@/lib/constants';
 export default function Navigation() {
   const { data: session, status } = useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+  const pathname = usePathname();
+  const isHomepage = pathname === '/';
+
+  useEffect(() => {
+    if (!isHomepage) {
+      setIsVisible(true);
+      return;
+    }
+
+    const handleScroll = () => {
+      setIsVisible(window.scrollY > 400);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    handleScroll(); // Check initial scroll position
+
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [isHomepage]);
 
   return (
-    <nav role="navigation" className="w-full bg-surface/80 backdrop-blur-sm border-b border-border fixed top-0 z-50 animate-slide-up-fade">
+    <nav 
+      role="navigation" 
+      className={`w-full bg-surface/80 backdrop-blur-sm border-b border-border fixed top-0 z-50 transition-all duration-300 ${
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-full'
+      }`}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center space-x-6">
@@ -44,7 +69,6 @@ export default function Navigation() {
               </Button>
             </div>
           </div>
-
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-4">
             <ThemeToggle />

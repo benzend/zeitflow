@@ -4,9 +4,11 @@ import Head from 'next/head';
 import Navigation from '@/components/Navigation';
 import { Button } from '@/components/Button';
 import { Provider } from 'next-auth/providers/index';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 
 export default function Register({ providers }: { providers: Provider[] }) {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -14,6 +16,12 @@ export default function Register({ providers }: { providers: Provider[] }) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [requiresVerification, setRequiresVerification] = useState(false);
+
+  useEffect(() => {
+    if (router.query.email) {
+      setEmail(router.query.email as string);
+    }
+  }, [router.query]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

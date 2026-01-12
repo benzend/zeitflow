@@ -2,6 +2,7 @@
 import { Button } from '../components/Button';
 import Logo from '@/app/components/Logo';
 import Navigation from '@/components/Navigation';
+import QuickRegister from '@/components/QuickRegister';
 import Providers from './providers';
 import Head from 'next/head';
 import AnimatedBackground from '@/app/components/AnimatedBackground';
@@ -10,18 +11,18 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>ZeitFlow - AI Prompt Chain Management & Workflow Automation</title>
-        <meta name="description" content="Build thousands of AI workflows fast without complexity. ZeitFlow lets you create, manage, and automate AI prompt chains with powerful integrations and unlimited processing." />
-        <meta name="keywords" content="AI prompt chains, workflow automation, ZeitFlow, artificial intelligence, workflow management, API integration, AI workflows, business automation" />
-        <meta property="og:title" content="ZeitFlow - AI Prompt Chain Management & Workflow Automation" />
-        <meta property="og:description" content="Build thousands of AI workflows fast without complexity. Create powerful AI prompt chains with unlimited processing." />
+        <title>ZeitFlow - Making AI automation easy</title>
+        <meta name="description" content="Save time automating tasks without the complexity. ZeitFlow lets you create, manage, and automate your work with powerful integrations and unlimited processing." />
+        <meta name="keywords" content="AI agents, workflow automation, ZeitFlow, artificial intelligence, workflow management, API integration, AI workflows, business automation" />
+        <meta property="og:title" content="ZeitFlow - Making AI automation easy" />
+        <meta property="og:description" content="Create agents to automate your work without the complexity. ZeitFlow lets you create, manage, and automate your work with powerful integrations and unlimited processing." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'} />
         <meta property="og:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/logo-on-black.png`} />
         <meta property="og:site_name" content="ZeitFlow" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="ZeitFlow - AI Prompt Chain Management & Workflow Automation" />
-        <meta name="twitter:description" content="Build thousands of AI workflows fast without complexity. Create powerful AI prompt chains with unlimited processing." />
+        <meta name="twitter:title" content="ZeitFlow - Making AI automation easy" />
+        <meta name="twitter:description" content="Create agents to automate your work without the complexity. ZeitFlow lets you create, manage, and automate your work with powerful integrations and unlimited processing." />
         <meta name="twitter:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/logo-on-black.png`} />
         <meta name="robots" content="index, follow" />
         <link rel="canonical" href={process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'} />
@@ -32,41 +33,37 @@ export default function Home() {
         <Navigation />
 
       {/* Main Content */}
-      <div className="flex flex-col items-center justify-between p-8 font-sans pt-24">
-        <div className="flex flex-col items-center mt-6 mb-10 w-full max-w-7xl">
-          <header className="flex flex-col items-center gap-4 mb-10">
-            <div className="relative w-32 h-32 animate-float animate-scale-in">
+      <div className="flex flex-col items-center justify-between p-8 font-sans">
+        <div className="flex flex-col items-center mb-10 w-full max-w-7xl">
+          <header className="mb-10">
+            <div className="relative w-16 h-16 mb-10 md:mb-20 animate-float animate-scale-in">
               <Logo
-                size={128}
+                size={64}
                 className="text-primary animate-spin-slow animate-pulse-glow"
               />
             </div>
-            <h1 className="text-7xl font-extrabold tracking-tight text-accent drop-shadow-lg animate-slide-up-fade delay-200">
-              ZeitFlow
-            </h1>
-            <p className="text-xl text-text-muted mt-4 max-w-2xl text-center animate-slide-up-fade delay-300">
-              Build thousands of workflows, fast, without running into complexity.
-            </p>
 
-            <Button
-              href="/auth/register"
-              variant="primary"
-              size="xl"
-              className="mt-5"
-            >
-              Try it out with a free account →
-            </Button>
+            <div className="grid md:grid-cols-2">
+
+              <div>
+                <h1 className="text-2xl md:text-5xl font-extrabold text-accent drop-shadow-lg animate-slide-up-fade delay-200">
+                  Skip The Learning Curve. Build AI Agents and Automate Tasks Without Technical Know-how
+                </h1>
+                <p className="text-xl text-text-muted mt-4 animate-slide-up-fade delay-300 mb-12">
+                  In the age of AI, workflows, integrations, and other tools will keep making things easier. Zeitflow is a step in the right direction, bringing automation and AI Agents to everyone.
+                </p>
+              </div>
+
+              <div className="flex flex-col items-center md:mt-20 w-full mx-auto max-w-md">
+                <QuickRegister />
+              </div>
+
+            </div>
           </header>
         </div>
 
         <main className="flex flex-col items-center gap-16 flex-1 justify-center w-full max-w-7xl">
           <section className="bg-surface/50 backdrop-blur-sm rounded-3xl shadow-xl py-10 px-4 md:py-12 md:px-12 flex flex-col items-center gap-8 w-full animate-slide-up-fade delay-400">
-            <h2 className="text-3xl font-bold text-primary mb-6 animate-shimmer">
-              Build your first workflow
-            </h2>
-            <div className="w-full md:px-10 mb-10">
-              <div style={{position: 'relative', paddingBottom: '56.25%', height: 0}}><iframe src="https://cap.so/embed/qegqpre7vpq3jrf" allowFullScreen={true} style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%'}}></iframe></div>
-            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 w-full px-10 pb-10 md:pb-0 md:px-0">
               {[
                 {

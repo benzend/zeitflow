@@ -4,7 +4,7 @@ import Head from 'next/head';
 import Navigation from '@/components/Navigation';
 import { Button } from '@/components/Button';
 import { Provider } from 'next-auth/providers/index';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 
 export default function SignIn({ providers }: { providers: Provider[] }) {
@@ -21,6 +21,13 @@ export default function SignIn({ providers }: { providers: Provider[] }) {
   const [verificationMessage, setVerificationMessage] = useState('');
   const [activeTab, setActiveTab] = useState<'credentials' | 'magic'>('credentials');
   const router = useRouter();
+
+  useEffect(() => {
+    if (router.query.email) {
+      setEmail(router.query.email as string);
+      setMagicLinkEmail(router.query.email as string);
+    }
+  }, [router.query]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
