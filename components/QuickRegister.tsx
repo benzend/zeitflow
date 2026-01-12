@@ -18,6 +18,7 @@ export default function QuickRegister() {
     <div className="space-y-4 w-full md:px-8">
       <form onSubmit={handleEmailSubmit} className="space-y-4">
         <div>
+          Try it while it's in beta
           <input
             type="email"
             value={email}
