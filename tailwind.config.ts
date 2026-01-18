@@ -43,6 +43,8 @@ const config: Config = {
         'slide-down': 'slideDown 0.5s ease-out',
         'slide-up': 'slideUp 0.5s ease-out',
         'pulse-glow': 'pulseGlow 2s ease-in-out infinite',
+        'flow-glow': 'flowGlow 3s ease-in-out infinite',
+        'flow-glow-vertical': 'flowGlowVertical 3s ease-in-out infinite',
       },
       keyframes: {
         spinReverse: {
@@ -68,6 +70,18 @@ const config: Config = {
         pulseGlow: {
           '0%, 100%': { opacity: '1', filter: 'brightness(1)' },
           '50%': { opacity: '0.8', filter: 'brightness(1.2)' },
+        },
+        flowGlow: {
+          '0%': { transform: 'translateX(-100%)', opacity: '0' },
+          '10%': { opacity: '1' },
+          '90%': { opacity: '1' },
+          '100%': { transform: 'translateX(800%)', opacity: '0' },
+        },
+        flowGlowVertical: {
+          '0%': { transform: 'translateY(-100%)', opacity: '0' },
+          '10%': { opacity: '1' },
+          '90%': { opacity: '1' },
+          '100%': { transform: 'translateY(800%)', opacity: '0' },
         },
       },
     },

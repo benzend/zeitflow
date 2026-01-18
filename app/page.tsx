@@ -1,217 +1,337 @@
 
 import { Button } from '../components/Button';
+import AnimatedBackground from '@/app/components/AnimatedBackground';
 import Logo from '@/app/components/Logo';
 import Navigation from '@/components/Navigation';
-import QuickRegister from '@/components/QuickRegister';
 import Providers from './providers';
 import Head from 'next/head';
-import AnimatedBackground from '@/app/components/AnimatedBackground';
+import {
+  Zap,
+  Layers,
+  Rocket,
+  Workflow,
+  FileText,
+  Webhook,
+  Sparkles,
+  MessageSquare,
+  Mail,
+  Send,
+  History,
+  Inbox,
+  ArrowRightLeft,
+  UserPlus,
+  Bell,
+  MessageCircle,
+  Phone,
+  Globe,
+  Hash,
+  Calendar,
+  Gift,
+  Building2,
+  ChevronDown,
+  ArrowRight,
+  ArrowDown,
+} from 'lucide-react';
 
 export default function Home() {
   return (
     <>
       <Head>
-        <title>ZeitFlow - Making AI automation easy</title>
-        <meta name="description" content="Save time automating tasks without the complexity. ZeitFlow lets you create, manage, and automate your work with powerful integrations and unlimited processing." />
-        <meta name="keywords" content="AI agents, workflow automation, ZeitFlow, artificial intelligence, workflow management, API integration, AI workflows, business automation" />
-        <meta property="og:title" content="ZeitFlow - Making AI automation easy" />
-        <meta property="og:description" content="Create agents to automate your work without the complexity. ZeitFlow lets you create, manage, and automate your work with powerful integrations and unlimited processing." />
+        <title>Zeitflow - Workflow automation without the complexity</title>
+        <meta name="description" content="Zeitflow connects forms and APIs to AI parsing, notifications, and HTTP endpoints. Build workflows visually, deploy instantly, and monitor every run." />
+        <meta name="keywords" content="workflow automation, Zeitflow, API integration, developer tools, internal automation, webhooks" />
+        <meta property="og:title" content="Zeitflow - Workflow automation without the complexity" />
+        <meta property="og:description" content="Zeitflow connects forms and APIs to AI parsing, notifications, and HTTP endpoints. Build workflows visually, deploy instantly, and monitor every run." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'} />
         <meta property="og:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/logo-on-black.png`} />
-        <meta property="og:site_name" content="ZeitFlow" />
+        <meta property="og:site_name" content="Zeitflow" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="ZeitFlow - Making AI automation easy" />
-        <meta name="twitter:description" content="Create agents to automate your work without the complexity. ZeitFlow lets you create, manage, and automate your work with powerful integrations and unlimited processing." />
+        <meta name="twitter:title" content="Zeitflow - Workflow automation without the complexity" />
+        <meta name="twitter:description" content="Zeitflow connects forms and APIs to AI parsing, notifications, and HTTP endpoints. Build workflows visually, deploy instantly, and monitor every run." />
         <meta name="twitter:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/logo-on-black.png`} />
         <meta name="robots" content="index, follow" />
         <link rel="canonical" href={process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'} />
       </Head>
       <Providers>
         <div className="min-h-screen bg-gradient-to-b from-surface to-surface-hover text-foreground flex flex-col relative">
-        <AnimatedBackground />
-        <Navigation />
+          <AnimatedBackground />
+          <Navigation />
 
-      {/* Main Content */}
-      <div className="flex flex-col items-center justify-between p-8 font-sans">
-        <div className="flex flex-col items-center mb-10 w-full max-w-7xl">
-          <header className="mb-10">
-            <div className="relative w-16 h-16 mb-10 md:mb-20 animate-float animate-scale-in">
-              <Logo
-                size={64}
-                className="text-primary animate-spin-slow animate-pulse-glow"
-              />
-            </div>
+          <main className="flex flex-col items-center px-6 py-16 md:px-8 font-sans">
+            <div className="w-full max-w-4xl space-y-24">
 
-            <div className="grid md:grid-cols-2">
-
-              <div>
-                <h1 className="text-2xl md:text-5xl font-extrabold text-accent drop-shadow-lg animate-slide-up-fade delay-200">
-                  Skip The Learning Curve. Build AI Agents and Automate Tasks Without Technical Know-how
+              {/* Hero */}
+              <section className="text-center space-y-6">
+                <div className="flex justify-center mb-6">
+                  <div className="animate-float animate-scale-in">
+                    <Logo size={64} className="text-primary animate-spin-slow animate-pulse-glow" />
+                  </div>
+                </div>
+                <h1 className="text-3xl md:text-5xl font-bold text-foreground leading-tight">
+                  Workflow automation without the complexity
                 </h1>
-                <p className="text-xl text-text-muted mt-4 animate-slide-up-fade delay-300 mb-12">
-                  In the age of AI, workflows, integrations, and other tools will keep making things easier. Zeitflow is a step in the right direction, bringing automation and AI Agents to everyone.
+                <p className="text-lg md:text-xl text-text-muted max-w-2xl mx-auto">
+                  Zeitflow connects forms and APIs to AI parsing, notifications, and HTTP endpoints. Build workflows visually, deploy instantly, and monitor every run.
                 </p>
-              </div>
-
-              <div className="flex flex-col items-center md:mt-20 w-full mx-auto max-w-md">
-                <QuickRegister />
-              </div>
-
-            </div>
-          </header>
-        </div>
-
-        <main className="flex flex-col items-center gap-16 flex-1 justify-center w-full max-w-7xl">
-          <section className="bg-surface/50 backdrop-blur-sm rounded-3xl shadow-xl py-10 px-4 md:py-12 md:px-12 flex flex-col items-center gap-8 w-full animate-slide-up-fade delay-400">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 w-full px-10 pb-10 md:pb-0 md:px-0">
-              {[
-                {
-                  icon: '/homepage/illustration-easy-building.png',
-                  title: 'Easy Building',
-                  desc: 'Build workflows without the typical complexity of other workflow tools',
-                },
-                {
-                  icon: '/homepage/illustration-api-form-integrations.png',
-                  title: 'API and Form Integrations',
-                  desc: 'Connect to your own APIs and create public forms to run workflows',
-                },
-                {
-                  icon: '/homepage/illustration-ai-without-limits.png',
-                  title: 'AI without Limits',
-                  desc: 'Run workflows with any AI model and unlimited processing',
-                },
-                {
-                  icon: '/homepage/illustration-easy-to-format.png',
-                  title: 'Easy to Format',
-                  desc: 'Compile the results into an easy to use format',
-                },
-              ].map((item, index) => (
-                <div
-                  key={item.title}
-                  className="flex flex-col items-center gap-4 group hover:scale-105 transition-transform duration-300 animate-slide-up-fade"
-                  style={{ animationDelay: `${(index + 5) * 100}ms` }}
-                >
-                  <div className="h-20 bg-surface rounded-xl flex items-center justify-center group-hover:shadow-2xl/20 transition-shadow duration-300 shadow-lg group-hover:animate-pulse-glow">
-                    <img src={item.icon} alt={item.title} className="w-full h-full object-contain" />
-                  </div>
-                  <span className="font-semibold text-primary text-lg text-center">
-                    {item.title}
-                  </span>
-                  <p className="text-base text-center text-text-muted">
-                    {item.desc}
-                  </p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+                  <Button href="/auth/register" variant="primary" size="lg">Get started free</Button>
+                  <Button href="https://cap.so/s/qegqpre7vpq3jrf" variant="secondary" size="lg">Watch demo</Button>
                 </div>
-              ))}
-            </div>
-          </section>
+                <p className="text-sm text-text-muted">
+                  Currently in beta. Best for internal workflows and developer utilities.
+                </p>
+              </section>
 
-          <section className="bg-surface/50 backdrop-blur-sm rounded-3xl shadow-xl p-12 flex flex-col items-center gap-8 w-full animate-slide-up-fade delay-500">
-            <h2 className="text-3xl font-bold text-primary mb-6 animate-shimmer">
-              Simple Pricing
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-4xl">
-              {[
-                {
-                  name: 'Free',
-                  price: '$0',
-                  period: '/month',
-                  requests: '20 requests/hour',
-                  features: ['Basic AI processing', 'Community support'],
-                  buttonText: 'Get Started',
-                  buttonClass: 'bg-gray-600 hover:bg-gray-700',
-                  href: '/auth/register'
-                },
-                {
-                  name: 'Pro',
-                  price: '$9.99',
-                  period: '/month',
-                  requests: '100 requests/hour',
-                  features: ['Priority support', 'Advanced features'],
-                  buttonText: 'Upgrade to Pro',
-                  buttonClass: 'bg-blue-600 hover:bg-blue-700',
-                  popular: true,
-                  href: '/pricing'
-                },
-                {
-                  name: 'Business',
-                  price: '$29.99',
-                  period: '/month',
-                  requests: '1000 requests/hour',
-                  features: ['Premium support', 'All features'],
-                  buttonText: 'For Businesses',
-                  buttonClass: 'bg-purple-600 hover:bg-purple-700',
-                  href: '/pricing'
-                }
-              ].map((plan, index) => (
-                <div
-                  key={plan.name}
-                  className={`relative bg-surface rounded-2xl p-6 border ${plan.popular
-                    ? 'border-primary shadow-lg shadow-primary/20'
-                    : 'border-border'
-                    } hover:border-primary transition-all duration-300 animate-slide-up-fade`}
-                  style={{ animationDelay: `${(index + 6) * 100}ms` }}
-                >
-                  {plan.popular && (
-                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                      <span className="bg-primary text-primary-invert px-3 py-1 rounded-full text-sm font-medium">
-                        Popular
-                      </span>
-                    </div>
-                  )}
+              {/* Workflow Diagram */}
+              <section className="space-y-8">
+                <h2 className="text-2xl md:text-3xl font-semibold text-foreground text-center">How a workflow runs</h2>
 
-                  <div className="text-center mb-6">
-                    <h3 className="text-xl font-bold text-foreground mb-2">{plan.name}</h3>
-                    <div className="flex items-baseline justify-center mb-2">
-                      <span className="text-2xl font-bold text-foreground">{plan.price}</span>
-                      <span className="text-text-muted ml-1">{plan.period}</span>
+                <div className="relative p-6 md:p-8 rounded-2xl border border-border bg-surface/30">
+                  {/* Desktop: Horizontal flow */}
+                  <div className="hidden md:block">
+                    {/* Connecting line */}
+                    <div className="absolute top-[3.8rem] left-[15%] right-[15%] h-px bg-primary/30 overflow-hidden">
+                      {/* Animated glow */}
+                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-20 h-2 bg-gradient-to-r from-transparent via-primary to-transparent rounded-full blur-md shadow-[0_0_12px_var(--primary)] animate-flow-glow" />
                     </div>
-                    <p className="text-sm text-primary font-medium">{plan.requests}</p>
+
+                    <div className="relative flex items-start justify-between max-w-2xl mx-auto">
+                      {[
+                        { icon: FileText, label: 'Form or API', desc: 'Trigger' },
+                        { icon: Sparkles, label: 'AI Parse', desc: 'Normalize' },
+                        { icon: Send, label: 'Notify / POST', desc: 'Action' },
+                        { icon: History, label: 'Logs', desc: 'Monitor' },
+                      ].map((step) => (
+                        <div key={step.label} className="flex flex-col items-center gap-3">
+                          <div className="w-14 h-14 rounded-2xl bg-surface border border-border text-primary flex items-center justify-center shadow-sm">
+                            <step.icon className="w-6 h-6" />
+                          </div>
+                          <div className="text-center">
+                            <p className="font-medium text-foreground text-sm">{step.label}</p>
+                            <p className="text-xs text-text-muted mt-0.5">{step.desc}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
 
-                  <ul className="space-y-2 mb-6">
-                    {plan.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-center text-sm text-text-muted">
-                        <svg
-                          className="w-4 h-4 text-primary mr-2 flex-shrink-0"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        {feature}
+                  {/* Mobile: Vertical flow */}
+                  <div className="md:hidden relative pl-6">
+                    {/* Connecting line */}
+                    <div className="absolute left-[1.45rem] top-6 bottom-6 w-px bg-primary/30 overflow-hidden">
+                      {/* Animated glow */}
+                      <div className="absolute top-0 left-1/2 -translate-x-1/2 h-10 w-2 bg-gradient-to-b from-transparent via-primary to-transparent rounded-full blur-md shadow-[0_0_12px_var(--primary)] animate-flow-glow-vertical" />
+                    </div>
+
+                    <div className="relative space-y-6">
+                      {[
+                        { icon: FileText, label: 'Form or API', desc: 'Trigger' },
+                        { icon: Sparkles, label: 'AI Parse', desc: 'Normalize' },
+                        { icon: Send, label: 'Notify / POST', desc: 'Action' },
+                        { icon: History, label: 'Logs', desc: 'Monitor' },
+                      ].map((step) => (
+                        <div key={step.label} className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-xl bg-surface border border-border text-primary flex items-center justify-center shadow-sm flex-shrink-0">
+                            <step.icon className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-foreground text-sm">{step.label}</p>
+                            <p className="text-xs text-text-muted">{step.desc}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* How it works */}
+              <section className="space-y-6">
+                <h2 className="text-2xl md:text-3xl font-semibold text-foreground">How it works</h2>
+                <ol className="space-y-6">
+                  <li className="flex gap-4">
+                    <span className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                      <Zap className="w-5 h-5" />
+                    </span>
+                    <div>
+                      <strong className="text-foreground">Create a trigger</strong>
+                      <p className="text-text-muted mt-1">Host a public form or expose an API endpoint to accept incoming data.</p>
+                    </div>
+                  </li>
+                  <li className="flex gap-4">
+                    <span className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                      <Layers className="w-5 h-5" />
+                    </span>
+                    <div>
+                      <strong className="text-foreground">Add actions</strong>
+                      <p className="text-text-muted mt-1">Parse input with AI, send an SMS or email, or POST to an external service.</p>
+                    </div>
+                  </li>
+                  <li className="flex gap-4">
+                    <span className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                      <Rocket className="w-5 h-5" />
+                    </span>
+                    <div>
+                      <strong className="text-foreground">Deploy and monitor</strong>
+                      <p className="text-text-muted mt-1">Publish your workflow and track every run in the logs.</p>
+                    </div>
+                  </li>
+                </ol>
+              </section>
+
+              {/* Capabilities */}
+              <section className="space-y-8">
+                <h2 className="text-2xl md:text-3xl font-semibold text-foreground">Capabilities</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {[
+                    { title: 'Visual workflow builder', desc: 'Drag-and-drop interface for connecting triggers to actions in a linear sequence.', icon: Workflow },
+                    { title: 'Hosted public forms', desc: 'Generate shareable form URLs that trigger workflows on submission.', icon: FileText },
+                    { title: 'API triggers', desc: 'Accept JSON payloads via HTTP to start workflow execution programmatically.', icon: Webhook },
+                    { title: 'AI text parsing', desc: 'Extract and normalize unstructured input into usable text output.', icon: Sparkles },
+                    { title: 'SMS notifications', desc: 'Send outbound text messages via Twilio when workflows run.', icon: MessageSquare },
+                    { title: 'Email notifications', desc: 'Send outbound emails via Resend as part of your workflow.', icon: Mail },
+                    { title: 'HTTP POST', desc: 'Forward data to external services with configurable body and parameters.', icon: Send },
+                    { title: 'Logs and run history', desc: 'Inspect every workflow execution with full input and output visibility.', icon: History },
+                  ].map((item) => (
+                    <article key={item.title} className="p-5 rounded-lg border border-border bg-surface/50">
+                      <div className="flex items-start gap-4">
+                        <span className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                          <item.icon className="w-5 h-5" />
+                        </span>
+                        <div>
+                          <h3 className="font-semibold text-foreground mb-1">{item.title}</h3>
+                          <p className="text-sm text-text-muted">{item.desc}</p>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </section>
+
+              {/* Use cases */}
+              <section className="space-y-8">
+                <h2 className="text-2xl md:text-3xl font-semibold text-foreground">Use cases</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {[
+                    { title: 'Internal request intake', desc: 'Collect requests via form, parse with AI, and notify the right person via SMS or email.', icon: Inbox },
+                    { title: 'Webhook normalization', desc: 'Accept webhooks from external services, transform the payload, and forward to your internal systems.', icon: ArrowRightLeft },
+                    { title: 'Lead capture to CRM', desc: 'Collect form submissions, extract key fields with AI, and POST to your CRM or database.', icon: UserPlus },
+                    { title: 'On-call alerting', desc: 'Trigger SMS notifications to team members when an API endpoint receives a specific payload.', icon: Bell },
+                    { title: 'Feedback processing', desc: 'Accept user feedback via form, summarize with AI, and email the summary to your team.', icon: MessageCircle },
+                  ].map((item) => (
+                    <article key={item.title} className="p-5 rounded-lg border border-border bg-surface/50">
+                      <div className="flex items-start gap-4">
+                        <span className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                          <item.icon className="w-5 h-5" />
+                        </span>
+                        <div>
+                          <h3 className="font-semibold text-foreground mb-1">{item.title}</h3>
+                          <p className="text-sm text-text-muted">{item.desc}</p>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </section>
+
+              {/* Integrations */}
+              <section className="space-y-8">
+                <h2 className="text-2xl md:text-3xl font-semibold text-foreground">Integrations</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-4">Built-in today</h3>
+                    <ul className="space-y-3">
+                      <li className="flex items-center gap-3 text-text-muted">
+                        <Phone className="w-4 h-4 text-primary" />
+                        <span>Twilio (outbound SMS)</span>
                       </li>
-                    ))}
-                  </ul>
-
-                  <Button
-                    href={plan.href}
-                    variant="primary"
-                    className={`w-full ${plan.popular ? 'hover:animate-pulse-glow' : ''}`}
-                  >
-                    {plan.buttonText}
-                  </Button>
+                      <li className="flex items-center gap-3 text-text-muted">
+                        <Mail className="w-4 h-4 text-primary" />
+                        <span>Resend (outbound email)</span>
+                      </li>
+                      <li className="flex items-center gap-3 text-text-muted">
+                        <Globe className="w-4 h-4 text-primary" />
+                        <span>HTTP POST (any endpoint)</span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-4">Planned</h3>
+                    <ul className="space-y-3">
+                      <li className="flex items-center gap-3 text-text-muted">
+                        <Hash className="w-4 h-4 text-text-muted" />
+                        <span>Slack</span>
+                      </li>
+                      <li className="flex items-center gap-3 text-text-muted">
+                        <Calendar className="w-4 h-4 text-text-muted" />
+                        <span>Google Calendar</span>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
-              ))}
-            </div>
-          </section>
+              </section>
 
-          <section className="flex flex-col items-center gap-6 animate-slide-up-fade delay-600">
-            <Button
-              href="/auth/register"
-              variant="primary"
-              size="xl"
-            >
-              Get Started with a free account →
-            </Button>
-          </section>
-        </main>
-      </div>
-      </div>
+              {/* Pricing */}
+              <section className="space-y-6">
+                <h2 className="text-2xl md:text-3xl font-semibold text-foreground">Pricing</h2>
+                <p className="text-text-muted">Simple, usage-based pricing. No hidden fees.</p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {[
+                    { name: 'Free', price: '$0', requests: '20 requests/hour', icon: Gift },
+                    { name: 'Pro', price: '$9.99', requests: '100 requests/hour', icon: Zap },
+                    { name: 'Business', price: '$29.99', requests: '1,000 requests/hour', icon: Building2 },
+                  ].map((plan) => (
+                    <div key={plan.name} className="p-6 rounded-lg border border-border bg-surface/50 text-center">
+                      <div className="flex justify-center mb-4">
+                        <span className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                          <plan.icon className="w-6 h-6" />
+                        </span>
+                      </div>
+                      <h3 className="font-semibold text-foreground mb-2">{plan.name}</h3>
+                      <p className="text-2xl font-bold text-foreground">{plan.price}<span className="text-sm font-normal text-text-muted">/month</span></p>
+                      <p className="text-sm text-primary mt-2">{plan.requests}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              {/* FAQ */}
+              <section className="space-y-8">
+                <h2 className="text-2xl md:text-3xl font-semibold text-foreground">Frequently asked questions</h2>
+                <div className="space-y-3">
+                  {[
+                    { q: 'What workflows is Zeitflow best for?', a: 'Zeitflow is designed for fast internal workflows. The typical pattern is: receive data via form or API, normalize it with AI, then notify someone or POST to another service. It works well for intake forms, webhook processing, and notification routing.' },
+                    { q: 'Is it a replacement for n8n?', a: 'Zeitflow is simpler and more opinionated. If you need dozens of integrations or complex orchestration, n8n may be a better fit. Zeitflow is for developers who want to build and deploy workflows quickly without the configuration overhead.' },
+                    { q: 'Does it support branching or conditional logic?', a: 'Yes. You can add conditional branches to route data based on rules or AI decisions.' },
+                    { q: 'What triggers are supported today?', a: 'Hosted public forms and API triggers. You can generate a shareable form URL or accept JSON payloads via HTTP to start a workflow.' },
+                    { q: 'What actions are supported today?', a: 'AI text parsing (text output only), outbound SMS via Twilio, outbound email via Resend, and HTTP POST with configurable body and parameters.' },
+                    { q: 'Is it production-ready?', a: 'Zeitflow is currently in beta. It is functional and actively used, but you should evaluate whether it meets your reliability requirements before depending on it for critical workflows.' },
+                    { q: 'Can I bring my own API keys?', a: 'No. Zeitflow does not currently support BYOK (bring your own keys). All AI processing and integrations use Zeitflow-managed credentials.' },
+                    { q: 'Are AI agents supported?', a: 'No. AI agents are on the roadmap but not available today. Current AI functionality is limited to text parsing and extraction.' },
+                  ].map((item) => (
+                    <details key={item.q} className="group border border-border rounded-lg bg-surface/50 hover:border-primary/50 transition-colors">
+                      <summary className="px-5 py-4 cursor-pointer font-medium text-foreground flex justify-between items-center gap-4">
+                        <span>{item.q}</span>
+                        <ChevronDown className="w-5 h-5 text-text-muted group-open:text-primary group-open:rotate-180 transition-all duration-200 flex-shrink-0" />
+                      </summary>
+                      <div className="px-5 pb-5 pt-1">
+                        <p className="text-text-muted leading-relaxed">{item.a}</p>
+                      </div>
+                    </details>
+                  ))}
+                </div>
+              </section>
+
+              {/* Final CTA */}
+              <section className="text-center space-y-6 py-8">
+                <p className="text-lg text-text-muted">Start automating internal workflows in minutes.</p>
+                <Button href="/auth/register" variant="primary" size="lg">Get started free</Button>
+              </section>
+
+            </div>
+          </main>
+        </div>
       </Providers>
     </>
   );
