@@ -58,7 +58,7 @@ export default function Home() {
           <AnimatedBackground />
           <Navigation />
 
-          <main className="flex flex-col items-center px-6 py-16 md:px-8 font-sans">
+          <main className="flex flex-col items-center px-6 pt-24 pb-16 md:px-8 font-sans">
             <div className="w-full max-w-4xl space-y-24">
 
               {/* Hero */}
