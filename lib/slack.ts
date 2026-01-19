@@ -3,10 +3,21 @@ import { db } from './db';
 import { slackBotsTable } from '../schema';
 import { eq } from 'drizzle-orm';
 
+export type SlackMessageConfigType = {
+  botId?: number;
+  channel: string;
+  message?: string
+}
+
+export type SlackMessageResultsType = {
+  success: boolean;
+  error?: string;
+}
+
 export async function sendSlackMessage(
-  config: { botId?: number; channel: string; message?: string },
+  config: SlackMessageConfigType,
   variables?: Record<string, string>
-): Promise<{ success: boolean; error?: string }> {
+): Promise<SlackMessageResultsType> {
   try {
     // Get bot from database if botId provided
     let botToken = process.env.SLACK_BOT_TOKEN; // Fallback to global token
