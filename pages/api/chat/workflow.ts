@@ -94,6 +94,7 @@ export default async function handler(
         systemPrompt,
         history,
         userId: user[0].id,
+        threadId: currentThreadId,
       });
 
       if (response.error) {

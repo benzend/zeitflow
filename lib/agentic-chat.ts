@@ -2,8 +2,8 @@ import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { generateText, CoreMessage, tool } from 'ai';
 import { z } from 'zod';
 import { db } from '@/lib/db';
-import { workflowsTable } from '@/schema';
-import { eq } from 'drizzle-orm';
+import { workflowsTable, chatEventsTable } from '@/schema';
+import { eq, desc } from 'drizzle-orm';
 
 if (!process.env.OPENROUTER_API_KEY) {
   throw new Error('OPENROUTER_API_KEY is not set');
@@ -93,6 +93,7 @@ export const agenticChat = async (
     systemPrompt?: string;
     history?: CoreMessage[];
     userId: string;
+    threadId?: number;
   }
 ): Promise<AgentResponse> => {
   const toolCalls: AgentToolCall[] = [];
@@ -164,6 +165,16 @@ export const agenticChat = async (
           execute: async (args) => {
             // Store the proposed workflow for the response
             proposedWorkflow = args;
+
+            // Log the workflow_proposed event if threadId is available
+            if (options.threadId) {
+              await db.insert(chatEventsTable).values({
+                threadId: options.threadId,
+                userId: options.userId,
+                eventType: 'workflow_proposed',
+                proposalData: JSON.stringify(args),
+              });
+            }
 
             const result = {
               status: 'proposed',
@@ -241,6 +252,52 @@ export const agenticChat = async (
 
             toolCalls.push({
               toolName: 'get_capabilities',
+              args: {},
+              result,
+            });
+
+            return result;
+          },
+        }),
+
+        // Tool: Get thread events to understand conversation history
+        get_thread_events: tool({
+          description: 'Get the event history for the current conversation thread. Use this to understand what workflows have been proposed, approved, or rejected in this conversation. This helps avoid re-proposing workflows that were already rejected.',
+          parameters: z.object({}),
+          execute: async () => {
+            if (!options.threadId) {
+              return {
+                events: [],
+                summary: { proposed: 0, approved: 0, rejected: 0 },
+                message: 'No thread context available.',
+              };
+            }
+
+            const events = await db.select()
+              .from(chatEventsTable)
+              .where(eq(chatEventsTable.threadId, options.threadId))
+              .orderBy(desc(chatEventsTable.createdAt))
+              .limit(50);
+
+            const summary = {
+              proposed: events.filter(e => e.eventType === 'workflow_proposed').length,
+              approved: events.filter(e => e.eventType === 'workflow_approved').length,
+              rejected: events.filter(e => e.eventType === 'workflow_rejected').length,
+            };
+
+            const result = {
+              events: events.map(e => ({
+                eventType: e.eventType,
+                workflowId: e.workflowId,
+                proposalData: e.proposalData ? JSON.parse(e.proposalData) : null,
+                metadata: e.metadata ? JSON.parse(e.metadata) : null,
+                createdAt: e.createdAt,
+              })),
+              summary,
+            };
+
+            toolCalls.push({
+              toolName: 'get_thread_events',
               args: {},
               result,
             });

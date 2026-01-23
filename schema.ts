@@ -323,6 +323,23 @@ export const chatMessagesTable = pgTable("chat_messages", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Chat events table for tracking workflow proposals, approvals, rejections
+export const chatEventsTable = pgTable("chat_events", {
+  id: serial("id").primaryKey(),
+  threadId: integer("thread_id")
+    .notNull()
+    .references(() => chatThreadsTable.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => usersTable.id, { onDelete: "cascade" }),
+  eventType: text("event_type").notNull(), // 'workflow_proposed' | 'workflow_approved' | 'workflow_rejected'
+  workflowId: integer("workflow_id")
+    .references(() => workflowsTable.id, { onDelete: "set null" }),
+  proposalData: text("proposal_data"), // JSON of proposed workflow
+  metadata: text("metadata"), // JSON for extra context (rejection reason, etc.)
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Assets table for centralized media management
 export const assetsTable = pgTable("assets", {
   id: serial("id").primaryKey(),
@@ -419,6 +436,8 @@ export type InsertChatThread = typeof chatThreadsTable.$inferInsert;
 export type SelectChatThread = typeof chatThreadsTable.$inferSelect;
 export type InsertChatMessage = typeof chatMessagesTable.$inferInsert;
 export type SelectChatMessage = typeof chatMessagesTable.$inferSelect;
+export type InsertChatEvent = typeof chatEventsTable.$inferInsert;
+export type SelectChatEvent = typeof chatEventsTable.$inferSelect;
 
 // Asset types
 export type InsertAsset = typeof assetsTable.$inferInsert;

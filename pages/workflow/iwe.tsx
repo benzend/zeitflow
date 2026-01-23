@@ -165,6 +165,30 @@ export default function WorkflowBuilderPage() {
     setProposal({ workflow: parsedWorkflow, messageId });
   };
 
+  // Log chat events (workflow_approved, workflow_rejected)
+  const logChatEvent = async (
+    eventType: 'workflow_approved' | 'workflow_rejected',
+    data: { workflowId?: number; proposalData?: ParsedWorkflow; metadata?: Record<string, unknown> }
+  ) => {
+    if (!currentThreadId) return;
+
+    try {
+      await fetch('/api/chat/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          threadId: currentThreadId,
+          eventType,
+          workflowId: data.workflowId,
+          proposalData: data.proposalData,
+          metadata: data.metadata,
+        }),
+      });
+    } catch (error) {
+      console.error('Failed to log chat event:', error);
+    }
+  };
+
   // Actually creates the workflow after user approval
   const handleApproveAndCreate = async () => {
     if (!proposal) return;
@@ -210,6 +234,12 @@ export default function WorkflowBuilderPage() {
         throw new Error(saveData.message || 'Failed to save workflow');
       }
 
+      // Log the workflow_approved event
+      await logChatEvent('workflow_approved', {
+        workflowId,
+        proposalData: proposal.workflow,
+      });
+
       // Close modal and redirect to the workflow builder
       setProposal(null);
       router.push(`/workflow/${workflowId}`);
@@ -222,7 +252,13 @@ export default function WorkflowBuilderPage() {
     }
   };
 
-  const handleRejectProposal = () => {
+  const handleRejectProposal = async () => {
+    if (proposal) {
+      // Log the workflow_rejected event
+      await logChatEvent('workflow_rejected', {
+        proposalData: proposal.workflow,
+      });
+    }
     setProposal(null);
   };
 
