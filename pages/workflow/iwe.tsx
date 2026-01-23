@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { ArrowLeft, SendHorizontal, Workflow as WorkflowIcon, Files, Plus, Loader2, MessageSquare, X, CheckCircle } from 'lucide-react';
 import { Button } from "@/components/Button";
 import { parseWorkflowFromText, ParsedWorkflow } from "@/lib/workflow-parser";
+import { generateNodeId, generateFieldId } from "@/lib/workflow-utils";
 import { marked } from 'marked';
 import ChatHistorySkeleton from "@/components/ChatHistorySkeleton";
 
@@ -344,17 +345,20 @@ Be helpful, concise, and use tools proactively when the user's intent is clear.`
             slackConfig?: { channel: string; message?: string };
             smsConfig?: { to: string[]; message?: string };
           }
+          // Generate unique IDs for each node first so we can reference them in connections
+          const nodeIds = proposed.nodes.map(() => generateNodeId());
+
           const parsedWorkflow: ParsedWorkflow = {
             name: proposed.name,
             description: proposed.description,
             nodes: proposed.nodes.map((node: ProposedNode, index: number) => ({
-              id: `node-${index + 1}`,
+              id: nodeIds[index],
               type: node.type,
               label: node.label || `${node.type.charAt(0).toUpperCase() + node.type.slice(1)} Node`,
               x: 100,
               y: 100 + (index * 150),
               // Map type-specific configs
-              ...(node.fields && { fields: node.fields.map((f, i) => ({ id: `field-${i}`, key: f.name, name: f.name, type: f.type || 'text', label: f.label })) }),
+              ...(node.fields && { fields: node.fields.map((f) => ({ id: generateFieldId(), key: f.name, name: f.name, type: f.type || 'text', label: f.label })) }),
               ...(node.aiConfig && { aiConfig: { ...node.aiConfig, outputStructure: '' } }),
               ...(node.schedulerConfig && { schedulerConfig: node.schedulerConfig }),
               ...(node.emailConfig && { emailConfig: node.emailConfig }),
@@ -362,8 +366,8 @@ Be helpful, concise, and use tools proactively when the user's intent is clear.`
               ...(node.smsConfig && { smsConfig: node.smsConfig }),
             })),
             connections: proposed.nodes.slice(0, -1).map((_: ProposedNode, index: number) => ({
-              from: `node-${index + 1}`,
-              to: `node-${index + 2}`,
+              from: nodeIds[index],
+              to: nodeIds[index + 1],
             })),
           };
           setProposal({ workflow: parsedWorkflow });
