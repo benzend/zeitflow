@@ -2,11 +2,16 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
-import { ArrowLeft, SendHorizontal, Workflow as WorkflowIcon, Files, Plus, Loader2, MessageSquare } from 'lucide-react';
+import { ArrowLeft, SendHorizontal, Workflow as WorkflowIcon, Files, Plus, Loader2, MessageSquare, X, CheckCircle } from 'lucide-react';
 import { Button } from "@/components/Button";
 import { parseWorkflowFromText, ParsedWorkflow } from "@/lib/workflow-parser";
 import { marked } from 'marked';
 import ChatHistorySkeleton from "@/components/ChatHistorySkeleton";
+
+interface WorkflowProposal {
+  workflow: ParsedWorkflow;
+  messageId?: number;
+}
 
 // Configure marked for better chat rendering
 marked.setOptions({
@@ -54,6 +59,8 @@ export default function WorkflowBuilderPage() {
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [proposal, setProposal] = useState<WorkflowProposal | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
@@ -153,7 +160,17 @@ export default function WorkflowBuilderPage() {
     }
   }, [currentThreadId, fetchChatHistory]);
 
-  const handleCreateWorkflow = async (parsedWorkflow: ParsedWorkflow, messageId?: number) => {
+  // Opens the proposal modal for review before creation
+  const handleProposeWorkflow = (parsedWorkflow: ParsedWorkflow, messageId?: number) => {
+    setProposal({ workflow: parsedWorkflow, messageId });
+  };
+
+  // Actually creates the workflow after user approval
+  const handleApproveAndCreate = async () => {
+    if (!proposal) return;
+
+    setIsCreating(true);
+
     try {
       // Create the workflow
       const createResponse = await fetch('/api/workflows', {
@@ -162,8 +179,8 @@ export default function WorkflowBuilderPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name: parsedWorkflow.name,
-          description: parsedWorkflow.description
+          name: proposal.workflow.name,
+          description: proposal.workflow.description
         }),
       });
 
@@ -182,8 +199,8 @@ export default function WorkflowBuilderPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          nodes: parsedWorkflow.nodes,
-          connections: parsedWorkflow.connections
+          nodes: proposal.workflow.nodes,
+          connections: proposal.workflow.connections
         }),
       });
 
@@ -193,19 +210,20 @@ export default function WorkflowBuilderPage() {
         throw new Error(saveData.message || 'Failed to save workflow');
       }
 
-      // If we have a messageId, update the chat messages to link to this workflow
-      if (messageId) {
-        // Update the workflowId for all messages in this conversation
-        // This is a bit complex, so for now we'll just proceed
-      }
-
-      // Redirect to the workflow builder
+      // Close modal and redirect to the workflow builder
+      setProposal(null);
       router.push(`/workflow/${workflowId}`);
 
     } catch (error) {
       console.error('Workflow creation error:', error);
       alert('Failed to create workflow. Please try again.');
+    } finally {
+      setIsCreating(false);
     }
+  };
+
+  const handleRejectProposal = () => {
+    setProposal(null);
   };
 
   const handleChatSend = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -216,101 +234,25 @@ export default function WorkflowBuilderPage() {
     const prompt = promptInput.value;
     if (!prompt.trim()) return;
 
-    const systemPrompt = `
-You are a helpful assistant that creates and manages workflows.
+    const systemPrompt = `You are an AI assistant that helps users create and manage workflows. You have access to tools that let you:
 
-WORKFLOW SYNTAX:
-workflow:
-  name: [required] Workflow name
-  description: [optional] Workflow description  
-  nodes:
-    - type: [required] One of: entry, ai, scheduler, review, slack
-      [node-specific properties]
+1. **list_workflows** - See what workflows the user already has
+2. **propose_workflow** - Propose a new workflow for the user to review (they must approve before it's created)
+3. **get_capabilities** - Learn what node types and features are available
 
-NODE TYPES:
-1. entry/form - Collect user input
-   Required: fields array
-   Example:
-   - type: entry
-     fields:
-       - name: notes
-         label: Notes
-         type: textarea
+IMPORTANT GUIDELINES:
+- When the user wants to create a workflow, use the propose_workflow tool. Do NOT output YAML or JSON - use the tool instead.
+- Before proposing a workflow, you may want to use get_capabilities to understand available node types.
+- If you're unsure what the user wants, ask clarifying questions.
+- After proposing a workflow, explain what you proposed and why.
 
-2. ai - Process with AI
-   Required: systemPrompt
-   Optional: model, userPrompt, outputType
-   Example:
-   - type: ai
-     systemPrompt: You summarize notes
-     model: google/gemini-2.0-flash-001
+WORKFLOW STRUCTURE:
+- Workflows consist of nodes connected in sequence
+- Available node types: entry (forms), ai (AI processing), scheduler (calendar), review (human approval), slack, email, sms
+- Use {{entry.fields.fieldName}} to reference form inputs in later nodes
+- Use {{previousOutput}} to reference the output of the previous AI node
 
-3. scheduler - Schedule meetings
-   Required: people array, minTimeRequirement, calendar
-   Example:
-   - type: scheduler
-     people: ["user@example.com"]
-     minTimeRequirement: "30 minutes"
-     calendar: "primary"
-
-4. review - Review and confirm
-   No additional properties required
-   Example:
-   - type: review
-
-5. slack - Send to Slack
-   Required: channel
-   Example:
-   - type: slack
-     channel: summary
-
-VARIABLES:
-- Use {{entry.fields.fieldName}} to reference form inputs
-- Use {{previousOutput}} to reference previous AI output
-- Variables are automatically available to subsequent nodes
-
-COMMON MISTAKES TO AVOID:
-- Missing required fields for each node type
-- Invalid node types (only: entry, ai, scheduler, review, slack)
-- Incorrect YAML indentation
-- Missing workflow name
-- Using undefined variables
-
-EXAMPLE WORKFLOWS:
-
-1. Simple Notes Processing:
-workflow:
-  name: Process Meeting Notes
-  description: Extract action items from meeting notes
-  nodes:
-    - type: entry
-      fields:
-        - name: notes
-          label: Meeting Notes
-          type: textarea
-    - type: ai
-      systemPrompt: Extract action items from the meeting notes and format them as a numbered list.
-      userPrompt: "{{entry.fields.notes}}"
-
-2. Customer Support Workflow:
-workflow:
-  name: Customer Support Response
-  description: Generate professional response to customer inquiry
-  nodes:
-    - type: entry
-      fields:
-        - name: customer_issue
-          label: Customer Issue
-          type: textarea
-        - name: urgency
-          label: Urgency Level
-          type: select
-          options: ["Low", "Medium", "High"]
-    - type: ai
-      systemPrompt: You are a customer support representative. Generate a professional, empathetic response to the customer issue.
-      userPrompt: "Customer Issue: {{entry.fields.customer_issue}}\nUrgency: {{entry.fields.urgency}}"
-    - type: review
-`
+Be helpful, concise, and use tools proactively when the user's intent is clear.`
 
     // Add user message to history
     const userMessage: ChatMessage = {
@@ -333,7 +275,7 @@ workflow:
         },
         body: JSON.stringify({
           prompt,
-          model: 'gpt-3.5-turbo',
+          model: 'google/gemini-2.0-flash-001',
           systemPrompt,
           history: chatHistory,
           threadId: currentThreadId
@@ -351,6 +293,45 @@ workflow:
 
         // Refresh the current thread's messages
         await fetchChatHistory(data.threadId || currentThreadId);
+
+        // If the AI proposed a workflow, open the approval modal
+        if (data.proposedWorkflow) {
+          const proposed = data.proposedWorkflow;
+          // Convert to ParsedWorkflow format
+          interface ProposedNode {
+            type: 'entry' | 'ai' | 'scheduler' | 'review' | 'slack' | 'email' | 'sms';
+            label?: string;
+            fields?: Array<{ name: string; label?: string; type?: string; options?: string[] }>;
+            aiConfig?: { systemPrompt: string; userPrompt?: string; model?: string; outputType?: string };
+            schedulerConfig?: { people: string[]; minTimeRequirement: string; calendar?: string };
+            emailConfig?: { to: string[]; subject?: string; message?: string };
+            slackConfig?: { channel: string; message?: string };
+            smsConfig?: { to: string[]; message?: string };
+          }
+          const parsedWorkflow: ParsedWorkflow = {
+            name: proposed.name,
+            description: proposed.description,
+            nodes: proposed.nodes.map((node: ProposedNode, index: number) => ({
+              id: `node-${index + 1}`,
+              type: node.type,
+              label: node.label || `${node.type.charAt(0).toUpperCase() + node.type.slice(1)} Node`,
+              x: 100,
+              y: 100 + (index * 150),
+              // Map type-specific configs
+              ...(node.fields && { fields: node.fields.map((f, i) => ({ id: `field-${i}`, key: f.name, name: f.name, type: f.type || 'text', label: f.label })) }),
+              ...(node.aiConfig && { aiConfig: { ...node.aiConfig, outputStructure: '' } }),
+              ...(node.schedulerConfig && { schedulerConfig: node.schedulerConfig }),
+              ...(node.emailConfig && { emailConfig: node.emailConfig }),
+              ...(node.slackConfig && { slackConfig: node.slackConfig }),
+              ...(node.smsConfig && { smsConfig: node.smsConfig }),
+            })),
+            connections: proposed.nodes.slice(0, -1).map((_: ProposedNode, index: number) => ({
+              from: `node-${index + 1}`,
+              to: `node-${index + 2}`,
+            })),
+          };
+          setProposal({ workflow: parsedWorkflow });
+        }
       } else {
         throw new Error(data.message || 'Chat failed');
       }
@@ -492,12 +473,12 @@ workflow:
                      {message.parsedWorkflow && (
                        <div className="mt-3 pt-3 border-t border-border">
                          <Button
-                           onClick={() => handleCreateWorkflow(message.parsedWorkflow!, message.id)}
+                           onClick={() => handleProposeWorkflow(message.parsedWorkflow!, message.id)}
                            variant="primary"
                            size="sm"
                          >
                            <Plus className="w-3 h-3" />
-                           Create Workflow
+                           Review & Create
                          </Button>
                        </div>
                      )}
@@ -550,6 +531,136 @@ workflow:
         </div>
         <footer className="flex items-center justify-between h-8 px-2 bg-surface border-t border-border">
         </footer>
+
+        {/* Proposal Review Modal */}
+        {proposal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-surface border border-border rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-hidden flex flex-col">
+              {/* Modal Header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+                <h2 className="text-lg font-semibold text-foreground">Review Workflow Proposal</h2>
+                <button
+                  onClick={handleRejectProposal}
+                  className="text-text-muted hover:text-foreground transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Modal Body */}
+              <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+                {/* Workflow Name & Description */}
+                <div>
+                  <h3 className="text-sm font-medium text-text-muted mb-1">Workflow Name</h3>
+                  <p className="text-foreground font-semibold">{proposal.workflow.name}</p>
+                </div>
+
+                {proposal.workflow.description && (
+                  <div>
+                    <h3 className="text-sm font-medium text-text-muted mb-1">Description</h3>
+                    <p className="text-foreground">{proposal.workflow.description}</p>
+                  </div>
+                )}
+
+                {/* Nodes Preview */}
+                <div>
+                  <h3 className="text-sm font-medium text-text-muted mb-2">
+                    Nodes ({proposal.workflow.nodes.length})
+                  </h3>
+                  <div className="space-y-2">
+                    {proposal.workflow.nodes.map((node, index) => (
+                      <div
+                        key={index}
+                        className="flex items-start gap-3 p-3 bg-surface-hover rounded-md border border-border"
+                      >
+                        <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-invert text-xs font-medium">
+                          {index + 1}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-medium px-2 py-0.5 rounded bg-surface text-text-muted uppercase">
+                              {node.type}
+                            </span>
+                            {node.label && (
+                              <span className="text-sm text-foreground font-medium truncate">
+                                {node.label}
+                              </span>
+                            )}
+                          </div>
+                          {node.type === 'ai' && node.aiConfig?.systemPrompt && (
+                            <p className="text-xs text-text-muted mt-1 line-clamp-2">
+                              {node.aiConfig.systemPrompt}
+                            </p>
+                          )}
+                          {node.type === 'entry' && node.fields && node.fields.length > 0 && (
+                            <p className="text-xs text-text-muted mt-1">
+                              Fields: {node.fields.map((f) => f.name).join(', ')}
+                            </p>
+                          )}
+                          {node.type === 'slack' && node.slackConfig?.channel && (
+                            <p className="text-xs text-text-muted mt-1">
+                              Channel: #{node.slackConfig.channel}
+                            </p>
+                          )}
+                          {node.type === 'email' && node.emailConfig?.to && (
+                            <p className="text-xs text-text-muted mt-1">
+                              To: {node.emailConfig.to.join(', ')}
+                            </p>
+                          )}
+                          {node.type === 'scheduler' && node.schedulerConfig && (
+                            <p className="text-xs text-text-muted mt-1">
+                              {node.schedulerConfig.minTimeRequirement} with {node.schedulerConfig.people.length} attendee(s)
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Connections Preview */}
+                {proposal.workflow.connections.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-medium text-text-muted mb-1">
+                      Connections ({proposal.workflow.connections.length})
+                    </h3>
+                    <p className="text-xs text-text-muted">
+                      Nodes will be connected sequentially as shown above.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Footer */}
+              <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border bg-surface-hover">
+                <Button
+                  onClick={handleRejectProposal}
+                  variant="secondary"
+                  disabled={isCreating}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleApproveAndCreate}
+                  variant="primary"
+                  disabled={isCreating}
+                >
+                  {isCreating ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-4 h-4" />
+                      Approve & Create
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

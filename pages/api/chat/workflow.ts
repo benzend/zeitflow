@@ -4,7 +4,7 @@ import { authOptions } from "../auth/[...nextauth]";
 import { db } from "@/lib/db";
 import { usersTable, chatMessagesTable, chatThreadsTable } from "@/schema";
 import { eq, desc } from "drizzle-orm";
-import { chat } from "@/lib/openrouter";
+import { agenticChat } from "@/lib/agentic-chat";
 import { isRateLimited } from "@/lib/rate-limit";
 
 export default async function handler(
@@ -89,9 +89,14 @@ export default async function handler(
         content: prompt.trim(),
       });
 
-      const response = await chat(prompt, model, { systemPrompt, history });
+      // Use agentic chat with tools
+      const response = await agenticChat(prompt, model, {
+        systemPrompt,
+        history,
+        userId: user[0].id,
+      });
 
-      if ('error' in response && response.error) {
+      if (response.error) {
         return res.status(500).json({
           success: false,
           message: response.text || "AI service error"
@@ -115,7 +120,9 @@ export default async function handler(
       return res.status(200).json({
         success: true,
         response: response.text,
-        threadId: currentThreadId
+        threadId: currentThreadId,
+        toolCalls: response.toolCalls,
+        proposedWorkflow: response.proposedWorkflow,
       });
 
     } else if (req.method === "GET") {
