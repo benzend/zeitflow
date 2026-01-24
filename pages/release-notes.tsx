@@ -11,6 +11,26 @@ type ReleaseNote = {
 
 const releaseNotes: ReleaseNote[] = [
   {
+    version: "1.12.0",
+    date: "2026-01-24",
+    features: [
+      "Added Telegram integration for sending messages to Telegram chats from workflows",
+      "Added Webhook entry type for triggering workflows via external HTTP POST requests",
+      "Implemented webhook secret authentication for secure external workflow triggers",
+      "Added regenerate webhook secret functionality for rotating credentials",
+    ],
+    improvements: [
+      "Enhanced integration config form with helpful tooltips explaining how to get Chat IDs and Bot Tokens",
+      "Consolidated webhook authentication into existing execute endpoint for cleaner architecture",
+      "Added Telegram node to workflow builder with visual icon",
+      "Updated CLAUDE.md documentation to use pnpm instead of npm",
+    ],
+    fixes: [
+      "Fixed missing label for Telegram nodes causing database insert errors",
+      "Fixed workflowId not being passed to webhook configuration component",
+    ],
+  },
+  {
     version: "1.11.0",
     date: "2026-01-24",
     features: [
