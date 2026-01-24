@@ -31,6 +31,8 @@ export default function WorkflowExecutionPage() {
   const [executionResult, setExecutionResult] = useState<{success: boolean, executionId?: number, error?: string} | null>(null);
   const [apiToken, setApiToken] = useState<string | null>(null);
   const [loadingToken, setLoadingToken] = useState(false);
+  const [entryNodes, setEntryNodes] = useState<NodeData[]>([]);
+  const [selectedEntryNodeId, setSelectedEntryNodeId] = useState<string | null>(null);
 
   const authHeaders = {
     'Content-Type': 'application/json',
@@ -86,6 +88,16 @@ export default function WorkflowExecutionPage() {
          });
 
         setNodes(parsedNodes);
+
+        // Track entry nodes for multiple entry point support
+        const entryNodesList = parsedNodes.filter((n: NodeData) => n.type === 'entry');
+        setEntryNodes(entryNodesList);
+        if (entryNodesList.length === 1) {
+          setSelectedEntryNodeId(entryNodesList[0].id);
+        } else if (entryNodesList.length > 1) {
+          // Default to first entry node
+          setSelectedEntryNodeId(entryNodesList[0].id);
+        }
       } else {
         setError(data.message || "Failed to fetch workflow");
       }
@@ -128,7 +140,7 @@ export default function WorkflowExecutionPage() {
     }
   };
 
-  const entryNode = nodes.find(n => n.type === 'entry');
+  const selectedEntryNode = entryNodes.find(n => n.id === selectedEntryNodeId);
 
   const formatApiParams = (params?: Array<{ id: string, key: string, type: string }>) => {
     if (!params) return '';
@@ -155,7 +167,7 @@ export default function WorkflowExecutionPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ inputData: formData }),
+        body: JSON.stringify({ inputData: formData, entryNodeId: selectedEntryNodeId }),
       });
 
       const result = await response.json();
@@ -297,14 +309,40 @@ export default function WorkflowExecutionPage() {
 
         {/* Content */}
         <div className="bg-background-light rounded-lg p-6">
-          {entryNode ? (
-            entryNode.type === 'entry' ? (
+          {selectedEntryNode ? (
+            selectedEntryNode.type === 'entry' ? (
               <div className="max-w-md w-full">
-                {entryNode.entryType === 'form' ? (
+                {/* Tabs for multiple entry nodes */}
+                {entryNodes.length > 1 && (
+                  <div className="flex gap-2 border-b border-border mb-6">
+                    {entryNodes.map((node) => (
+                      <button
+                        key={node.id}
+                        onClick={() => {
+                          setSelectedEntryNodeId(node.id);
+                          setFormData({});
+                          setExecutionResult(null);
+                        }}
+                        className={`px-4 py-2 text-sm font-medium ${
+                          selectedEntryNodeId === node.id
+                            ? 'text-primary border-b-2 border-primary -mb-[1px]'
+                            : 'text-foreground-light hover:text-foreground'
+                        }`}
+                      >
+                        {node.label}
+                        <span className="ml-2 text-xs px-1.5 py-0.5 rounded bg-background-extra-light">
+                          {node.entryType === 'api' ? 'API' : 'Form'}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {selectedEntryNode.entryType === 'form' ? (
                   <div>
                     <h2 className="text-xl font-semibold text-foreground mb-4">Workflow Form</h2>
                     <form onSubmit={handleSubmit} className="space-y-4">
-                      {entryNode.fields?.map((field: Field) => (
+                      {selectedEntryNode.fields?.map((field: Field) => (
                         <div key={field.id}>
                           <label htmlFor={field.id} className="block text-sm font-medium text-foreground-light mb-1">
                             {field.key}
@@ -405,7 +443,7 @@ export default function WorkflowExecutionPage() {
                         <div>
                           <label className="block text-sm font-medium text-foreground-light mb-1">Parameters</label>
                           <pre className="block bg-background-extra-light p-2 rounded text-sm text-foreground font-mono overflow-x-auto">
-                            {formatApiParams(entryNode.fields)}
+                            {formatApiParams(selectedEntryNode.fields)}
                           </pre>
                         </div>
                         <div>
@@ -414,13 +452,13 @@ export default function WorkflowExecutionPage() {
                              <CopyButton text={`curl -X POST "${window.location.origin}/api/workflow/${workflow?.id}/execute" \\
    -H "Content-Type: application/json" \\
    -H "Authorization: Bearer ${apiToken || 'YOUR_API_TOKEN'}" \\
-   -d '${formatApiParams(entryNode.fields)}'`} />
+   -d '{"inputData": ${formatApiParams(selectedEntryNode.fields)}, "entryNodeId": "${selectedEntryNode.id}"}'`} />
                            </div>
                            <pre className="block bg-background-extra-light p-2 rounded text-sm text-foreground font-mono overflow-x-auto">
                              {`curl -X POST "${window.location.origin}/api/workflow/${workflow?.id}/execute" \\
    -H "Content-Type: application/json" \\
    -H "Authorization: Bearer ${apiToken || 'YOUR_API_TOKEN'}" \\
-   -d '${formatApiParams(entryNode.fields)}'`}
+   -d '{"inputData": ${formatApiParams(selectedEntryNode.fields)}, "entryNodeId": "${selectedEntryNode.id}"}'`}
                            </pre>
                         </div>
                      </div>

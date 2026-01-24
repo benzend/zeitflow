@@ -66,7 +66,18 @@ export default async function handler(
 
   let userId: string = '';
 
-  if (nodes[0].type === 'entry' && nodes[0].entryType === 'api') {
+  // Determine if this is an API entry request by checking:
+  // 1. If entryNodeId is provided, check if that specific node is API type
+  // 2. Otherwise, check if Authorization header is present (API call)
+  const requestEntryNodeId = req.body?.entryNodeId;
+  const selectedEntryNode = requestEntryNodeId
+    ? nodes.find(n => n.id === requestEntryNodeId)
+    : null;
+  const isApiEntry = selectedEntryNode
+    ? selectedEntryNode.entryType === 'api'
+    : req.headers.authorization?.startsWith('Bearer ');
+
+  if (isApiEntry) {
     // Check for API token in Authorization header
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -74,7 +85,7 @@ export default async function handler(
     }
 
     const apiToken = authHeader.substring(7); // Remove 'Bearer ' prefix
-    
+
     const user = await db.select()
       .from(usersTable)
       .where(eq(usersTable.apiToken, apiToken))
@@ -121,15 +132,18 @@ export default async function handler(
       toNodeId: conn.toNodeId,
     }));
 
+    // Extract entryNodeId from request body
+    const { inputData, entryNodeId } = req.body;
+
     // Create execution record
     const [execution] = await db.insert(workflowExecutionsTable).values({
       workflowId,
       userId: userId.toString(),
       status: 'running',
-      inputData: JSON.stringify(req.body.inputData || {}),
+      inputData: JSON.stringify(inputData || {}),
     }).returning();
 
-    const result = await executeWorkflow(workflowId, userId, req.body.inputData || {}, connections, nodes, execution.id);
+    const result = await executeWorkflow(workflowId, userId, inputData || {}, connections, nodes, execution.id, entryNodeId);
 
     // Serialize logs for storage (convert Date objects to ISO strings)
     const serializedLogs = result.logs.map(log => ({
@@ -354,7 +368,8 @@ async function executeWorkflow(
   inputData: Record<string, unknown>,
   connections: WorkflowConnection[],
   nodes: WorkflowNode[],
-  executionId: number
+  executionId: number,
+  entryNodeId?: string
 ): Promise<ExecutionResult> {
   // Build graph structures for BFS traversal
   const { inDegree, adjacencyList, nodeMap } = buildGraphStructures(nodes, connections);
@@ -367,8 +382,80 @@ async function executeWorkflow(
     throw new Error('No entry nodes found (all nodes have incoming connections). Check for cycles.');
   }
 
-  // Initialize BFS
-  const readyQueue = [...rootNodes];
+  // Filter to specific entry node if provided
+  let startNodes = rootNodes;
+  if (entryNodeId) {
+    if (!rootNodes.includes(entryNodeId)) {
+      throw new Error(`Invalid entryNodeId: ${entryNodeId} is not a valid entry point`);
+    }
+    startNodes = [entryNodeId];
+  } else if (rootNodes.length > 1) {
+    // Multiple entries but none specified - error
+    const rootNodeLabels = rootNodes
+      .map(id => nodeMap.get(id))
+      .filter(Boolean)
+      .map(n => `${n!.label} (${n!.id})`)
+      .join(', ');
+    throw new Error(
+      `Workflow has multiple entry points: ${rootNodeLabels}. Specify 'entryNodeId' to select one.`
+    );
+  }
+
+  // Calculate executable nodes from start nodes
+  // A node is executable only if ALL its incoming edges come from executable nodes
+  // This handles cases where a node has dependencies from multiple entry paths
+  const predecessors = new Map<string, Set<string>>();
+  for (const node of nodes) {
+    predecessors.set(node.id, new Set());
+  }
+  for (const conn of connections) {
+    predecessors.get(conn.toNodeId)?.add(conn.fromNodeId);
+  }
+
+  const executableNodes = new Set<string>(startNodes);
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const node of nodes) {
+      if (executableNodes.has(node.id)) continue;
+
+      const preds = predecessors.get(node.id) || new Set();
+      if (preds.size === 0) continue; // No predecessors and not a start node
+
+      // Check if AT LEAST ONE predecessor is executable
+      // This allows "merge" nodes to run when triggered from any entry path
+      let anyPredExecutable = false;
+      for (const pred of preds) {
+        if (executableNodes.has(pred)) {
+          anyPredExecutable = true;
+          break;
+        }
+      }
+
+      if (anyPredExecutable) {
+        executableNodes.add(node.id);
+        changed = true;
+      }
+    }
+  }
+
+  // Adjust in-degree to only count edges from executable predecessors
+  // This ensures the BFS will properly trigger nodes that have some non-executable predecessors
+  for (const node of nodes) {
+    if (!executableNodes.has(node.id)) continue;
+    const preds = predecessors.get(node.id) || new Set();
+    let executablePredCount = 0;
+    for (const pred of preds) {
+      if (executableNodes.has(pred)) {
+        executablePredCount++;
+      }
+    }
+    inDegree.set(node.id, executablePredCount);
+  }
+
+
+  // Initialize BFS with filtered nodes
+  const readyQueue = [...startNodes];
   const executed = new Set<string>();
   const outputData: Record<string, unknown> = {};
 
@@ -536,15 +623,15 @@ async function executeWorkflow(
     }
   }
 
-  // Verify all nodes executed
-  if (executed.size < nodes.length) {
+  // Verify all executable nodes were executed (not all nodes, since we may have multiple entry points)
+  if (executed.size < executableNodes.size) {
     const unexecuted = nodes
-      .filter(n => !executed.has(n.id))
+      .filter(n => executableNodes.has(n.id) && !executed.has(n.id))
       .map(n => `${n.label} (${n.id})`)
       .join(', ');
     throw new Error(
-      `Workflow incomplete: ${nodes.length - executed.size} nodes not executed: ${unexecuted}. ` +
-      `This indicates either a cycle or disconnected nodes.`
+      `Workflow incomplete: ${executableNodes.size - executed.size} nodes not executed: ${unexecuted}. ` +
+      `This indicates either a cycle or disconnected nodes in the execution path.`
     );
   }
 
