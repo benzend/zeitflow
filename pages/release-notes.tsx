@@ -11,6 +11,50 @@ type ReleaseNote = {
 
 const releaseNotes: ReleaseNote[] = [
   {
+    version: "1.11.0",
+    date: "2026-01-24",
+    features: [
+      "Added agentic chat functionality for conversational workflow creation",
+      "Implemented real-time event logging for chat interactions",
+      "Added inline approvals for workflow review steps",
+      "Introduced comprehensive execution logging system with structured log entries",
+      "Added recent inputs feature for faster debugging and re-execution",
+    ],
+    improvements: [
+      "Refactored workflow execution engine with improved logging architecture",
+      "Enhanced chat system with real-time event tracking and status updates",
+      "Improved execution details view with structured log display",
+    ],
+    fixes: [
+      "Fixed workflow execution issues",
+      "Fixed build errors across multiple components",
+      "Fixed 'most popular' section dark mode styling",
+    ],
+  },
+  {
+    version: "1.10.0",
+    date: "2026-01-17",
+    features: [
+      "Added SMS node for sending text messages via Twilio (beta)",
+      "Updated landing page with improved hero section and easier-access form",
+      "Added page animations for smoother transitions throughout the app",
+      "Introduced beta badge on homepage to indicate early access status",
+      "Added architecture documentation for developer reference",
+    ],
+    improvements: [
+      "Blog post images are now clickable/linkable",
+      "Improved mobile responsiveness across blog pages",
+      "Enhanced navigation with cleaner layout",
+      "Homepage layout improvements with better spacing",
+      "Removed unnecessary animations for improved performance",
+    ],
+    fixes: [
+      "Fixed Google OAuth signin issues",
+      "Fixed latest blog posts not rendering correctly",
+      "Removed cursor following rings that caused performance issues",
+    ],
+  },
+  {
     version: "1.9.0",
     date: "2026-01-03",
     features: [
