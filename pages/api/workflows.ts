@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { workflowsTable, usersTable, workflowExecutionsTable, workflowNodesTable } from "@/schema";
 import { eq, sql } from "drizzle-orm";
 import { isRateLimited } from "@/lib/rate-limit";
+import { generateWebhookSecret } from "@/lib/webhook-utils";
 
 export default async function handler(
   req: NextApiRequest,
@@ -91,7 +92,8 @@ export default async function handler(
           userId,
           name: name.trim(),
           description: description?.trim() || null,
-          status: 'draft'
+          status: 'draft',
+          webhookSecret: generateWebhookSecret()
         })
         .returning();
 

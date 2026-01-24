@@ -8,11 +8,13 @@
 export { executeEmail } from './email';
 export { executeSlack } from './slack';
 export { executeSMS } from './sms';
+export { executeTelegram } from './telegram';
 
 import { ExecutionContext, IntegrationResult } from '../types';
 import { executeEmail } from './email';
 import { executeSlack } from './slack';
 import { executeSMS } from './sms';
+import { executeTelegram } from './telegram';
 
 /**
  * Map of integration IDs to their executor functions
@@ -24,6 +26,7 @@ export const integrationExecutors: Record<
   email: executeEmail,
   slack: executeSlack,
   sms: executeSMS,
+  telegram: executeTelegram,
 };
 
 /**

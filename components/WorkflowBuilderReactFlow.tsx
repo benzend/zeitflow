@@ -36,11 +36,13 @@ import ReviewNode from './reactflow-nodes/ReviewNode';
 import EmailNode from './reactflow-nodes/EmailNode';
 import SlackNode from './reactflow-nodes/SlackNode';
 import SMSNode from './reactflow-nodes/SMSNode';
+import TelegramNode from './reactflow-nodes/TelegramNode';
 import Dropdown, { DropdownOption } from './Dropdown';
 import IntegrationConfigForm from './IntegrationConfigForm';
 import { isIntegration, getIntegrationConfigKey } from '@/lib/integrations/registry';
 
 interface WorkflowBuilderProps {
+  workflowId?: number;
   initialNodes?: NodeData[];
   initialConnections?: WorkflowConnection[];
   onSave?: (nodes: NodeData[], connections: WorkflowConnection[]) => void;
@@ -60,6 +62,161 @@ const nodeTypes: NodeTypes = {
   email: EmailNode,
   slack: SlackNode,
   sms: SMSNode,
+  telegram: TelegramNode,
+};
+
+// WebhookConfig component for webhook entry type
+const WebhookConfig = ({ workflowId }: { workflowId?: number }) => {
+  const [webhookUrl, setWebhookUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
+
+  useEffect(() => {
+    if (workflowId) {
+      fetchWebhookUrl();
+    }
+  }, [workflowId]);
+
+  const fetchWebhookUrl = async () => {
+    if (!workflowId) return;
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/workflow/${workflowId}`);
+      const data = await response.json();
+      if (data.success && data.workflow?.webhookSecret) {
+        const host = window.location.origin;
+        setWebhookUrl(`${host}/api/workflow/${workflowId}/execute?secret=${data.workflow.webhookSecret}`);
+      } else if (data.success && !data.workflow?.webhookSecret) {
+        // Workflow exists but has no secret - generate one
+        await handleRegenerateSecret();
+      }
+    } catch (error) {
+      console.error('Failed to fetch webhook URL:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRegenerateSecret = async () => {
+    if (!workflowId) return;
+    setRegenerating(true);
+    try {
+      const response = await fetch(`/api/workflow/${workflowId}/regenerate-secret`, {
+        method: 'POST',
+      });
+      const data = await response.json();
+      if (data.success) {
+        const host = window.location.origin;
+        setWebhookUrl(`${host}/api/workflow/${workflowId}/execute?secret=${data.webhookSecret}`);
+        toast.success('Webhook secret regenerated');
+      } else {
+        toast.error(data.message || 'Failed to regenerate secret');
+      }
+    } catch (error) {
+      console.error('Failed to regenerate secret:', error);
+      toast.error('Failed to regenerate secret');
+    } finally {
+      setRegenerating(false);
+    }
+  };
+
+  const handleCopyUrl = () => {
+    if (webhookUrl) {
+      navigator.clipboard.writeText(webhookUrl);
+      toast.success('Webhook URL copied to clipboard');
+    }
+  };
+
+  if (!workflowId) {
+    return (
+      <div className="mb-[12px]">
+        <p className="text-warning text-sm">
+          Save the workflow first to get a webhook URL.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="mb-[12px]">
+        <h3 className="text-foreground text-lg font-bold mb-[4px]">
+          Webhook Configuration
+        </h3>
+        <p className="text-text-muted text-sm leading-relaxed">
+          External services can trigger this workflow by sending a POST request to the webhook URL.
+        </p>
+      </div>
+
+      <div className="space-y-2">
+        <label className="block text-foreground-light text-[12px] font-medium">
+          Webhook URL
+        </label>
+        {loading ? (
+          <div className="bg-background-extra-light border-border border-[0.5px] h-[32px] rounded-[8px] px-[12px] flex items-center">
+            <span className="text-text-muted text-[12px]">Loading...</span>
+          </div>
+        ) : webhookUrl ? (
+          <div className="flex gap-2">
+            <div className="bg-background-extra-light border-border border-[0.5px] h-[32px] rounded-[8px] px-[12px] flex-1 overflow-hidden flex items-center">
+              <span className="text-foreground text-[11px] truncate font-mono">{webhookUrl}</span>
+            </div>
+            <Button
+              onClick={handleCopyUrl}
+              variant="tertiary"
+              className="!bg-transparent border-border border-[0.5px] h-[32px] px-[12px] rounded-[8px]"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+              </svg>
+            </Button>
+          </div>
+        ) : (
+          <div className="bg-background-extra-light border-border border-[0.5px] h-[32px] rounded-[8px] px-[12px] flex items-center">
+            <span className="text-text-muted text-[12px]">No webhook URL available</span>
+          </div>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <label className="block text-foreground-light text-[12px] font-medium">
+          Request Format
+        </label>
+        <div className="bg-background-extra-light border-border border-[0.5px] rounded-[8px] p-[12px]">
+          <pre className="text-foreground text-[11px] font-mono whitespace-pre-wrap">
+{`POST ${webhookUrl || '{webhook_url}'}
+Content-Type: application/json
+
+{
+  "field1": "value1",
+  "field2": "value2"
+}`}
+          </pre>
+        </div>
+      </div>
+
+      <Button
+        onClick={handleRegenerateSecret}
+        disabled={regenerating || !webhookUrl}
+        variant="tertiary"
+        className="!bg-transparent border-border border-[0.5px] flex gap-3 h-[36px] hover:!bg-surface-hover items-center px-[16px] rounded-[8px] transition-colors w-full"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M23 4v6h-6" />
+          <path d="M1 20v-6h6" />
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+        </svg>
+        <p className="text-[12px] text-foreground font-medium">
+          {regenerating ? 'Regenerating...' : 'Regenerate Secret'}
+        </p>
+      </Button>
+
+      <p className="text-text-muted text-[11px]">
+        Regenerating the secret will invalidate the current webhook URL.
+      </p>
+    </div>
+  );
 };
 
 const FIELD_TYPE_OPTIONS: DropdownOption[] = [
@@ -86,6 +243,7 @@ const API_FIELD_TYPE_OPTIONS: DropdownOption[] = [
 const ENTRY_TYPE_OPTIONS: DropdownOption[] = [
   { value: 'api', label: 'API' },
   { value: 'form', label: 'Form' },
+  { value: 'webhook', label: 'Webhook' },
 ];
 
 const NODE_TYPE_OPTIONS: DropdownOption[] = [
@@ -94,10 +252,12 @@ const NODE_TYPE_OPTIONS: DropdownOption[] = [
   { value: 'email', label: 'Email' },
   { value: 'slack', label: 'Slack' },
   // { value: 'sms', label: 'SMS' },
+  { value: 'telegram', label: 'Telegram' },
 ];
 
 // Wrapper component to provide React Flow context
 const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps>(({
+  workflowId,
   initialNodes = [],
   initialConnections = [],
   onSave,
@@ -245,6 +405,7 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
       email: 'Email',
       slack: 'Slack',
       sms: 'SMS',
+      telegram: 'Telegram',
     };
 
     // Build node data using registry
@@ -975,6 +1136,10 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
                     Add Field
                   </p>
                 </Button>
+              </>
+              ) : selectedNodeData.entryType === 'webhook' ? (
+              <>
+                <WebhookConfig workflowId={workflowId} />
               </>
               ) : null}
             </div>

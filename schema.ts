@@ -240,6 +240,7 @@ export const workflowsTable = pgTable("workflows", {
   name: text("name").notNull(),
   description: text("description"),
   status: text("status").notNull().default("draft"), // draft, published, archived
+  webhookSecret: text("webhook_secret"), // Secret token for webhook authentication
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .notNull()

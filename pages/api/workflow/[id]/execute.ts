@@ -17,6 +17,8 @@ import { executeIntegration, buildExecutionOptions } from "@/lib/integrations/ex
 // Logging system
 import { createIntegrationLogger } from "@/lib/integrations/logger";
 import type { LogEntry, IntegrationLogger } from "@/lib/integrations/types";
+// Webhook utilities
+import { validateWebhookSecret } from "@/lib/webhook-utils";
 
 export default async function handler(
   req: NextApiRequest,
@@ -41,7 +43,7 @@ export default async function handler(
   // Map database nodes to WorkflowNode interface
   const nodes: WorkflowNode[] = dbNodes.map(node => ({
     id: node.id,
-    type: node.type as 'entry' | 'ai' | 'scheduler' | 'review' | 'slack' | 'email' | 'sms',
+    type: node.type as 'entry' | 'ai' | 'scheduler' | 'review' | 'slack' | 'email' | 'sms' | 'telegram',
     label: node.label,
     entryType: node.entryType || undefined,
     config: node.config || undefined,
@@ -66,56 +68,69 @@ export default async function handler(
 
   let userId: string = '';
 
-  // Determine if this is an API entry request by checking:
-  // 1. If entryNodeId is provided, check if that specific node is API type
-  // 2. Otherwise, check if Authorization header is present (API call)
-  const requestEntryNodeId = req.body?.entryNodeId;
-  const selectedEntryNode = requestEntryNodeId
-    ? nodes.find(n => n.id === requestEntryNodeId)
-    : null;
-  const isApiEntry = selectedEntryNode
-    ? selectedEntryNode.entryType === 'api'
-    : req.headers.authorization?.startsWith('Bearer ');
+  // Check for webhook secret authentication first (query param)
+  const webhookSecret = req.query.secret as string | undefined;
+  const isWebhookAuth = !!webhookSecret;
 
-  if (isApiEntry) {
-    // Check for API token in Authorization header
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'API token required' });
+  if (isWebhookAuth) {
+    // Validate webhook secret
+    if (!validateWebhookSecret(webhookSecret, workflow.webhookSecret)) {
+      return res.status(401).json({ error: 'Invalid webhook secret' });
     }
-
-    const apiToken = authHeader.substring(7); // Remove 'Bearer ' prefix
-
-    const user = await db.select()
-      .from(usersTable)
-      .where(eq(usersTable.apiToken, apiToken))
-      .limit(1);
-
-    if (user.length === 0) {
-      return res.status(401).json({ error: 'Invalid API token' });
-    }
-
-    userId = user[0].id;
+    // Use the workflow owner's userId for webhook executions
+    userId = workflow.userId;
   } else {
-    const session = await getServerSession(req, res, authOptions);
-    if (!session?.user?.email) {
+    // Determine if this is an API entry request by checking:
+    // 1. If entryNodeId is provided, check if that specific node is API type
+    // 2. Otherwise, check if Authorization header is present (API call)
+    const requestEntryNodeId = req.body?.entryNodeId;
+    const selectedEntryNode = requestEntryNodeId
+      ? nodes.find(n => n.id === requestEntryNodeId)
+      : null;
+    const isApiEntry = selectedEntryNode
+      ? selectedEntryNode.entryType === 'api'
+      : req.headers.authorization?.startsWith('Bearer ');
+
+    if (isApiEntry) {
+      // Check for API token in Authorization header
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'API token required' });
+      }
+
+      const apiToken = authHeader.substring(7); // Remove 'Bearer ' prefix
+
+      const user = await db.select()
+        .from(usersTable)
+        .where(eq(usersTable.apiToken, apiToken))
+        .limit(1);
+
+      if (user.length === 0) {
+        return res.status(401).json({ error: 'Invalid API token' });
+      }
+
+      userId = user[0].id;
+    } else {
+      const session = await getServerSession(req, res, authOptions);
+      if (!session?.user?.email) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const user = await db.select()
+        .from(usersTable)
+        .where(eq(usersTable.email, session.user.email))
+        .limit(1);
+
+      if (user.length === 0) {
+        return res.status(401).json({ error: 'User not found' });
+      }
+
+      userId = user[0].id;
+    }
+
+    if (workflow.userId !== userId.toString()) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
-
-    const user = await db.select()
-      .from(usersTable)
-      .where(eq(usersTable.email, session.user.email))
-      .limit(1);
-
-    if (user.length === 0) {
-      return res.status(401).json({ error: 'User not found' });
-    }
-
-    userId = user[0].id;
-  }
-
-  if (workflow.userId !== userId.toString()) {
-    return res.status(401).json({ error: 'Unauthorized' });
   }
 
   try {
@@ -176,7 +191,7 @@ interface WorkflowConnection {
 
 interface WorkflowNode {
   id: string;
-  type: 'entry' | 'ai' | 'scheduler' | 'review' | 'slack' | 'email' | 'sms';
+  type: 'entry' | 'ai' | 'scheduler' | 'review' | 'slack' | 'email' | 'sms' | 'telegram';
   label: string;
   entryType?: string;
   config?: string;
@@ -205,7 +220,7 @@ function collectAvailableVariables(
       
       // Add variables from entry nodes
       if (sourceNode.type === 'entry') {
-        if (sourceNode.entryType === 'api' || sourceNode.entryType === 'form') {
+        if (sourceNode.entryType === 'api' || sourceNode.entryType === 'form' || sourceNode.entryType === 'webhook') {
           // Add input data fields
           if (inputData && typeof inputData === 'object') {
             Object.keys(inputData).forEach(key => {
@@ -269,6 +284,20 @@ function collectAvailableVariables(
         variables[`${variableName}_status`] = smsOutput.success ? 'sent' : 'failed';
         if (smsOutput.error) {
           variables[`${variableName}_error`] = smsOutput.error;
+        }
+      }
+
+      // Add Telegram output variables
+      if (sourceNode.type === 'telegram' && nodeOutputs[sourceNode.id]) {
+        const telegramOutput = nodeOutputs[sourceNode.id] as { success?: boolean; error?: string; messageId?: number };
+        const nodeLabel = sourceNode.label || sourceNode.id;
+        const variableName = nodeLabel.toLowerCase().replace(/\s+/g, '_');
+        variables[`${variableName}_status`] = telegramOutput.success ? 'sent' : 'failed';
+        if (telegramOutput.error) {
+          variables[`${variableName}_error`] = telegramOutput.error;
+        }
+        if (telegramOutput.messageId) {
+          variables[`${variableName}_message_id`] = telegramOutput.messageId;
         }
       }
     }

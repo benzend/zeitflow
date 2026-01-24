@@ -4,29 +4,34 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Development Commands
 
+**Important:** This project uses `pnpm` as the package manager. Do not use `npm`.
+
 ```bash
+# Install dependencies
+pnpm install
+
 # Start development server with Turbopack
-npm run dev
+pnpm dev
 
 # Build production version (with increased memory for large builds)
-npm run build
+pnpm build
 
 # Start production server
-npm start
+pnpm start
 
 # Lint code
-npm run lint
+pnpm lint
 
 # Run tests
-npm test
-npm run test:watch    # Watch mode
-npm run test:coverage # With coverage
+pnpm test
+pnpm test:watch    # Watch mode
+pnpm test:coverage # With coverage
 
 # Database migrations
-npm run migrate
+pnpm migrate
 
 # Backfill asset metadata (dimensions, blur placeholders)
-npm run backfill-assets
+pnpm backfill-assets
 ```
 
 ## Architecture Overview
@@ -44,13 +49,14 @@ This is a Next.js application (Pages Router) that implements **ZeitFlow** - a vi
 #### 2. Workflow System (React Flow)
 - **Visual Builder**: Drag-and-drop workflow creation using `@xyflow/react`
 - **Node Types**:
-  - `entry` - Data entry/form inputs with configurable fields
+  - `entry` - Data entry/form inputs with configurable fields (supports API, Form, and Webhook entry types)
   - `ai` - AI processing with model selection, prompts, output types
   - `scheduler` - Calendar scheduling with Google Calendar integration
   - `review` - Manual validation/approval steps
   - `email` - Email notifications via Resend
   - `slack` - Slack messaging via Slack Web API
   - `sms` - SMS/text messaging via Twilio
+  - `telegram` - Telegram messaging via node-telegram-bot-api
 - **Workflow Execution**: Track execution state through `workflow_executions` table with structured logging
 - **Execution Logs**: Persisted in `logs` JSON column, viewable in execution details UI
 - **YAML Parsing**: AI can generate workflows from natural language via `lib/workflow-parser.ts`
@@ -182,7 +188,7 @@ Implemented via `lib/rate-limit.ts` with database storage:
    - Image metadata injected from database
    - Rendered via `lib/mdx-components.tsx` with Next.js Image
 
-3. **Backfill**: Run `npm run backfill-assets` to process existing images
+3. **Backfill**: Run `pnpm backfill-assets` to process existing images
 
 ### Environment Variables
 

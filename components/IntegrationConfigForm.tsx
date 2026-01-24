@@ -178,6 +178,11 @@ function FieldRenderer({
             className={inputClassName}
             placeholder={fieldConfig.placeholder}
           />
+          {fieldConfig.validationHint && (
+            <p className="text-text-muted text-[10px] mt-[4px] px-[2px]">
+              {fieldConfig.validationHint}
+            </p>
+          )}
         </div>
       );
     }
@@ -223,8 +228,7 @@ function FieldRenderer({
             </div>
             {fieldConfig.validationHint && (
               <p className="text-text-muted text-[10px] mt-[4px] px-[2px]">
-                {(value as string)?.length || 0}/160 chars (
-                {Math.ceil(((value as string)?.length || 1) / 160)} SMS)
+                {fieldConfig.validationHint}
               </p>
             )}
           </div>

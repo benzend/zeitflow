@@ -18,6 +18,7 @@ import { IntegrationDefinition, INTEGRATION_CONFIG_KEYS, IntegrationId } from '.
 import { emailIntegration } from './definitions/email';
 import { slackIntegration } from './definitions/slack';
 import { smsIntegration } from './definitions/sms';
+import { telegramIntegration } from './definitions/telegram';
 
 /**
  * All registered integrations
@@ -26,6 +27,7 @@ const integrations = {
   email: emailIntegration,
   slack: slackIntegration,
   sms: smsIntegration,
+  telegram: telegramIntegration,
 } as const;
 
 export type RegisteredIntegrationId = keyof typeof integrations;

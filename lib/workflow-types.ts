@@ -48,9 +48,15 @@ export interface SMSConfig {
   message?: string; // Message body (160 chars for single SMS)
 }
 
+export interface TelegramConfig {
+  chatId: string; // Telegram chat ID (user, group, or channel)
+  message?: string; // Message body (supports Markdown)
+  botToken?: string; // Optional override for system TELEGRAM_BOT_TOKEN
+}
+
 export interface NodeData {
   id: string;
-  type: 'entry' | 'ai' | 'scheduler' | 'review' | 'slack' | 'email' | 'sms';
+  type: 'entry' | 'ai' | 'scheduler' | 'review' | 'slack' | 'email' | 'sms' | 'telegram';
   x: number;
   y: number;
   label: string;
@@ -62,6 +68,7 @@ export interface NodeData {
   emailConfig?: EmailConfig;
   slackConfig?: SlackConfig;
   smsConfig?: SMSConfig;
+  telegramConfig?: TelegramConfig;
 }
 
 export interface Connection {
