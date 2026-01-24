@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
@@ -18,6 +18,13 @@ interface Workflow {
   updatedAt: string;
 }
 
+interface RecentInput {
+  executionId: number;
+  inputData: Record<string, string>;
+  startedAt: string;
+  status: string;
+}
+
 export default function WorkflowExecutionPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -33,6 +40,8 @@ export default function WorkflowExecutionPage() {
   const [loadingToken, setLoadingToken] = useState(false);
   const [entryNodes, setEntryNodes] = useState<NodeData[]>([]);
   const [selectedEntryNodeId, setSelectedEntryNodeId] = useState<string | null>(null);
+  const [recentInputs, setRecentInputs] = useState<RecentInput[]>([]);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const authHeaders = {
     'Content-Type': 'application/json',
@@ -140,6 +149,61 @@ export default function WorkflowExecutionPage() {
     }
   };
 
+  const fetchRecentInputs = useCallback(async (workflowId: number) => {
+    try {
+      const response = await fetch(`/api/workflow/${workflowId}/recent-inputs`);
+      const data = await response.json();
+      if (data.success) {
+        setRecentInputs(data.recentInputs);
+      }
+    } catch (error) {
+      console.error('Failed to fetch recent inputs:', error);
+    }
+  }, []);
+
+  // Auto-save to localStorage (debounced)
+  useEffect(() => {
+    if (!id || !selectedEntryNodeId || Object.keys(formData).length === 0) return;
+
+    // Clear any existing timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    // Set new debounced save
+    debounceTimerRef.current = setTimeout(() => {
+      const key = `workflow-draft-${id}-${selectedEntryNodeId}`;
+      localStorage.setItem(key, JSON.stringify(formData));
+    }, 500);
+
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [formData, id, selectedEntryNodeId]);
+
+  // Load draft from localStorage when entry node is selected
+  useEffect(() => {
+    if (!id || !selectedEntryNodeId) return;
+    const key = `workflow-draft-${id}-${selectedEntryNodeId}`;
+    const draft = localStorage.getItem(key);
+    if (draft) {
+      try {
+        setFormData(JSON.parse(draft));
+      } catch {
+        // Ignore invalid JSON
+      }
+    }
+  }, [id, selectedEntryNodeId]);
+
+  // Fetch recent inputs when workflow loads
+  useEffect(() => {
+    if (id && !Array.isArray(id)) {
+      fetchRecentInputs(parseInt(id, 10));
+    }
+  }, [id, fetchRecentInputs]);
+
   const selectedEntryNode = entryNodes.find(n => n.id === selectedEntryNodeId);
 
   const formatApiParams = (params?: Array<{ id: string, key: string, type: string }>) => {
@@ -173,6 +237,10 @@ export default function WorkflowExecutionPage() {
       const result = await response.json();
 
       if (response.ok && result.success) {
+        // Clear localStorage draft after successful execution
+        if (id && selectedEntryNodeId) {
+          localStorage.removeItem(`workflow-draft-${id}-${selectedEntryNodeId}`);
+        }
         router.push(`/workflow/execution/${result.executionId}`);
       } else {
         setExecutionResult({ success: false, error: result.error || 'Failed to execute workflow' });
@@ -341,6 +409,30 @@ export default function WorkflowExecutionPage() {
                 {selectedEntryNode.entryType === 'form' ? (
                   <div>
                     <h2 className="text-xl font-semibold text-foreground mb-4">Workflow Form</h2>
+                    {recentInputs.length > 0 && (
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-foreground-light mb-1">
+                          Load from recent execution
+                        </label>
+                        <select
+                          value=""
+                          onChange={(e) => {
+                            const input = recentInputs.find(r => r.executionId.toString() === e.target.value);
+                            if (input?.inputData) {
+                              setFormData(input.inputData);
+                            }
+                          }}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground"
+                        >
+                          <option value="">Select a previous run...</option>
+                          {recentInputs.map(input => (
+                            <option key={input.executionId} value={input.executionId}>
+                              {new Date(input.startedAt).toLocaleString()} - {input.status}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
                     <form onSubmit={handleSubmit} className="space-y-4">
                       {selectedEntryNode.fields?.map((field: Field) => (
                         <div key={field.id}>
