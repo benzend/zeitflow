@@ -9,9 +9,10 @@ import { generateNodeId, generateFieldId } from "@/lib/workflow-utils";
 import { marked } from 'marked';
 import ChatHistorySkeleton from "@/components/ChatHistorySkeleton";
 
-interface WorkflowProposal {
-  workflow: ParsedWorkflow;
-  messageId?: number;
+interface PlanProposal {
+  title: string;
+  description: string;
+  steps: Array<{ action: string; rationale?: string }>;
 }
 
 // Configure marked for better chat rendering
@@ -43,7 +44,12 @@ interface ChatMessage {
   content: string;
   timestamp: Date;
   createdAt?: string;
-  parsedWorkflow?: ParsedWorkflow; // Parsed workflow data if message contains workflow syntax
+  parsedWorkflow?: ParsedWorkflow;
+  proposedPlan?: PlanProposal;
+  proposedWorkflow?: ParsedWorkflow;
+  planStatus?: 'pending' | 'approved' | 'rejected';
+  workflowStatus?: 'pending' | 'approved' | 'rejected';
+  createdWorkflowId?: number;
 }
 
 export default function WorkflowBuilderPage() {
@@ -60,8 +66,7 @@ export default function WorkflowBuilderPage() {
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [proposal, setProposal] = useState<WorkflowProposal | null>(null);
-  const [isCreating, setIsCreating] = useState(false);
+  const [creatingWorkflowIndex, setCreatingWorkflowIndex] = useState<number | null>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
@@ -83,7 +88,10 @@ export default function WorkflowBuilderPage() {
       const data = await response.json();
 
       if (data.success) {
-        setWorkflows(data.workflows || []);
+        const sorted = (data.workflows || []).sort(
+          (a: Workflow, b: Workflow) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        setWorkflows(sorted);
       } else {
         setError(data.message || "Failed to fetch workflows");
       }
@@ -161,15 +169,10 @@ export default function WorkflowBuilderPage() {
     }
   }, [currentThreadId, fetchChatHistory]);
 
-  // Opens the proposal modal for review before creation
-  const handleProposeWorkflow = (parsedWorkflow: ParsedWorkflow, messageId?: number) => {
-    setProposal({ workflow: parsedWorkflow, messageId });
-  };
-
-  // Log chat events (workflow_approved, workflow_rejected)
+  // Log chat events (plan and workflow approval/rejection)
   const logChatEvent = async (
-    eventType: 'workflow_approved' | 'workflow_rejected',
-    data: { workflowId?: number; proposalData?: ParsedWorkflow; metadata?: Record<string, unknown> }
+    eventType: 'workflow_plan_approved' | 'workflow_plan_rejected' | 'workflow_approved' | 'workflow_rejected',
+    data: { workflowId?: number; proposalData?: ParsedWorkflow | PlanProposal; metadata?: Record<string, unknown> }
   ) => {
     if (!currentThreadId) return;
 
@@ -190,98 +193,83 @@ export default function WorkflowBuilderPage() {
     }
   };
 
-  // Actually creates the workflow after user approval
-  const handleApproveAndCreate = async () => {
-    if (!proposal) return;
+  // Update message status in chat history
+  const updateMessageStatus = (messageIndex: number, updates: Partial<ChatMessage>) => {
+    setChatHistory(prev => prev.map((msg, idx) =>
+      idx === messageIndex ? { ...msg, ...updates } : msg
+    ));
+  };
 
-    setIsCreating(true);
+  // Approve and create workflow from inline proposal
+  const handleApproveWorkflow = async (workflow: ParsedWorkflow, messageIndex: number) => {
+    setCreatingWorkflowIndex(messageIndex);
 
     try {
-      // Create the workflow
       const createResponse = await fetch('/api/workflows', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: proposal.workflow.name,
-          description: proposal.workflow.description
+          name: workflow.name,
+          description: workflow.description
         }),
       });
 
       const createData = await createResponse.json();
-
       if (!createData.success) {
         throw new Error(createData.message || 'Failed to create workflow');
       }
 
       const workflowId = createData.workflow.id;
 
-      // Save the workflow nodes and connections
       const saveResponse = await fetch(`/api/workflow/${workflowId}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          nodes: proposal.workflow.nodes,
-          connections: proposal.workflow.connections
+          nodes: workflow.nodes,
+          connections: workflow.connections
         }),
       });
 
       const saveData = await saveResponse.json();
-
       if (!saveData.success) {
         throw new Error(saveData.message || 'Failed to save workflow');
       }
 
-      // Log the workflow_approved event
-      await logChatEvent('workflow_approved', {
-        workflowId,
-        proposalData: proposal.workflow,
-      });
-
-      // Close modal and redirect to the workflow builder
-      setProposal(null);
-      router.push(`/workflow/${workflowId}`);
+      await logChatEvent('workflow_approved', { workflowId, proposalData: workflow });
+      updateMessageStatus(messageIndex, { workflowStatus: 'approved', createdWorkflowId: workflowId });
+      await fetchWorkflows();
 
     } catch (error) {
       console.error('Workflow creation error:', error);
       alert('Failed to create workflow. Please try again.');
     } finally {
-      setIsCreating(false);
+      setCreatingWorkflowIndex(null);
     }
   };
 
-  const handleRejectProposal = async () => {
-    if (proposal) {
-      // Log the workflow_rejected event
-      await logChatEvent('workflow_rejected', {
-        proposalData: proposal.workflow,
-      });
-    }
-    setProposal(null);
+  const handleRejectWorkflow = async (workflow: ParsedWorkflow, messageIndex: number) => {
+    await logChatEvent('workflow_rejected', { proposalData: workflow });
+    updateMessageStatus(messageIndex, { workflowStatus: 'rejected' });
   };
 
-  const handleChatSend = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const systemPrompt = `You are an AI assistant that helps users create and manage workflows.
 
-    const form = e.target as HTMLFormElement;
-    const promptInput = form.elements.namedItem('prompt') as HTMLInputElement;
-    const prompt = promptInput.value;
-    if (!prompt.trim()) return;
+IMPORTANT - TWO-STEP WORKFLOW CREATION:
+1. FIRST use propose_plan to outline the high-level plan:
+   - What the workflow accomplishes
+   - The sequential steps/stages
 
-    const systemPrompt = `You are an AI assistant that helps users create and manage workflows. You have access to tools that let you:
+2. ONLY after the user approves the plan, use propose_workflow for concrete implementation.
 
-1. **list_workflows** - See what workflows the user already has
-2. **propose_workflow** - Propose a new workflow for the user to review (they must approve before it's created)
-3. **get_capabilities** - Learn what node types and features are available
+Available tools:
+- list_workflows - See existing workflows
+- get_capabilities - Learn about available node types
+- get_thread_events - Check conversation history (previous plans/rejections)
+- propose_plan - Outline a high-level plan (use FIRST)
+- propose_workflow - Propose concrete implementation (use AFTER plan approval)
 
-IMPORTANT GUIDELINES:
-- When the user wants to create a workflow, use the propose_workflow tool. Do NOT output YAML or JSON - use the tool instead.
-- Before proposing a workflow, you may want to use get_capabilities to understand available node types.
-- If you're unsure what the user wants, ask clarifying questions.
-- After proposing a workflow, explain what you proposed and why.
+If you see a 'workflow_plan_approved' event in thread events, proceed directly to propose_workflow.
+If you see a 'workflow_plan_rejected' event, ask for feedback and propose a revised plan.
 
 WORKFLOW STRUCTURE:
 - Workflows consist of nodes connected in sequence
@@ -289,27 +277,29 @@ WORKFLOW STRUCTURE:
 - Use {{entry.fields.fieldName}} to reference form inputs in later nodes
 - Use {{previousOutput}} to reference the output of the previous AI node
 
-Be helpful, concise, and use tools proactively when the user's intent is clear.`
+Be helpful, concise, and use tools proactively when the user's intent is clear.`;
+
+  // Core message sending function
+  const sendMessage = async (prompt: string, addToHistory: boolean = true) => {
+    if (!prompt.trim()) return;
 
     // Add user message to history
-    const userMessage: ChatMessage = {
-      role: 'user',
-      content: prompt,
-      timestamp: new Date()
-    };
-    setChatHistory(prev => [...prev, userMessage]);
+    if (addToHistory) {
+      const userMessage: ChatMessage = {
+        role: 'user',
+        content: prompt,
+        timestamp: new Date()
+      };
+      setChatHistory(prev => [...prev, userMessage]);
+    }
 
-    // Clear input and set loading state
-    promptInput.value = '';
     setIsLoading(true);
     setIsTyping(true);
 
     try {
       const apiResponse = await fetch('/api/chat/workflow', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           prompt,
           model: 'google/gemini-2.0-flash-001',
@@ -322,19 +312,24 @@ Be helpful, concise, and use tools proactively when the user's intent is clear.`
       const data = await apiResponse.json();
 
       if (data.success) {
-        // If this was a new thread, update the current thread ID and refresh threads
         if (data.threadId && data.threadId !== currentThreadId) {
           setCurrentThreadId(data.threadId);
           await fetchChatThreads();
         }
 
-        // Refresh the current thread's messages
-        await fetchChatHistory(data.threadId || currentThreadId);
+        const assistantMessage: ChatMessage = {
+          role: 'assistant',
+          content: data.response,
+          timestamp: new Date(),
+        };
 
-        // If the AI proposed a workflow, open the approval modal
+        if (data.proposedPlan) {
+          assistantMessage.proposedPlan = data.proposedPlan;
+          assistantMessage.planStatus = 'pending';
+        }
+
         if (data.proposedWorkflow) {
           const proposed = data.proposedWorkflow;
-          // Convert to ParsedWorkflow format
           interface ProposedNode {
             type: 'entry' | 'ai' | 'scheduler' | 'review' | 'slack' | 'email' | 'sms';
             label?: string;
@@ -345,10 +340,9 @@ Be helpful, concise, and use tools proactively when the user's intent is clear.`
             slackConfig?: { channel: string; message?: string };
             smsConfig?: { to: string[]; message?: string };
           }
-          // Generate unique IDs for each node first so we can reference them in connections
           const nodeIds = proposed.nodes.map(() => generateNodeId());
 
-          const parsedWorkflow: ParsedWorkflow = {
+          assistantMessage.proposedWorkflow = {
             name: proposed.name,
             description: proposed.description,
             nodes: proposed.nodes.map((node: ProposedNode, index: number) => ({
@@ -357,7 +351,6 @@ Be helpful, concise, and use tools proactively when the user's intent is clear.`
               label: node.label || `${node.type.charAt(0).toUpperCase() + node.type.slice(1)} Node`,
               x: 100,
               y: 100 + (index * 150),
-              // Map type-specific configs
               ...(node.fields && { fields: node.fields.map((f) => ({ id: generateFieldId(), key: f.name, name: f.name, type: f.type || 'text', label: f.label })) }),
               ...(node.aiConfig && { aiConfig: { ...node.aiConfig, outputStructure: '' } }),
               ...(node.schedulerConfig && { schedulerConfig: node.schedulerConfig }),
@@ -370,14 +363,15 @@ Be helpful, concise, and use tools proactively when the user's intent is clear.`
               to: nodeIds[index + 1],
             })),
           };
-          setProposal({ workflow: parsedWorkflow });
+          assistantMessage.workflowStatus = 'pending';
         }
+
+        setChatHistory(prev => [...prev, assistantMessage]);
       } else {
         throw new Error(data.message || 'Chat failed');
       }
     } catch (error) {
       console.error('Chat error:', error);
-      // Add error message
       const errorMessage: ChatMessage = {
         role: 'assistant',
         content: 'Sorry, there was an error processing your request. Please try again.',
@@ -388,6 +382,29 @@ Be helpful, concise, and use tools proactively when the user's intent is clear.`
       setIsLoading(false);
       setIsTyping(false);
     }
+  };
+
+  const handleApprovePlan = async (plan: PlanProposal, messageIndex: number) => {
+    await logChatEvent('workflow_plan_approved', { proposalData: plan });
+    updateMessageStatus(messageIndex, { planStatus: 'approved' });
+    // Trigger AI to propose the workflow
+    await sendMessage('Plan approved. Please proceed with the workflow implementation.');
+  };
+
+  const handleRejectPlan = async (plan: PlanProposal, messageIndex: number) => {
+    await logChatEvent('workflow_plan_rejected', { proposalData: plan });
+    updateMessageStatus(messageIndex, { planStatus: 'rejected' });
+    // Trigger AI to ask for feedback
+    await sendMessage('Plan rejected. Please ask what changes I would like.');
+  };
+
+  const handleChatSend = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const form = e.target as HTMLFormElement;
+    const promptInput = form.elements.namedItem('prompt') as HTMLInputElement;
+    const prompt = promptInput.value;
+    promptInput.value = '';
+    await sendMessage(prompt);
   }
 
   useEffect(() => {
@@ -510,18 +527,121 @@ Be helpful, concise, and use tools proactively when the user's intent is clear.`
                         minute: '2-digit'
                       })}
                     </div>
-                     {message.parsedWorkflow && (
-                       <div className="mt-3 pt-3 border-t border-border">
-                         <Button
-                           onClick={() => handleProposeWorkflow(message.parsedWorkflow!, message.id)}
-                           variant="primary"
-                           size="sm"
-                         >
-                           <Plus className="w-3 h-3" />
-                           Review & Create
-                         </Button>
-                       </div>
-                     )}
+
+                    {/* Inline Plan Proposal */}
+                    {message.proposedPlan && (
+                      <div className="mt-3 pt-3 border-t border-border">
+                        <div className="text-sm font-semibold text-foreground mb-2">
+                          {message.proposedPlan.title}
+                        </div>
+                        <div className="text-sm text-text-muted mb-3">
+                          {message.proposedPlan.description}
+                        </div>
+                        <div className="space-y-1 mb-3">
+                          {message.proposedPlan.steps.map((step, stepIndex) => (
+                            <div key={stepIndex} className="text-sm text-foreground">
+                              {stepIndex + 1}. {step.action}
+                              {step.rationale && (
+                                <span className="text-text-muted ml-1">— {step.rationale}</span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                        {message.planStatus === 'pending' && (
+                          <div className="flex gap-2">
+                            <Button
+                              onClick={() => handleApprovePlan(message.proposedPlan!, index)}
+                              variant="primary"
+                              size="sm"
+                            >
+                              <CheckCircle className="w-3 h-3" />
+                              Approve
+                            </Button>
+                            <Button
+                              onClick={() => handleRejectPlan(message.proposedPlan!, index)}
+                              variant="secondary"
+                              size="sm"
+                            >
+                              <X className="w-3 h-3" />
+                              Reject
+                            </Button>
+                          </div>
+                        )}
+                        {message.planStatus === 'approved' && (
+                          <div className="text-sm text-primary flex items-center gap-1">
+                            <CheckCircle className="w-3 h-3" /> Plan approved
+                          </div>
+                        )}
+                        {message.planStatus === 'rejected' && (
+                          <div className="text-sm text-text-muted flex items-center gap-1">
+                            <X className="w-3 h-3" /> Plan rejected
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Inline Workflow Proposal */}
+                    {message.proposedWorkflow && (
+                      <div className="mt-3 pt-3 border-t border-border">
+                        <div className="text-sm font-semibold text-foreground mb-1">
+                          {message.proposedWorkflow.name}
+                        </div>
+                        {message.proposedWorkflow.description && (
+                          <div className="text-sm text-text-muted mb-2">
+                            {message.proposedWorkflow.description}
+                          </div>
+                        )}
+                        <div className="text-xs text-text-muted mb-3">
+                          {message.proposedWorkflow.nodes.length} nodes: {message.proposedWorkflow.nodes.map(n => n.type).join(' → ')}
+                        </div>
+                        {message.workflowStatus === 'pending' && (
+                          <div className="flex gap-2">
+                            <Button
+                              onClick={() => handleApproveWorkflow(message.proposedWorkflow!, index)}
+                              variant="primary"
+                              size="sm"
+                              disabled={creatingWorkflowIndex === index}
+                            >
+                              {creatingWorkflowIndex === index ? (
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                              ) : (
+                                <CheckCircle className="w-3 h-3" />
+                              )}
+                              {creatingWorkflowIndex === index ? 'Creating...' : 'Create Workflow'}
+                            </Button>
+                            <Button
+                              onClick={() => handleRejectWorkflow(message.proposedWorkflow!, index)}
+                              variant="secondary"
+                              size="sm"
+                              disabled={creatingWorkflowIndex === index}
+                            >
+                              <X className="w-3 h-3" />
+                              Reject
+                            </Button>
+                          </div>
+                        )}
+                        {message.workflowStatus === 'approved' && (
+                          <div className="text-sm text-primary flex items-center gap-2">
+                            <CheckCircle className="w-3 h-3" />
+                            <span>Workflow created</span>
+                            {message.createdWorkflowId && (
+                              <Button
+                                href={`/workflow/${message.createdWorkflowId}`}
+                                variant="primary"
+                                size="sm"
+                              >
+                                Open Workflow
+                              </Button>
+                            )}
+                          </div>
+                        )}
+                        {message.workflowStatus === 'rejected' && (
+                          <div className="text-sm text-text-muted flex items-center gap-1">
+                            <X className="w-3 h-3" /> Workflow rejected
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -571,136 +691,6 @@ Be helpful, concise, and use tools proactively when the user's intent is clear.`
         </div>
         <footer className="flex items-center justify-between h-8 px-2 bg-surface border-t border-border">
         </footer>
-
-        {/* Proposal Review Modal */}
-        {proposal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-surface border border-border rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-hidden flex flex-col">
-              {/* Modal Header */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-                <h2 className="text-lg font-semibold text-foreground">Review Workflow Proposal</h2>
-                <button
-                  onClick={handleRejectProposal}
-                  className="text-text-muted hover:text-foreground transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              {/* Modal Body */}
-              <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
-                {/* Workflow Name & Description */}
-                <div>
-                  <h3 className="text-sm font-medium text-text-muted mb-1">Workflow Name</h3>
-                  <p className="text-foreground font-semibold">{proposal.workflow.name}</p>
-                </div>
-
-                {proposal.workflow.description && (
-                  <div>
-                    <h3 className="text-sm font-medium text-text-muted mb-1">Description</h3>
-                    <p className="text-foreground">{proposal.workflow.description}</p>
-                  </div>
-                )}
-
-                {/* Nodes Preview */}
-                <div>
-                  <h3 className="text-sm font-medium text-text-muted mb-2">
-                    Nodes ({proposal.workflow.nodes.length})
-                  </h3>
-                  <div className="space-y-2">
-                    {proposal.workflow.nodes.map((node, index) => (
-                      <div
-                        key={index}
-                        className="flex items-start gap-3 p-3 bg-surface-hover rounded-md border border-border"
-                      >
-                        <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-invert text-xs font-medium">
-                          {index + 1}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-medium px-2 py-0.5 rounded bg-surface text-text-muted uppercase">
-                              {node.type}
-                            </span>
-                            {node.label && (
-                              <span className="text-sm text-foreground font-medium truncate">
-                                {node.label}
-                              </span>
-                            )}
-                          </div>
-                          {node.type === 'ai' && node.aiConfig?.systemPrompt && (
-                            <p className="text-xs text-text-muted mt-1 line-clamp-2">
-                              {node.aiConfig.systemPrompt}
-                            </p>
-                          )}
-                          {node.type === 'entry' && node.fields && node.fields.length > 0 && (
-                            <p className="text-xs text-text-muted mt-1">
-                              Fields: {node.fields.map((f) => f.name).join(', ')}
-                            </p>
-                          )}
-                          {node.type === 'slack' && node.slackConfig?.channel && (
-                            <p className="text-xs text-text-muted mt-1">
-                              Channel: #{node.slackConfig.channel}
-                            </p>
-                          )}
-                          {node.type === 'email' && node.emailConfig?.to && (
-                            <p className="text-xs text-text-muted mt-1">
-                              To: {node.emailConfig.to.join(', ')}
-                            </p>
-                          )}
-                          {node.type === 'scheduler' && node.schedulerConfig && (
-                            <p className="text-xs text-text-muted mt-1">
-                              {node.schedulerConfig.minTimeRequirement} with {node.schedulerConfig.people.length} attendee(s)
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Connections Preview */}
-                {proposal.workflow.connections.length > 0 && (
-                  <div>
-                    <h3 className="text-sm font-medium text-text-muted mb-1">
-                      Connections ({proposal.workflow.connections.length})
-                    </h3>
-                    <p className="text-xs text-text-muted">
-                      Nodes will be connected sequentially as shown above.
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Modal Footer */}
-              <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border bg-surface-hover">
-                <Button
-                  onClick={handleRejectProposal}
-                  variant="secondary"
-                  disabled={isCreating}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleApproveAndCreate}
-                  variant="primary"
-                  disabled={isCreating}
-                >
-                  {isCreating ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Creating...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle className="w-4 h-4" />
-                      Approve & Create
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
       </main>
     </div>
   );

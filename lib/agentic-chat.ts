@@ -73,6 +73,15 @@ const workflowProposalSchema = z.object({
   nodes: z.array(workflowNodeSchema).describe('Array of workflow nodes. Each node should have type-specific config (e.g., fields for entry, aiConfig for ai)'),
 });
 
+const planProposalSchema = z.object({
+  title: z.string().describe('Short title for the plan'),
+  description: z.string().describe('What this workflow will accomplish'),
+  steps: z.array(z.object({
+    action: z.string().describe('What this step does'),
+    rationale: z.string().optional().describe('Why this step is needed'),
+  })).describe('Sequential steps the workflow will execute'),
+});
+
 export interface AgentToolCall {
   toolName: string;
   args: Record<string, unknown>;
@@ -83,6 +92,7 @@ export interface AgentResponse {
   text: string;
   toolCalls: AgentToolCall[];
   proposedWorkflow?: z.infer<typeof workflowProposalSchema>;
+  proposedPlan?: z.infer<typeof planProposalSchema>;
   error?: boolean;
 }
 
@@ -98,6 +108,7 @@ export const agenticChat = async (
 ): Promise<AgentResponse> => {
   const toolCalls: AgentToolCall[] = [];
   let proposedWorkflow: z.infer<typeof workflowProposalSchema> | undefined;
+  let proposedPlan: z.infer<typeof planProposalSchema> | undefined;
 
   try {
     const messages: CoreMessage[] = [];
@@ -151,6 +162,38 @@ export const agenticChat = async (
             toolCalls.push({
               toolName: 'list_workflows',
               args: {},
+              result,
+            });
+
+            return result;
+          },
+        }),
+
+        // Tool: Propose a high-level plan before implementing a workflow
+        propose_plan: tool({
+          description: 'Propose a high-level plan for a workflow before implementation. Use this FIRST to outline what the workflow will do. After user approval, use propose_workflow for the concrete implementation.',
+          parameters: planProposalSchema,
+          execute: async (args) => {
+            proposedPlan = args;
+
+            if (options.threadId) {
+              await db.insert(chatEventsTable).values({
+                threadId: options.threadId,
+                userId: options.userId,
+                eventType: 'workflow_plan_proposed',
+                proposalData: JSON.stringify(args),
+              });
+            }
+
+            const result = {
+              status: 'plan_proposed',
+              message: 'Plan proposed for review. User must approve before workflow creation.',
+              plan: { title: args.title, stepCount: args.steps.length },
+            };
+
+            toolCalls.push({
+              toolName: 'propose_plan',
+              args,
               result,
             });
 
@@ -262,13 +305,16 @@ export const agenticChat = async (
 
         // Tool: Get thread events to understand conversation history
         get_thread_events: tool({
-          description: 'Get the event history for the current conversation thread. Use this to understand what workflows have been proposed, approved, or rejected in this conversation. This helps avoid re-proposing workflows that were already rejected.',
+          description: 'Get the event history for the current conversation thread. Use this to understand what plans and workflows have been proposed, approved, or rejected in this conversation. Check for workflow_plan_approved events to know when to proceed with propose_workflow.',
           parameters: z.object({}),
           execute: async () => {
             if (!options.threadId) {
               return {
                 events: [],
-                summary: { proposed: 0, approved: 0, rejected: 0 },
+                summary: {
+                  planProposed: 0, planApproved: 0, planRejected: 0,
+                  workflowProposed: 0, workflowApproved: 0, workflowRejected: 0,
+                },
                 message: 'No thread context available.',
               };
             }
@@ -280,9 +326,12 @@ export const agenticChat = async (
               .limit(50);
 
             const summary = {
-              proposed: events.filter(e => e.eventType === 'workflow_proposed').length,
-              approved: events.filter(e => e.eventType === 'workflow_approved').length,
-              rejected: events.filter(e => e.eventType === 'workflow_rejected').length,
+              planProposed: events.filter(e => e.eventType === 'workflow_plan_proposed').length,
+              planApproved: events.filter(e => e.eventType === 'workflow_plan_approved').length,
+              planRejected: events.filter(e => e.eventType === 'workflow_plan_rejected').length,
+              workflowProposed: events.filter(e => e.eventType === 'workflow_proposed').length,
+              workflowApproved: events.filter(e => e.eventType === 'workflow_approved').length,
+              workflowRejected: events.filter(e => e.eventType === 'workflow_rejected').length,
             };
 
             const result = {
@@ -312,6 +361,7 @@ export const agenticChat = async (
       text: result.text,
       toolCalls,
       proposedWorkflow,
+      proposedPlan,
     };
 
   } catch (error) {

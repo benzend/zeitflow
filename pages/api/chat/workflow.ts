@@ -124,6 +124,7 @@ export default async function handler(
         threadId: currentThreadId,
         toolCalls: response.toolCalls,
         proposedWorkflow: response.proposedWorkflow,
+        proposedPlan: response.proposedPlan,
       });
 
     } else if (req.method === "GET") {
