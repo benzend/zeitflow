@@ -6,6 +6,20 @@ import { Button } from "@/components/Button";
 import ThemeToggle from '@/components/ThemeToggle';
 import ProfileDropdown from "@/components/ProfileDropdown";
 import ExecutionDetailsSkeleton from "@/components/ExecutionDetailsSkeleton";
+import ExecutionLogViewer from "@/components/ExecutionLogViewer";
+
+type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+
+interface LogEntry {
+  timestamp: string;
+  level: LogLevel;
+  integrationId: string;
+  nodeId: string;
+  executionId: string;
+  message: string;
+  data?: Record<string, unknown>;
+  durationMs?: number;
+}
 
 interface Execution {
   id: number;
@@ -13,6 +27,7 @@ interface Execution {
   status: string;
   inputData: any;
   outputData: any;
+  logs: LogEntry[] | null;
   error: string | null;
   startedAt: string;
   completedAt: string | null;
@@ -268,6 +283,9 @@ export default function ExecutionDetails() {
                 <strong>Execution Error:</strong> {execution.error}
               </div>
             )}
+
+            {/* Execution Logs */}
+            <ExecutionLogViewer logs={execution.logs} />
 
             {/* Input Data */}
             <div className="bg-background-light rounded-lg p-6">

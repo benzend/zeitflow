@@ -288,6 +288,7 @@ export const workflowExecutionsTable = pgTable("workflow_executions", {
   status: text("status").notNull().default("pending"), // pending, running, completed, failed
   inputData: text("input_data"), // JSON string of input data
   outputData: text("output_data"), // JSON string of output data
+  logs: text("logs"), // JSON array of LogEntry objects for execution logging
   error: text("error"),
   startedAt: timestamp("started_at").defaultNow().notNull(),
   completedAt: timestamp("completed_at"),

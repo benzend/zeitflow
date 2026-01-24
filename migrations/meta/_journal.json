@@ -176,6 +176,13 @@
       "when": 1769145633368,
       "tag": "0024_loud_marrow",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1769276642396,
+      "tag": "0025_acoustic_nightcrawler",
+      "breakpoints": true
     }
   ]
 }

@@ -37,6 +37,8 @@ import EmailNode from './reactflow-nodes/EmailNode';
 import SlackNode from './reactflow-nodes/SlackNode';
 import SMSNode from './reactflow-nodes/SMSNode';
 import Dropdown, { DropdownOption } from './Dropdown';
+import IntegrationConfigForm from './IntegrationConfigForm';
+import { isIntegration, getIntegrationConfigKey } from '@/lib/integrations/registry';
 
 interface WorkflowBuilderProps {
   initialNodes?: NodeData[];
@@ -1267,217 +1269,22 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
                 </div>
               </div>
             </div>
-          ) : selectedNodeData.type === 'email' ? (
-            <div className="mt-[20px] px-[20px] pb-[20px]">
-              <div className="mb-[12px]">
-                <h3 className="text-foreground text-lg font-bold mb-[4px]">
-                  Email Configuration
-                </h3>
-                <p className="text-text-muted text-sm leading-relaxed">
-                  Configure email recipients, subject, and message content
-                </p>
-              </div>
-
-              <div className="mb-[16px]">
-                <label className="block text-foreground-light font-medium mb-[8px]">
-                  To (comma-separated)
-                </label>
-                <input
-                  type="text"
-                  value={rawEmailInput}
-                  onChange={(e) => {
-                    setRawEmailInput(e.target.value);
-                    const validEmails = processEmailRecipients(e.target.value);
-                    updateNodeConfig('emailConfig', {
-                      ...(selectedNodeData.emailConfig as EmailConfig),
-                      to: validEmails
-                    });
-                  }}
-                  className="w-full bg-background-extra-light border-border border-[0.5px] h-[32px] rounded-[8px] overflow-hidden px-[12px] text-[12px] text-foreground placeholder-text-placeholder outline-none"
-                  placeholder="user@example.com, admin@example.com"
-                />
-                {emailWarning && (
-                  <p className="text-warning text-[11px] mt-[4px] px-[2px]">
-                    {emailWarning}
-                  </p>
-                )}
-              </div>
-
-              <div className="mb-[16px]">
-                <label className="block text-foreground-light font-medium mb-[8px]">
-                  Subject
-                </label>
-                <input
-                  type="text"
-                  value={rawSubjectInput}
-                  onChange={(e) => {
-                    setRawSubjectInput(e.target.value);
-                    updateNodeConfig('emailConfig', { 
-                      ...(selectedNodeData.emailConfig as EmailConfig), 
-                      subject: e.target.value 
-                    });
-                  }}
-                  className="w-full bg-background-extra-light border-border border-[0.5px] h-[32px] rounded-[8px] overflow-hidden px-[12px] text-[12px] text-foreground placeholder-text-placeholder outline-none"
-                  placeholder="Workflow Notification"
-                />
-              </div>
-
-              <div className="mb-[16px]">
-                <label className="block text-foreground-light font-medium mb-[8px]">
-                  Message
-                </label>
-                <div className="bg-background-extra-light mt-[4px] rounded">
-                  <TypeaheadTextarea
-                    value={rawMessageInput}
-                    onChange={(value) => {
-                      setRawMessageInput(value);
-                      updateNodeConfig('emailConfig', { 
-                        ...(selectedNodeData.emailConfig as EmailConfig), 
-                        message: value 
-                      });
-                    }}
-                    suggestions={getFieldSuggestions(selectedNode!)}
-                    className="bg-transparent font-['Inter:Regular',_sans-serif] font-normal h-[119px] leading-[normal] not-italic outline-none p-4 resize-none text-sm text-foreground w-full"
-                    placeholder="Workflow update: {{previousOutput}}"
-                    hintNoSuggestionsMessage={"No variables found"}
-                  />
-                </div>
-              </div>
-            </div>
-          ) : selectedNodeData.type === 'slack' ? (
-            <div className="mt-[20px] px-[20px] pb-[20px]">
-              <div className="mb-[12px]">
-                <h3 className="text-foreground text-lg font-bold mb-[4px]">
-                  Slack Configuration
-                </h3>
-                <p className="text-text-muted text-sm leading-relaxed">
-                  Configure Slack bot, channel, and message content
-                </p>
-              </div>
-
-              <div className="mb-[16px]">
-                <label className="block text-foreground-light font-medium mb-[8px]">
-                  Slack Bot
-                </label>
-                <select
-                  value={(selectedNodeData.slackConfig as SlackConfig | undefined)?.botId || ''}
-                  onChange={(e) => updateNodeConfig('slackConfig', {
-                    ...(selectedNodeData.slackConfig as SlackConfig),
-                    botId: e.target.value ? Number(e.target.value) : undefined
-                  })}
-                  className="w-full bg-background-extra-light border-border border-[0.5px] h-[32px] rounded-[8px] overflow-hidden px-[12px] text-[12px] text-foreground outline-none"
-                >
-                  <option value="">Select a bot</option>
-                  {slackBots.map((bot) => (
-                    <option key={bot.id} value={bot.id}>
-                      {bot.name} ({bot.teamName})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="mb-[16px]">
-                <label className="block text-foreground-light font-medium mb-[8px]">
-                  Channel
-                </label>
-                <input
-                  type="text"
-                  value={rawSlackChannelInput}
-                  onChange={(e) => {
-                    setRawSlackChannelInput(e.target.value);
-                    updateNodeConfig('slackConfig', { 
-                      ...(selectedNodeData.slackConfig as SlackConfig), 
-                      channel: e.target.value 
-                    });
-                  }}
-                  className="w-full bg-background-extra-light border-border border-[0.5px] h-[32px] rounded-[8px] overflow-hidden px-[12px] text-[12px] text-foreground placeholder-text-placeholder outline-none"
-                  placeholder="#general"
-                />
-              </div>
-
-              <div className="mb-[16px]">
-                <label className="block text-foreground-light font-medium mb-[8px]">
-                  Message
-                </label>
-                <div className="bg-background-extra-light mt-[4px] rounded">
-                  <TypeaheadTextarea
-                    value={rawSlackMessageInput}
-                    onChange={(value) => {
-                      setRawSlackMessageInput(value);
-                      updateNodeConfig('slackConfig', { 
-                        ...(selectedNodeData.slackConfig as SlackConfig), 
-                        message: value 
-                      });
-                    }}
-                    suggestions={getFieldSuggestions(selectedNode!)}
-                    className="bg-transparent font-['Inter:Regular',_sans-serif] font-normal h-[119px] leading-[normal] not-italic outline-none p-4 resize-none text-sm text-foreground w-full"
-                    placeholder="Workflow update: {{previousOutput}}"
-                    hintNoSuggestionsMessage={"No variables found"}
-                  />
-                </div>
-              </div>
-            </div>
-          ) : selectedNodeData.type === 'sms' ? (
-            <div className="mt-[20px] px-[20px] pb-[20px]">
-              <div className="mb-[12px]">
-                <h3 className="text-foreground text-lg font-bold mb-[4px]">
-                  SMS Configuration
-                </h3>
-                <p className="text-text-muted text-sm leading-relaxed">
-                  Configure SMS recipients and message content
-                </p>
-              </div>
-
-              <div className="mb-[16px]">
-                <label className="block text-foreground-light font-medium mb-[8px]">
-                  To (comma-separated, E.164 format)
-                </label>
-                <input
-                  type="text"
-                  value={rawSMSRecipientsInput}
-                  onChange={(e) => {
-                    setRawSMSRecipientsInput(e.target.value);
-                    const validPhones = processSMSRecipients(e.target.value);
-                    updateNodeConfig('smsConfig', {
-                      ...(selectedNodeData.smsConfig as SMSConfig),
-                      to: validPhones
-                    });
-                  }}
-                  className="w-full bg-background-extra-light border-border border-[0.5px] h-[32px] rounded-[8px] overflow-hidden px-[12px] text-[12px] text-foreground placeholder-text-placeholder outline-none"
-                  placeholder="+12345678900, +19876543210"
-                />
-                {smsWarning && (
-                  <p className="text-warning text-[11px] mt-[4px] px-[2px]">
-                    {smsWarning}
-                  </p>
-                )}
-              </div>
-
-              <div className="mb-[16px]">
-                <label className="block text-foreground-light font-medium mb-[8px]">
-                  Message
-                </label>
-                <div className="bg-background-extra-light mt-[4px] rounded">
-                  <TypeaheadTextarea
-                    value={rawSMSMessageInput}
-                    onChange={(value) => {
-                      setRawSMSMessageInput(value);
-                      updateNodeConfig('smsConfig', {
-                        ...(selectedNodeData.smsConfig as SMSConfig),
-                        message: value
-                      });
-                    }}
-                    suggestions={getFieldSuggestions(selectedNode!)}
-                    className="bg-transparent font-['Inter:Regular',_sans-serif] font-normal h-[119px] leading-[normal] not-italic outline-none p-4 resize-none text-sm text-foreground w-full"
-                    placeholder="Workflow update: {{previousOutput}}"
-                    hintNoSuggestionsMessage={"No variables found"}
-                  />
-                </div>
-                <p className="text-text-muted text-[10px] mt-[4px] px-[2px]">
-                  {rawSMSMessageInput.length}/160 chars ({Math.ceil(rawSMSMessageInput.length / 160) || 1} SMS)
-                </p>
-              </div>
-            </div>
+          ) : isIntegration(selectedNodeData.type) ? (
+            <IntegrationConfigForm
+              integrationId={selectedNodeData.type}
+              config={(() => {
+                const configKey = getIntegrationConfigKey(selectedNodeData.type);
+                return configKey ? (selectedNodeData[configKey] as Record<string, unknown>) || {} : {};
+              })()}
+              onChange={(newConfig) => {
+                const configKey = getIntegrationConfigKey(selectedNodeData.type);
+                if (configKey) {
+                  updateNodeConfig(configKey as NodeConfigKey, newConfig);
+                }
+              }}
+              variableSuggestions={getFieldSuggestions(selectedNode!)}
+              serverData={{ slackBots }}
+            />
           ) : !selectedNodeData && (
              <div className="mt-[20px] px-[20px] pb-[20px]">
                <p className="text-text-muted text-sm">Select a node to configure its properties</p>

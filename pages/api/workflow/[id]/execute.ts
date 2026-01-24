@@ -7,9 +7,16 @@ import { eq } from "drizzle-orm";
 
 import { chat } from "@/lib/openrouter";
 import { extractVariables } from "@/lib/variables-client";
+// Legacy imports - kept for backward compatibility
 import { sendWorkflowEmail } from "@/lib/email";
 import { sendSlackMessage } from "@/lib/slack";
 import { sendWorkflowSMS } from "@/lib/sms";
+// New integration system
+import { isIntegration, getIntegrationConfigKey } from "@/lib/integrations/registry";
+import { executeIntegration, buildExecutionOptions } from "@/lib/integrations/executor";
+// Logging system
+import { createIntegrationLogger } from "@/lib/integrations/logger";
+import type { LogEntry, IntegrationLogger } from "@/lib/integrations/types";
 
 export default async function handler(
   req: NextApiRequest,
@@ -122,18 +129,25 @@ export default async function handler(
       inputData: JSON.stringify(req.body.inputData || {}),
     }).returning();
 
-    const outputData = await executeWorkflow(workflowId, userId, req.body.inputData || {}, connections, nodes);
+    const result = await executeWorkflow(workflowId, userId, req.body.inputData || {}, connections, nodes, execution.id);
 
-    // Update execution status
+    // Serialize logs for storage (convert Date objects to ISO strings)
+    const serializedLogs = result.logs.map(log => ({
+      ...log,
+      timestamp: log.timestamp.toISOString(),
+    }));
+
+    // Update execution status with output data and logs
     await db.update(workflowExecutionsTable)
       .set({
         status: 'completed',
         completedAt: new Date(),
-        outputData: JSON.stringify(outputData),
+        outputData: JSON.stringify(result.outputData),
+        logs: JSON.stringify(serializedLogs),
       })
       .where(eq(workflowExecutionsTable.id, execution.id));
 
-    res.status(200).json({ success: true, executionId: execution.id, outputData });
+    res.status(200).json({ success: true, executionId: execution.id, outputData: result.outputData });
   } catch (error) {
     console.error('Workflow execution error:', error);
     res.status(500).json({ error: 'Failed to execute workflow' });
@@ -329,13 +343,19 @@ function validateNodesExist(nodes: WorkflowNode[], connections: WorkflowConnecti
   }
 }
 
+interface ExecutionResult {
+  outputData: Record<string, unknown>;
+  logs: LogEntry[];
+}
+
 async function executeWorkflow(
   workflowId: number,
   userId: string,
   inputData: Record<string, unknown>,
   connections: WorkflowConnection[],
-  nodes: WorkflowNode[]
-) {
+  nodes: WorkflowNode[],
+  executionId: number
+): Promise<ExecutionResult> {
   // Build graph structures for BFS traversal
   const { inDegree, adjacencyList, nodeMap } = buildGraphStructures(nodes, connections);
 
@@ -351,6 +371,18 @@ async function executeWorkflow(
   const readyQueue = [...rootNodes];
   const executed = new Set<string>();
   const outputData: Record<string, unknown> = {};
+
+  // Collect all log entries from the execution
+  const allLogs: LogEntry[] = [];
+
+  // Helper to create a logger for a node
+  const createNodeLogger = (nodeType: string, nodeId: string): IntegrationLogger => {
+    const logger = createIntegrationLogger(nodeType, nodeId, executionId.toString(), {
+      minLevel: 'debug',
+      consoleOutput: process.env.NODE_ENV !== 'production',
+    });
+    return logger;
+  };
 
   // Execute nodes in BFS order
   while (readyQueue.length > 0) {
@@ -371,9 +403,13 @@ async function executeWorkflow(
     // Parse config
     const config = JSON.parse(node.config || '{}');
 
+    // Create logger for this node
+    const nodeLogger = createNodeLogger(node.type, node.id);
+
     // Execute node based on type
     switch (node.type) {
       case 'entry':
+        nodeLogger.info(`Processing entry node`, { entryType: node.entryType, label: node.label });
         switch (node.entryType) {
           case 'api':
           case 'form':
@@ -382,17 +418,23 @@ async function executeWorkflow(
             // Also store individual fields for easier access
             if (inputData && typeof inputData === 'object') {
               Object.assign(outputData, inputData);
+              nodeLogger.debug(`Input fields captured`, { fieldCount: Object.keys(inputData).length, fields: Object.keys(inputData) });
             }
+            nodeLogger.info(`Entry data processed successfully`);
             break;
            default:
+             nodeLogger.warn(`Unknown entry type: ${node.entryType}`);
              break;
          }
+         allLogs.push(...nodeLogger.getEntries());
          break;
       case 'ai':
         const aiConfig = config.aiConfig || {};
+        nodeLogger.info(`Processing AI node`, { label: node.label, model: aiConfig.model || 'default' });
 
         // Collect available variables from connected nodes
         const availableVariables = collectAvailableVariables(node.id, connections, nodes, inputData, outputData);
+        nodeLogger.debug(`Variables collected`, { variableCount: Object.keys(availableVariables).length, variables: Object.keys(availableVariables) });
 
         // Substitute variables in system prompt
         const systemPrompt = aiConfig.systemPrompt
@@ -404,191 +446,77 @@ async function executeWorkflow(
           ? substituteVariables(aiConfig.userPrompt, availableVariables)
           : '';
 
-        console.log(`AI Node ${node.id} - Available variables:`, Object.keys(availableVariables));
-        console.log(`AI Node ${node.id} - Original system prompt:`, aiConfig.systemPrompt);
-        console.log(`AI Node ${node.id} - Processed system prompt:`, systemPrompt);
-        console.log(`AI Node ${node.id} - Original user prompt:`, aiConfig.userPrompt);
-        console.log(`AI Node ${node.id} - Processed user prompt:`, userPrompt);
+        nodeLogger.debug(`Prompts prepared`, {
+          systemPromptLength: systemPrompt.length,
+          userPromptLength: userPrompt.length
+        });
 
+        const endTimer = nodeLogger.startTimer('AI API call');
         const aiResponse = await chat(userPrompt, aiConfig.model, { systemPrompt });
+        endTimer();
 
         if ('error' in aiResponse && aiResponse.error) {
           outputData[node.id] = { error: aiResponse.error };
-          console.error('AI call error:', aiResponse.error);
+          nodeLogger.error(`AI call failed`, { error: aiResponse.error });
+          allLogs.push(...nodeLogger.getEntries());
           break;
         }
         outputData[node.id] = { response: aiResponse.text };
-        console.log('AI call response:', aiResponse.text);
+        nodeLogger.info(`AI response received`, { responseLength: aiResponse.text?.length || 0 });
+        allLogs.push(...nodeLogger.getEntries());
         break;
       case 'scheduler':
+        nodeLogger.info(`Processing scheduler node`, { label: node.label });
         // TODO: Implement scheduler call
+        nodeLogger.warn(`Scheduler node not yet implemented`);
+        allLogs.push(...nodeLogger.getEntries());
         break;
       case 'review':
+        nodeLogger.info(`Processing review node`, { label: node.label });
         // TODO: Implement review call
+        nodeLogger.warn(`Review node not yet implemented`);
+        allLogs.push(...nodeLogger.getEntries());
         break;
-      case 'slack':
-        const slackConfig = config.slackConfig || {};
+      // Handle all registered integrations through the unified executor
+      default:
+        if (isIntegration(node.type)) {
+          nodeLogger.info(`Processing ${node.type} integration`, { label: node.label });
+          const configKey = getIntegrationConfigKey(node.type);
+          const integrationConfig = configKey ? config[configKey] || {} : {};
 
-        // Collect available variables from connected nodes
-        const slackVariables = collectAvailableVariables(node.id, connections, nodes, inputData, outputData);
+          // Collect available variables from connected nodes
+          const integrationVariables = collectAvailableVariables(node.id, connections, nodes, inputData, outputData);
+          nodeLogger.debug(`Variables collected for integration`, { variableCount: Object.keys(integrationVariables).length });
 
-        console.log(`Slack Node ${node.id} - Available variables:`, Object.keys(slackVariables));
-        console.log(`Slack Node ${node.id} - Original message:`, slackConfig.message);
-        console.log(`Slack Node ${node.id} - Original channel:`, slackConfig.channel);
+          // Build execution options
+          const execOptions = buildExecutionOptions({
+            nodeType: node.type,
+            nodeConfig: integrationConfig,
+            userId,
+            executionId: executionId.toString(),
+            nodeId: node.id,
+            collectedVariables: integrationVariables,
+            db,
+          });
 
-        // Substitute variables in message
-        const slackMessage = slackConfig.message
-          ? substituteVariables(slackConfig.message, slackVariables)
-          : '';
+          // Execute the integration
+          const result = await executeIntegration(execOptions);
 
-        // Substitute variables in channel
-        const slackChannel = slackConfig.channel
-          ? substituteVariables(slackConfig.channel, slackVariables)
-          : '';
+          // Collect logs from the integration executor
+          const integrationLogs = result.logger.getEntries();
+          allLogs.push(...integrationLogs);
 
-        console.log(`Slack Node ${node.id} - Processed message:`, slackMessage);
-        console.log(`Slack Node ${node.id} - Processed channel:`, slackChannel);
-
-        try {
-          // Use specific bot from config if provided, otherwise find any bot for this user
-          let botToUse;
-
-          if (slackConfig.botId) {
-            const [specificBot] = await db
-              .select()
-              .from(slackBotsTable)
-              .where(eq(slackBotsTable.id, slackConfig.botId))
-              .limit(1);
-
-            if (!specificBot || specificBot.userId !== userId) {
-              outputData[node.id] = { error: 'Specified Slack bot not found or unauthorized' };
-              break;
-            }
-            botToUse = specificBot;
+          if (!result.success) {
+            outputData[node.id] = { error: result.error };
+            nodeLogger.error(`Integration ${node.type} failed`, { error: result.error });
           } else {
-            // Find any bot for this user
-            const [userBot] = await db
-              .select()
-              .from(slackBotsTable)
-              .where(eq(slackBotsTable.userId, userId))
-              .limit(1);
-
-            if (!userBot) {
-              outputData[node.id] = { error: 'No Slack bot configured for this user' };
-              break;
-            }
-            botToUse = userBot;
+            outputData[node.id] = { success: true, ...result.data };
+            nodeLogger.info(`Integration ${node.type} completed successfully`);
           }
-
-          const slackResponse = await sendSlackMessage(
-            { botId: botToUse.id, channel: slackChannel, message: slackMessage }
-          );
-
-          if (!slackResponse.success) {
-            outputData[node.id] = { error: slackResponse.error };
-            console.error('Slack call error:', slackResponse.error);
-            break;
-          }
-          outputData[node.id] = { success: true };
-        } catch (error) {
-          outputData[node.id] = { error: 'Failed to send Slack message' };
-          console.error('Slack call error:', error);
-        }
-        break;
-      case 'email':
-        const emailConfig = config.emailConfig || {};
-
-        // Collect available variables from connected nodes
-        const emailVariables = collectAvailableVariables(node.id, connections, nodes, inputData, outputData);
-
-        console.log(`Email Node ${node.id} - Available variables:`, Object.keys(emailVariables));
-        console.log(`Email Node ${node.id} - Original message:`, emailConfig.message);
-        console.log(`Email Node ${node.id} - Original subject:`, emailConfig.subject);
-
-        // Substitute variables in message
-        const emailMessage = emailConfig.message
-          ? substituteVariables(emailConfig.message, emailVariables)
-          : '';
-
-        // Substitute variables in subject
-        const emailSubject = emailConfig.subject
-          ? substituteVariables(emailConfig.subject, emailVariables)
-          : undefined;
-
-        // Substitute variables in from
-        const emailFrom = emailConfig.from
-          ? substituteVariables(emailConfig.from, emailVariables)
-          : undefined;
-
-        // Substitute variables in recipients array
-        const emailRecipients = emailConfig.to
-          ? emailConfig.to.map((recipient: string) => substituteVariables(recipient, emailVariables))
-          : [];
-
-        console.log(`Email Node ${node.id} - Processed message:`, emailMessage);
-        console.log(`Email Node ${node.id} - Processed subject:`, emailSubject);
-        console.log(`Email Node ${node.id} - Recipients:`, emailRecipients);
-
-        try {
-          const emailResponse = await sendWorkflowEmail(
-            {
-              to: emailRecipients,
-              subject: emailSubject,
-              message: emailMessage,
-              from: emailFrom
-            }
-          );
-
-          if (!emailResponse.success) {
-            outputData[node.id] = { error: emailResponse.error };
-            console.error('Email call error:', emailResponse.error);
-            break;
-          }
-          outputData[node.id] = { success: true };
-        } catch (error) {
-          outputData[node.id] = { error: 'Failed to send email' };
-          console.error('Email call error:', error);
-        }
-        break;
-      case 'sms':
-        const smsConfig = config.smsConfig || {};
-
-        // Collect available variables from connected nodes
-        const smsVariables = collectAvailableVariables(node.id, connections, nodes, inputData, outputData);
-
-        console.log(`SMS Node ${node.id} - Available variables:`, Object.keys(smsVariables));
-        console.log(`SMS Node ${node.id} - Original message:`, smsConfig.message);
-
-        // Substitute variables in message
-        const smsMessage = smsConfig.message
-          ? substituteVariables(smsConfig.message, smsVariables)
-          : '';
-
-        // Substitute variables in recipients array
-        const smsRecipients = smsConfig.to
-          ? smsConfig.to.map((recipient: string) => substituteVariables(recipient, smsVariables))
-          : [];
-
-        console.log(`SMS Node ${node.id} - Processed message:`, smsMessage);
-        console.log(`SMS Node ${node.id} - Recipients:`, smsRecipients);
-
-        try {
-          const smsResponse = await sendWorkflowSMS(
-            {
-              to: smsRecipients,
-              message: smsMessage
-            }
-          );
-
-          if (!smsResponse.success) {
-            outputData[node.id] = { error: smsResponse.error };
-            console.error('SMS call error:', smsResponse.error);
-            break;
-          }
-          outputData[node.id] = { success: true };
-        } catch (error) {
-          outputData[node.id] = { error: 'Failed to send SMS' };
-          console.error('SMS call error:', error);
+          allLogs.push(...nodeLogger.getEntries());
+        } else {
+          nodeLogger.warn(`Unknown node type: ${node.type}`);
+          allLogs.push(...nodeLogger.getEntries());
         }
         break;
     }
@@ -620,5 +548,8 @@ async function executeWorkflow(
     );
   }
 
-  return outputData;
+  // Sort logs by timestamp
+  allLogs.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+
+  return { outputData, logs: allLogs };
 }

@@ -89,6 +89,7 @@ export default async function handler(
       // Parse JSON data
       let inputData = null;
       let outputData = null;
+      let logs = null;
 
       try {
         inputData = execution.execution.inputData ? JSON.parse(execution.execution.inputData) : null;
@@ -102,6 +103,14 @@ export default async function handler(
         console.warn('Failed to parse outputData for execution', executionId, e);
       }
 
+      try {
+        // Parse logs - the logs column stores JSON array of LogEntry objects
+        // @ts-expect-error - logs column is dynamically added
+        logs = execution.execution.logs ? JSON.parse(execution.execution.logs) : null;
+      } catch (e) {
+        console.warn('Failed to parse logs for execution', executionId, e);
+      }
+
       return res.status(200).json({
         success: true,
         execution: {
@@ -110,6 +119,7 @@ export default async function handler(
           status: execution.execution.status,
           inputData,
           outputData,
+          logs,
           error: execution.execution.error,
           startedAt: execution.execution.startedAt,
           completedAt: execution.execution.completedAt,
