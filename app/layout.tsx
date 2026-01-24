@@ -4,6 +4,7 @@ import "./globals.css";
 import { Footer } from "@/components/Footer";
 import { GoogleAnalytics } from '@next/third-parties/google'
 import { VemetricScript } from '@vemetric/react';
+import Script from 'next/script';
 import { ThemeProvider } from "@/lib/theme-context";
 
 const geistSans = Geist({
@@ -78,6 +79,10 @@ export default function RootLayout({
       </body>
 
       <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID!} />
+      <Script
+        src="//code.tidio.co/qfp6hlzegcbsjrwby6jjkdgmftsq71se.js"
+        strategy="lazyOnload"
+      />
     </html>
   );
 }
