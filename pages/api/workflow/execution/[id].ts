@@ -104,8 +104,6 @@ export default async function handler(
       }
 
       try {
-        // Parse logs - the logs column stores JSON array of LogEntry objects
-        // @ts-expect-error - logs column is dynamically added
         logs = execution.execution.logs ? JSON.parse(execution.execution.logs) : null;
       } catch (e) {
         console.warn('Failed to parse logs for execution', executionId, e);
