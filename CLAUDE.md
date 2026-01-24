@@ -51,10 +51,24 @@ This is a Next.js application (Pages Router) that implements **ZeitFlow** - a vi
   - `email` - Email notifications via Resend
   - `slack` - Slack messaging via Slack Web API
   - `sms` - SMS/text messaging via Twilio
-- **Workflow Execution**: Track execution state through `workflow_executions` table
+- **Workflow Execution**: Track execution state through `workflow_executions` table with structured logging
+- **Execution Logs**: Persisted in `logs` JSON column, viewable in execution details UI
 - **YAML Parsing**: AI can generate workflows from natural language via `lib/workflow-parser.ts`
 
-#### 3. Blog System
+#### 3. Integration System (`lib/integrations/`)
+Plugin-based architecture for workflow node integrations:
+- **Registry** (`registry.ts`): Central registry for all integrations
+- **Definitions** (`definitions/`): Individual integration configs (email, slack, sms)
+- **Executors** (`executors/`): Execution logic for each integration
+- **Logger** (`logger.ts`): Structured logging with `createIntegrationLogger()`
+- **Types** (`types.ts`): `IntegrationDefinition`, `ExecutionContext`, `LogEntry`
+
+To add a new integration:
+1. Create definition in `lib/integrations/definitions/`
+2. Create executor in `lib/integrations/executors/`
+3. Register in `lib/integrations/registry.ts`
+
+#### 4. Blog System
 - **MDX Rendering**: Uses `next-mdx-remote` for blog content with custom components
 - **Image Optimization**: Next.js Image with automatic dimension extraction and blur placeholders
 - **Asset Management**: Centralized media storage via Vercel Blob, metadata in `assets` table
@@ -77,7 +91,7 @@ This is a Next.js application (Pages Router) that implements **ZeitFlow** - a vi
 - `workflows` - Workflow definitions (status: draft/published/archived)
 - `workflow_nodes` - Visual nodes with type, position, config (JSON)
 - `workflow_connections` - Edges between nodes
-- `workflow_executions` - Execution history with status tracking
+- `workflow_executions` - Execution history with status, logs (JSON array of LogEntry)
 
 **Chat System**:
 - `chat_threads` - Conversation grouping
@@ -135,6 +149,8 @@ This is a Next.js application (Pages Router) that implements **ZeitFlow** - a vi
 **Key Components**:
 - `components/WorkflowBuilderReactFlow.tsx` - Main workflow editor
 - `components/reactflow-nodes/*` - Individual node type components
+- `components/IntegrationConfigForm.tsx` - Auto-generated config forms for integrations
+- `components/ExecutionLogViewer.tsx` - Structured log display with filtering
 - `components/TypeaheadTextarea.tsx` - Variable reference autocomplete
 - `lib/workflow-parser.ts` - Parse YAML workflow syntax from AI
 - `lib/reactflow-types.ts` - Convert between NodeData and React Flow types
@@ -214,13 +230,14 @@ Optional integrations:
 1. User creates workflow via visual builder
 2. Workflow saved as nodes + connections in database
 3. Execution triggered → creates `workflow_executions` record
-4. System traverses node graph:
+4. System traverses node graph (BFS with topological ordering):
    - Entry nodes collect initial data
    - AI nodes call OpenRouter with previous outputs as context
-   - Scheduler nodes interact with Google Calendar
-   - Review nodes pause for manual approval
-   - Email/Slack nodes send notifications
-5. Status tracked through execution lifecycle (pending → running → completed/failed)
+   - Integration nodes (email/slack/sms) execute via unified executor
+   - Each node logs to structured `LogEntry[]` with timestamps, levels, data
+5. Logs aggregated and persisted to `workflow_executions.logs`
+6. Status tracked through execution lifecycle (pending → running → completed/failed)
+7. Execution details page displays logs with level filtering (debug hidden by default)
 
 ### Chain Processing Flow (Legacy)
 
