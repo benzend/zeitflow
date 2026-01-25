@@ -1004,7 +1004,7 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
             <div className="p-2 border-b border-border">
               <p className="text-text-muted text-xs">Add node</p>
             </div>
-            {NODE_TYPE_OPTIONS.map((option) => (
+            {NODE_TYPE_OPTIONS.filter(opt => opt.value !== 'entry').map((option) => (
               <button
                 key={option.value}
                 onClick={(e) => {

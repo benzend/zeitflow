@@ -48,7 +48,7 @@ export default function WorkflowBuilderPage() {
 
       if (data.success) {
         setWorkflow(data.workflow);
-        
+
         // Parse nodes from database format
         const parsedNodes = data.nodes.map((node: {
           id: string;
@@ -130,7 +130,7 @@ export default function WorkflowBuilderPage() {
         setNodes(updatedNodes);
         setConnections(updatedConnections);
         setLastSaved(new Date());
-        
+
         // Update original and current state to reflect saved changes
         originalNodes.current = [...updatedNodes];
         originalConnections.current = [...updatedConnections];
@@ -174,7 +174,7 @@ export default function WorkflowBuilderPage() {
 
   // Debounced change detection
   const debouncedCheckForChanges = useRef<NodeJS.Timeout | null>(null);
-  
+
   const triggerChangeCheck = useCallback(() => {
     if (debouncedCheckForChanges.current) {
       clearTimeout(debouncedCheckForChanges.current);
@@ -274,10 +274,10 @@ export default function WorkflowBuilderPage() {
             onClick={() => {
               if (hasUnsavedChanges) {
                 if (confirm('You have unsaved changes. Are you sure you want to leave?')) {
-                  router.push(`/workflow/${workflow?.id}`);
+                  router.push('/workflows');
                 }
               } else {
-                router.push(`/workflow/${workflow?.id}`);
+                router.push('/workflows');
               }
             }}
             className="!bg-transparent !p-0 hover:text-primary transition-colors"
@@ -300,10 +300,10 @@ export default function WorkflowBuilderPage() {
                 onClick={() => {
                   if (hasUnsavedChanges) {
                     if (confirm('You have unsaved changes. Are you sure you want to leave?')) {
-                      router.push(`/workflow/${workflow?.id}`);
+                      router.push(`/workflow/${workflow?.id}/history`);
                     }
                   } else {
-                    router.push(`/workflow/${workflow?.id}`);
+                    router.push(`/workflow/${workflow?.id}/history`);
                   }
                 }}
               >
@@ -332,13 +332,13 @@ export default function WorkflowBuilderPage() {
             )}
             <div className="flex items-center gap-2 w-20">
               <div className={`w-2 h-2 rounded-full ${
-                saving ? 'bg-warning' : 
-                hasUnsavedChanges ? 'bg-warning' : 
+                saving ? 'bg-warning' :
+                hasUnsavedChanges ? 'bg-warning' :
                 'bg-success'
               }`} />
               <span className="text-sm text-foreground">
-                {saving ? 'Saving...' : 
-                 hasUnsavedChanges ? 'Unsaved' : 
+                {saving ? 'Saving...' :
+                 hasUnsavedChanges ? 'Unsaved' :
                  'Saved'}
               </span>
             </div>

@@ -361,13 +361,13 @@ export default function WorkflowExecutionPage() {
           </div>
              <div className="flex gap-4">
                <Button
-                 href={`/workflow/${workflow?.id}`}
+                 href={`/workflow/${workflow?.id}/history`}
                  variant="secondary"
                >
-                 View Stats
+                 History
                </Button>
                <Button
-                 href={`/workflow/${workflow?.id}/edit`}
+                 href={`/workflow/${workflow?.id}`}
                  variant="primary"
                >
                  Edit Workflow

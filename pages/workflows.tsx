@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
-import { Plus, Workflow as WorkflowIcon, Settings, Play, Trash2 } from 'lucide-react';
+import { Plus, Workflow as WorkflowIcon, History, Play, Trash2 } from 'lucide-react';
 import { Button } from "@/components/Button";
 import ProfileDropdown from "@/components/ProfileDropdown";
 import SubscriptionCard from "@/components/SubscriptionCard";
@@ -69,12 +69,12 @@ const WorkflowCard = ({ workflow, onDelete }: { workflow: Workflow; onDelete: (i
       <div className="flex justify-between items-center p-4 border-t border-primary/10">
         <div className="flex gap-2">
           <Button
-            href={`/workflow/${workflow.id}/edit`}
+            href={`/workflow/${workflow.id}/history`}
             variant="tertiary"
             size="sm"
           >
-            <Settings size={14} />
-            Edit
+            <History size={14} />
+            History
           </Button>
           <Button variant="primary" size="sm" href={`/workflow/${workflow.id}/execution`}>
             <Play size={14} />
@@ -184,7 +184,7 @@ export default function Workflows() {
         setShowCreateModal(false);
         setNewWorkflowName("");
         setNewWorkflowDescription("");
-        router.push(`/workflow/${data.workflow.id}/edit`);
+        router.push(`/workflow/${data.workflow.id}`);
       } else {
         setError(data.message || "Failed to create workflow");
       }

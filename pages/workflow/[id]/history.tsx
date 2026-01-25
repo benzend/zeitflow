@@ -186,7 +186,7 @@ export default function WorkflowStatsPage() {
               Run
             </Button>
             <Button
-              href={`/workflow/${workflow?.id}/edit`}
+              href={`/workflow/${workflow?.id}`}
               variant="primary"
               className="flex items-center gap-2"
             >
