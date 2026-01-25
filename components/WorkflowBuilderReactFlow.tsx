@@ -993,19 +993,23 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
               left: connectionDropdownPosition.x,
               top: connectionDropdownPosition.y,
             }}
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
           >
             <div className="p-2 border-b border-border">
               <p className="text-text-muted text-xs">Add node</p>
             </div>
             {NODE_TYPE_OPTIONS.map((option) => (
-              <Button
+              <button
                 key={option.value}
-                onClick={() => addNodeFromConnection(option.value as NodeType)}
-                variant="tertiary"
-                className="!bg-transparent w-full !p-2 text-foreground hover:!bg-surface-hover text-sm transition-colors text-left rounded-none"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  addNodeFromConnection(option.value as NodeType);
+                }}
+                className="bg-transparent w-full p-2 text-foreground hover:bg-surface-hover text-sm transition-colors text-left"
               >
                 {option.label}
-              </Button>
+              </button>
             ))}
           </div>
         )}
