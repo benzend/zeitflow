@@ -40,9 +40,11 @@ import TelegramNode from './reactflow-nodes/TelegramNode';
 import Dropdown, { DropdownOption } from './Dropdown';
 import IntegrationConfigForm from './IntegrationConfigForm';
 import { isIntegration, getIntegrationConfigKey } from '@/lib/integrations/registry';
+import ExecuteWorkflowModal from './ExecuteWorkflowModal';
 
 interface WorkflowBuilderProps {
   workflowId?: number;
+  workflowName?: string;
   initialNodes?: NodeData[];
   initialConnections?: WorkflowConnection[];
   onSave?: (nodes: NodeData[], connections: WorkflowConnection[]) => void;
@@ -258,6 +260,7 @@ const NODE_TYPE_OPTIONS: DropdownOption[] = [
 // Wrapper component to provide React Flow context
 const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps>(({
   workflowId,
+  workflowName,
   initialNodes = [],
   initialConnections = [],
   onSave,
@@ -291,8 +294,49 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
   const [showAddDropdown, setShowAddDropdown] = useState(false);
   const [slackBots, setSlackBots] = useState<{ id: number; name: string; teamName: string }[]>([]);
   const previousSelectedNode = useRef<string | null>(null);
+  const [executeModalOpen, setExecuteModalOpen] = useState(false);
+  const [executeEntryNodeId, setExecuteEntryNodeId] = useState<string | null>(null);
 
   const { screenToFlowPosition } = useReactFlow();
+
+  // Handle run click from entry nodes
+  const handleRunFromEntry = useCallback((nodeId: string) => {
+    if (!workflowId) {
+      toast.error('Save the workflow first to execute it');
+      return;
+    }
+    setExecuteEntryNodeId(nodeId);
+    setExecuteModalOpen(true);
+  }, [workflowId]);
+
+  // Get entry node data for the modal
+  const getEntryNodeForModal = useCallback(() => {
+    if (!executeEntryNodeId) return null;
+    const node = nodes.find(n => n.id === executeEntryNodeId);
+    if (!node || node.type !== 'entry') return null;
+    return {
+      id: node.data.id as string,
+      label: node.data.label as string,
+      entryType: node.data.entryType as string | undefined,
+      fields: node.data.fields as Field[] | undefined,
+    };
+  }, [executeEntryNodeId, nodes]);
+
+  // Transform nodes to inject the run callback into entry nodes
+  const nodesWithCallbacks = useMemo(() => {
+    return nodes.map(node => {
+      if (node.type === 'entry') {
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            onRunClick: handleRunFromEntry,
+          },
+        };
+      }
+      return node;
+    });
+  }, [nodes, handleRunFromEntry]);
 
   // Fetch Slack bots on component mount
   useEffect(() => {
@@ -805,7 +849,7 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
       {/* Main Canvas */}
       <div className="flex-1 relative">
         <ReactFlow
-          nodes={nodes}
+          nodes={nodesWithCallbacks}
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
@@ -1458,6 +1502,20 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
         </div>
       </div>
       ) : null}
+
+      {/* Execute Workflow Modal */}
+      {workflowId && executeModalOpen && getEntryNodeForModal() && (
+        <ExecuteWorkflowModal
+          isOpen={executeModalOpen}
+          onClose={() => {
+            setExecuteModalOpen(false);
+            setExecuteEntryNodeId(null);
+          }}
+          workflowId={workflowId}
+          workflowName={workflowName || 'Workflow'}
+          entryNode={getEntryNodeForModal()!}
+        />
+      )}
     </div>
   );
 });

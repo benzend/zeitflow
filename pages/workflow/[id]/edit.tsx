@@ -352,6 +352,7 @@ export default function WorkflowBuilderPage() {
         <WorkflowBuilderReactFlow
           ref={workflowBuilderRef}
           workflowId={id ? parseInt(id as string, 10) : undefined}
+          workflowName={workflow?.name}
           initialNodes={nodes}
           initialConnections={connections}
           onSave={handleSave}

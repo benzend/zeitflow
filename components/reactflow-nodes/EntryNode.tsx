@@ -1,9 +1,12 @@
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import { Handle, Position } from '@xyflow/react';
+import { Play } from 'lucide-react';
 import { ReactFlowNodeData } from '@/lib/reactflow-types';
 
 interface EntryNodeProps {
-  data: ReactFlowNodeData;
+  data: ReactFlowNodeData & {
+    onRunClick?: (nodeId: string) => void;
+  };
   selected: boolean;
 }
 
@@ -25,10 +28,29 @@ const getEntryTypeLabel = (entryType: string) => {
 };
 
 const EntryNode = memo(({ data, selected }: EntryNodeProps) => {
+  const [isHovered, setIsHovered] = useState(false);
   const color = selected ? 'var(--success)' : 'var(--foreground)';
 
   return (
-    <div className={`px-3 py-2 bg-background-light border rounded-lg ${selected ? 'border-success' : 'border-border'} min-w-[98px]`}>
+    <div
+      className={`px-3 py-2 bg-background-light border rounded-lg ${selected ? 'border-success' : 'border-border'} min-w-[98px] relative`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {isHovered && data.onRunClick && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            data.onRunClick!(data.id);
+          }}
+          className="absolute -top-2 -right-2 w-6 h-6 bg-success rounded-full
+                     flex items-center justify-center shadow-md
+                     hover:bg-success/80 transition-colors z-10"
+          title="Run workflow from this entry point"
+        >
+          <Play size={12} fill="currentColor" className="text-background ml-0.5" />
+        </button>
+      )}
       <Handle type="source" position={Position.Right} />
 
       <div className="flex items-center gap-2">
