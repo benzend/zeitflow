@@ -471,9 +471,12 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
       telegram: 'Telegram',
     };
 
+    // Generate ONE ID for both React Flow node and node data
+    const nodeId = generateNodeId();
+
     // Build node data using registry
     const nodeData: Record<string, unknown> = {
-      id: generateNodeId(),
+      id: nodeId,
       type,
       label: labelMap[type],
     };
@@ -491,9 +494,8 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
       nodeData[configKey] = defaultConfig;
     }
 
-    const newNodeId = generateNodeId();
     const newNode = {
-      id: newNodeId,
+      id: nodeId,
       type,
       position: flowPosition,
       data: nodeData as ReactFlowNodeData,
@@ -504,16 +506,16 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
 
     // Create edge from source node to new node
     const newEdge = {
-      id: `${connectStartNodeId.current}-${newNodeId}`,
+      id: `${connectStartNodeId.current}-${nodeId}`,
       source: connectStartNodeId.current,
-      target: newNodeId,
+      target: nodeId,
       type: 'smoothstep',
       markerEnd: { type: 'arrowclosed' as const, color: '#a3e635' }
     };
     setEdges((eds) => [...eds, newEdge]);
 
     // Select the new node
-    setSelectedNode(newNodeId);
+    setSelectedNode(nodeId);
 
     // Clean up
     setShowConnectionDropdown(false);
@@ -567,9 +569,12 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
       telegram: 'Telegram',
     };
 
+    // Generate ONE ID for both React Flow node and node data
+    const nodeId = generateNodeId();
+
     // Build node data using registry
     const nodeData: Record<string, unknown> = {
-      id: generateNodeId(),
+      id: nodeId,
       type,
       label: labelMap[type],
     };
@@ -588,14 +593,14 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
     }
 
     const newNode = {
-      id: generateNodeId(),
+      id: nodeId,
       type,
       position: centerPosition,
       data: nodeData as ReactFlowNodeData,
     };
 
     setNodes((nds) => [...nds, newNode]);
-    setSelectedNode(newNode.id);
+    setSelectedNode(nodeId);
   }, [setNodes, screenToFlowPosition]);
 
   // Remove selected node
