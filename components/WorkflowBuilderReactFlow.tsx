@@ -10,7 +10,9 @@ import {
   BackgroundVariant,
   NodeTypes,
   useReactFlow,
-  ReactFlowProvider
+  ReactFlowProvider,
+  OnConnectStart,
+  OnConnectEnd
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
@@ -297,6 +299,12 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
   const [executeModalOpen, setExecuteModalOpen] = useState(false);
   const [executeEntryNodeId, setExecuteEntryNodeId] = useState<string | null>(null);
 
+  // State for connection drag-to-add-node feature
+  const connectStartNodeId = useRef<string | null>(null);
+  const [showConnectionDropdown, setShowConnectionDropdown] = useState(false);
+  const [connectionDropdownPosition, setConnectionDropdownPosition] = useState<{ x: number; y: number } | null>(null);
+  const connectionDropdownJustOpened = useRef(false);
+
   const { screenToFlowPosition } = useReactFlow();
 
   // Handle run click from entry nodes
@@ -415,6 +423,104 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
     [setEdges]
   );
 
+  // Track when a connection drag starts
+  const onConnectStart: OnConnectStart = useCallback((_event, { nodeId }) => {
+    connectStartNodeId.current = nodeId ?? null;
+  }, []);
+
+  // Handle when a connection drag ends (possibly on empty space)
+  const onConnectEnd: OnConnectEnd = useCallback(
+    (event, connectionState) => {
+      if (!connectStartNodeId.current) return;
+
+      // Check if the connection was NOT completed (dropped on empty space)
+      if (!connectionState.toHandle) {
+        const clientX = 'clientX' in event ? event.clientX : (event as TouchEvent).touches?.[0]?.clientX;
+        const clientY = 'clientY' in event ? event.clientY : (event as TouchEvent).touches?.[0]?.clientY;
+
+        if (clientX !== undefined && clientY !== undefined) {
+          setConnectionDropdownPosition({ x: clientX, y: clientY });
+          setShowConnectionDropdown(true);
+          connectionDropdownJustOpened.current = true;
+        }
+      } else {
+        connectStartNodeId.current = null;
+      }
+    },
+    []
+  );
+
+  // Add node from connection drag and create edge
+  const addNodeFromConnection = useCallback((type: NodeType) => {
+    if (!connectionDropdownPosition || !connectStartNodeId.current) return;
+
+    const flowPosition = screenToFlowPosition({
+      x: connectionDropdownPosition.x,
+      y: connectionDropdownPosition.y
+    });
+
+    // Get label for node type
+    const labelMap: Record<NodeType, string> = {
+      entry: 'Entry',
+      ai: 'AI Model',
+      scheduler: 'Scheduler',
+      review: 'Review',
+      email: 'Email',
+      slack: 'Slack',
+      sms: 'SMS',
+      telegram: 'Telegram',
+    };
+
+    // Build node data using registry
+    const nodeData: Record<string, unknown> = {
+      id: generateNodeId(),
+      type,
+      label: labelMap[type],
+    };
+
+    // Add entry-specific fields
+    if (type === 'entry') {
+      nodeData.fields = [];
+      nodeData.entryType = 'api';
+    }
+
+    // Add config from registry
+    const configKey = NODE_CONFIGS[type].configKey;
+    const defaultConfig = getDefaultConfig(type);
+    if (configKey && defaultConfig) {
+      nodeData[configKey] = defaultConfig;
+    }
+
+    const newNodeId = generateNodeId();
+    const newNode = {
+      id: newNodeId,
+      type,
+      position: flowPosition,
+      data: nodeData as ReactFlowNodeData,
+    };
+
+    // Add the node
+    setNodes((nds) => [...nds, newNode]);
+
+    // Create edge from source node to new node
+    const newEdge = {
+      id: `${connectStartNodeId.current}-${newNodeId}`,
+      source: connectStartNodeId.current,
+      target: newNodeId,
+      type: 'smoothstep',
+      markerEnd: { type: 'arrowclosed' as const, color: '#a3e635' }
+    };
+    setEdges((eds) => [...eds, newEdge]);
+
+    // Select the new node
+    setSelectedNode(newNodeId);
+
+    // Clean up
+    setShowConnectionDropdown(false);
+    setConnectionDropdownPosition(null);
+    connectStartNodeId.current = null;
+  }, [connectionDropdownPosition, screenToFlowPosition, setNodes, setEdges]);
+
   // Handle node selection
   const onNodeClick = useCallback((_event: React.MouseEvent, node: { id: string }) => {
     setSelectedNode(node.id);
@@ -427,8 +533,17 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
 
   // Handle canvas click (deselect)
   const onPaneClick = useCallback(() => {
+    // Skip closing if the dropdown was just opened (from connection drag)
+    if (connectionDropdownJustOpened.current) {
+      connectionDropdownJustOpened.current = false;
+      return;
+    }
+
     setSelectedNode(null);
     setShowAddDropdown(false);
+    setShowConnectionDropdown(false);
+    setConnectionDropdownPosition(null);
+    connectStartNodeId.current = null;
     setEmailWarning('');
     setSmsWarning('');
   }, []);
@@ -854,6 +969,8 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
+          onConnectStart={onConnectStart}
+          onConnectEnd={onConnectEnd}
           onNodeClick={onNodeClick}
           onPaneClick={onPaneClick}
           nodeTypes={nodeTypes}
@@ -867,6 +984,31 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
             color="var(--border)"
           />
         </ReactFlow>
+
+        {/* Connection drop-to-add-node dropdown */}
+        {showConnectionDropdown && connectionDropdownPosition && (
+          <div
+            className="fixed bg-surface border border-border rounded shadow-lg z-50 min-w-[120px]"
+            style={{
+              left: connectionDropdownPosition.x,
+              top: connectionDropdownPosition.y,
+            }}
+          >
+            <div className="p-2 border-b border-border">
+              <p className="text-text-muted text-xs">Add node</p>
+            </div>
+            {NODE_TYPE_OPTIONS.map((option) => (
+              <Button
+                key={option.value}
+                onClick={() => addNodeFromConnection(option.value as NodeType)}
+                variant="tertiary"
+                className="!bg-transparent w-full !p-2 text-foreground hover:!bg-surface-hover text-sm transition-colors text-left rounded-none"
+              >
+                {option.label}
+              </Button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Right Sidebar - Properties Panel */}
