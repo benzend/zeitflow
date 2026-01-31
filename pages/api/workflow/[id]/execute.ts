@@ -43,7 +43,7 @@ export default async function handler(
   // Map database nodes to WorkflowNode interface
   const nodes: WorkflowNode[] = dbNodes.map(node => ({
     id: node.id,
-    type: node.type as 'entry' | 'ai' | 'scheduler' | 'review' | 'slack' | 'email' | 'sms' | 'telegram',
+    type: node.type as 'entry' | 'ai' | 'scheduler' | 'review' | 'slack' | 'email' | 'sms' | 'telegram' | 'condition',
     label: node.label,
     entryType: node.entryType || undefined,
     config: node.config || undefined,
@@ -145,6 +145,8 @@ export default async function handler(
       id: conn.id.toString(),
       fromNodeId: conn.fromNodeId,
       toNodeId: conn.toNodeId,
+      sourceHandle: conn.sourceHandle,
+      targetHandle: conn.targetHandle,
     }));
 
     // Extract entryNodeId from request body
@@ -187,11 +189,13 @@ interface WorkflowConnection {
   id: string;
   fromNodeId: string;
   toNodeId: string;
+  sourceHandle?: string | null;
+  targetHandle?: string | null;
 }
 
 interface WorkflowNode {
   id: string;
-  type: 'entry' | 'ai' | 'scheduler' | 'review' | 'slack' | 'email' | 'sms' | 'telegram';
+  type: 'entry' | 'ai' | 'scheduler' | 'review' | 'slack' | 'email' | 'sms' | 'telegram' | 'condition';
   label: string;
   entryType?: string;
   config?: string;
@@ -339,7 +343,7 @@ function substituteVariables(prompt: string, variables: Record<string, unknown>)
  */
 function buildGraphStructures(nodes: WorkflowNode[], connections: WorkflowConnection[]) {
   const inDegree = new Map<string, number>();
-  const adjacencyList = new Map<string, string[]>();
+  const adjacencyList = new Map<string, WorkflowConnection[]>();
   const nodeMap = new Map<string, WorkflowNode>();
 
   // Initialize all nodes with in-degree 0 and empty adjacency list
@@ -349,10 +353,10 @@ function buildGraphStructures(nodes: WorkflowNode[], connections: WorkflowConnec
     nodeMap.set(node.id, node);
   }
 
-  // Build in-degree counts and adjacency lists
+  // Build in-degree counts and adjacency lists (store full connection objects)
   for (const conn of connections) {
     inDegree.set(conn.toNodeId, (inDegree.get(conn.toNodeId) || 0) + 1);
-    adjacencyList.get(conn.fromNodeId)?.push(conn.toNodeId);
+    adjacencyList.get(conn.fromNodeId)?.push(conn);
   }
 
   return { inDegree, adjacencyList, nodeMap };
@@ -638,8 +642,28 @@ async function executeWorkflow(
     }
 
     // Update successors and add ready ones to queue
-    const successors = adjacencyList.get(currentNodeId) || [];
-    for (const successorId of successors) {
+    const allSuccessorConnections = adjacencyList.get(currentNodeId) || [];
+
+    // Filter connections based on condition node output
+    let successorConnections = allSuccessorConnections;
+    if (node.type === 'condition') {
+      const conditionOutput = outputData[node.id] as { path?: string };
+      const selectedPath = conditionOutput?.path;
+
+      if (selectedPath) {
+        // Only follow connections matching the condition result
+        successorConnections = allSuccessorConnections.filter(conn => {
+          // If no sourceHandle specified, follow it (backward compatibility)
+          // Otherwise, only follow if sourceHandle matches the condition path
+          return !conn.sourceHandle || conn.sourceHandle === selectedPath;
+        });
+
+        nodeLogger.info(`Condition evaluated to ${selectedPath}, following ${successorConnections.length} of ${allSuccessorConnections.length} paths`);
+      }
+    }
+
+    for (const conn of successorConnections) {
+      const successorId = conn.toNodeId;
       const newDegree = (inDegree.get(successorId) || 0) - 1;
       inDegree.set(successorId, newDegree);
 

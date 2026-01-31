@@ -182,6 +182,7 @@ export const INTEGRATION_CONFIG_KEYS = {
   slack: 'slackConfig',
   sms: 'smsConfig',
   telegram: 'telegramConfig',
+  condition: 'conditionConfig',
 } as const;
 
 export type IntegrationId = keyof typeof INTEGRATION_CONFIG_KEYS;

@@ -54,9 +54,15 @@ export interface TelegramConfig {
   botToken?: string; // Optional override for system TELEGRAM_BOT_TOKEN
 }
 
+export interface ConditionConfig {
+  leftValue: string;
+  operator: 'equals' | 'not_equals' | 'contains' | 'not_contains' | 'greater_than' | 'less_than' | 'is_empty' | 'is_not_empty';
+  rightValue: string;
+}
+
 export interface NodeData {
   id: string;
-  type: 'entry' | 'ai' | 'scheduler' | 'review' | 'slack' | 'email' | 'sms' | 'telegram';
+  type: 'entry' | 'ai' | 'scheduler' | 'review' | 'slack' | 'email' | 'sms' | 'telegram' | 'condition';
   x: number;
   y: number;
   label: string;
@@ -69,9 +75,12 @@ export interface NodeData {
   slackConfig?: SlackConfig;
   smsConfig?: SMSConfig;
   telegramConfig?: TelegramConfig;
+  conditionConfig?: ConditionConfig;
 }
 
 export interface Connection {
   from: string;
   to: string;
+  sourceHandle?: string;
+  targetHandle?: string;
 }

@@ -57,6 +57,8 @@ export const convertToReactFlow = (
       id: `${conn.from}-${conn.to}-${index}`,
       source: conn.from,
       target: conn.to,
+      sourceHandle: conn.sourceHandle,
+      targetHandle: conn.targetHandle,
       type: 'smoothstep'
     }))
   };
@@ -95,7 +97,9 @@ export const convertFromReactFlow = (
     }),
     connections: edges.map(edge => ({
       from: edge.source,
-      to: edge.target
+      to: edge.target,
+      sourceHandle: edge.sourceHandle,
+      targetHandle: edge.targetHandle
     }))
   };
 };

@@ -275,6 +275,8 @@ export const workflowConnectionsTable = pgTable("workflow_connections", {
   toNodeId: text("to_node_id")
     .notNull()
     .references(() => workflowNodesTable.id, { onDelete: "cascade" }),
+  sourceHandle: text("source_handle"),
+  targetHandle: text("target_handle"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

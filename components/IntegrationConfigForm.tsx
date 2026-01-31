@@ -9,6 +9,9 @@ import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import TypeaheadTextarea from './TypeaheadTextarea';
 import { getIntegrationUIMetadata, IntegrationUIMetadata } from '@/lib/integrations/registry';
 import { FieldUIConfig } from '@/lib/integrations/types';
+import ConditionConfigPreview from './ConditionConfigPreview';
+import ConditionTestPanel from './ConditionTestPanel';
+import { ConditionConfig } from '@/lib/integrations/definitions/condition';
 
 interface IntegrationConfigFormProps {
   /** Integration ID (e.g., 'email', 'slack', 'sms') */
@@ -388,6 +391,11 @@ export default function IntegrationConfigForm({
         <p className="text-text-muted text-sm leading-relaxed">{description}</p>
       </div>
 
+      {/* Special preview for condition nodes */}
+      {integrationId === 'condition' && (
+        <ConditionConfigPreview config={config as Partial<ConditionConfig>} />
+      )}
+
       {fields.map(([fieldKey, fieldConfig]) => (
         <FieldRenderer
           key={fieldKey}
@@ -403,6 +411,11 @@ export default function IntegrationConfigForm({
           }
         />
       ))}
+
+      {/* Special test panel for condition nodes */}
+      {integrationId === 'condition' && (
+        <ConditionTestPanel config={config as Partial<ConditionConfig>} />
+      )}
     </div>
   );
 }

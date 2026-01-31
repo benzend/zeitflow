@@ -5,7 +5,7 @@
  * Adding a new node type? Just add it here and most serialization/comparison happens automatically!
  */
 
-import { AINodeConfig, SchedulerConfig, ReviewConfig, EmailConfig, SlackConfig, SMSConfig, TelegramConfig } from './workflow-types';
+import { AINodeConfig, SchedulerConfig, ReviewConfig, EmailConfig, SlackConfig, SMSConfig, TelegramConfig, ConditionConfig } from './workflow-types';
 
 /**
  * Node configuration registry
@@ -75,6 +75,14 @@ export const NODE_CONFIGS = {
       message: 'Workflow update: {{previousOutput}}',
       botToken: ''
     } as TelegramConfig,
+  },
+  condition: {
+    configKey: 'conditionConfig' as const,
+    defaultConfig: {
+      leftValue: '{{ai.intent}}',
+      operator: 'equals',
+      rightValue: 'high'
+    } as ConditionConfig,
   },
 } as const;
 

@@ -39,6 +39,7 @@ import EmailNode from './reactflow-nodes/EmailNode';
 import SlackNode from './reactflow-nodes/SlackNode';
 import SMSNode from './reactflow-nodes/SMSNode';
 import TelegramNode from './reactflow-nodes/TelegramNode';
+import ConditionNode from './reactflow-nodes/ConditionNode';
 import Dropdown, { DropdownOption } from './Dropdown';
 import IntegrationConfigForm from './IntegrationConfigForm';
 import { isIntegration, getIntegrationConfigKey } from '@/lib/integrations/registry';
@@ -67,6 +68,7 @@ const nodeTypes: NodeTypes = {
   slack: SlackNode,
   sms: SMSNode,
   telegram: TelegramNode,
+  condition: ConditionNode,
 };
 
 // WebhookConfig component for webhook entry type
@@ -253,9 +255,10 @@ const ENTRY_TYPE_OPTIONS: DropdownOption[] = [
 const NODE_TYPE_OPTIONS: DropdownOption[] = [
   { value: 'entry', label: 'Entry' },
   { value: 'ai', label: 'AI Model' },
+  { value: 'condition', label: 'Condition' },
   { value: 'email', label: 'Email' },
   { value: 'slack', label: 'Slack' },
-  // { value: 'sms', label: 'SMS' },
+  { value: 'sms', label: 'SMS' },
   { value: 'telegram', label: 'Telegram' },
 ];
 
@@ -469,6 +472,7 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
       slack: 'Slack',
       sms: 'SMS',
       telegram: 'Telegram',
+      condition: 'Condition',
     };
 
     // Generate ONE ID for both React Flow node and node data
@@ -567,6 +571,7 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
       slack: 'Slack',
       sms: 'SMS',
       telegram: 'Telegram',
+      condition: 'Condition',
     };
 
     // Generate ONE ID for both React Flow node and node data
@@ -897,6 +902,23 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
           suggestions.push({
             name: 'calendar_link',
             description: `${nodeData.label} - Calendar Link`
+          });
+        }
+
+        // Add condition output fields
+        if (nodeData.type === 'condition' && nodeData.conditionConfig) {
+          const varName = nodeData.label.toLowerCase().replace(/\s+/g, '_');
+          suggestions.push({
+            name: `${varName}.result`,
+            description: `${nodeData.label} - Result (true/false)`
+          });
+          suggestions.push({
+            name: `${varName}.leftValue`,
+            description: `${nodeData.label} - Left Value`
+          });
+          suggestions.push({
+            name: `${varName}.rightValue`,
+            description: `${nodeData.label} - Right Value`
           });
         }
       }

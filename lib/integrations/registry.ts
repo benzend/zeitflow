@@ -19,6 +19,7 @@ import { emailIntegration } from './definitions/email';
 import { slackIntegration } from './definitions/slack';
 import { smsIntegration } from './definitions/sms';
 import { telegramIntegration } from './definitions/telegram';
+import { conditionIntegration } from './definitions/condition';
 
 /**
  * All registered integrations
@@ -28,6 +29,7 @@ const integrations = {
   slack: slackIntegration,
   sms: smsIntegration,
   telegram: telegramIntegration,
+  condition: conditionIntegration,
 } as const;
 
 export type RegisteredIntegrationId = keyof typeof integrations;

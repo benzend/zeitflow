@@ -195,10 +195,14 @@ export default async function handler(
           const connectionInserts = connections.map((conn: {
             from: string;
             to: string;
+            sourceHandle?: string;
+            targetHandle?: string;
           }) => ({
             workflowId,
             fromNodeId: conn.from,
-            toNodeId: conn.to
+            toNodeId: conn.to,
+            sourceHandle: conn.sourceHandle || null,
+            targetHandle: conn.targetHandle || null
           }));
 
           await tx.insert(workflowConnectionsTable).values(connectionInserts);
