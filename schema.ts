@@ -298,6 +298,31 @@ export const workflowExecutionsTable = pgTable("workflow_executions", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Workflow templates table for reusable workflow patterns
+export const workflowTemplatesTable = pgTable("workflow_templates", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  slug: text("slug").notNull().unique(),
+  category: text("category").notNull(),
+  tags: text("tags"), // JSON array of tags
+  icon: text("icon"), // Emoji or icon identifier
+  visibility: text("visibility").notNull().default("private"), // 'private', 'public', 'official'
+  authorId: text("author_id").references(() => usersTable.id, { onDelete: "set null" }),
+  authorName: text("author_name"), // Denormalized for display
+  nodes: text("nodes").notNull(), // JSON array of NodeData
+  connections: text("connections").notNull(), // JSON array of Connection
+  useCount: integer("use_count").notNull().default(0),
+  lastUsedAt: timestamp("last_used_at"),
+  instructions: text("instructions"), // Markdown setup guide
+  previewImage: text("preview_image"), // Optional screenshot URL
+  sourceWorkflowId: integer("source_workflow_id").references(() => workflowsTable.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .notNull()
+    .$onUpdateFn(() => new Date()),
+});
+
 // Chat threads table for grouping conversations
 export const chatThreadsTable = pgTable("chat_threads", {
   id: serial("id").primaryKey(),
@@ -434,6 +459,8 @@ export type InsertWorkflowConnection = typeof workflowConnectionsTable.$inferIns
 export type SelectWorkflowConnection = typeof workflowConnectionsTable.$inferSelect;
 export type InsertWorkflowExecution = typeof workflowExecutionsTable.$inferInsert;
 export type SelectWorkflowExecution = typeof workflowExecutionsTable.$inferSelect;
+export type InsertWorkflowTemplate = typeof workflowTemplatesTable.$inferInsert;
+export type SelectWorkflowTemplate = typeof workflowTemplatesTable.$inferSelect;
 
 // Chat types
 export type InsertChatThread = typeof chatThreadsTable.$inferInsert;

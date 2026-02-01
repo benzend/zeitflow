@@ -12,6 +12,7 @@ import { areWorkflowStatesEqual } from '@/lib/workflow-comparison';
 import WorkflowEditSkeleton from "@/components/WorkflowEditSkeleton";
 import { parseNodeConfigsFromJSON, serializeNode } from '@/lib/node-utils';
 import { NodeType } from '@/lib/node-registry';
+import SaveAsTemplateModal from "@/components/SaveAsTemplateModal";
 
 interface Workflow {
   id: number;
@@ -35,6 +36,7 @@ export default function WorkflowBuilderPage() {
   const [error, setError] = useState("");
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showSaveAsTemplateModal, setShowSaveAsTemplateModal] = useState(false);
   const originalNodes = useRef<NodeData[]>([]);
   const originalConnections = useRef<Connection[]>([]);
   const currentNodes = useRef<NodeData[]>([]);
@@ -79,9 +81,13 @@ export default function WorkflowBuilderPage() {
         const parsedConnections = data.connections.map((conn: {
           fromNodeId: string;
           toNodeId: string;
+          sourceHandle?: string;
+          targetHandle?: string;
         }) => ({
           from: conn.fromNodeId,
           to: conn.toNodeId,
+          sourceHandle: conn.sourceHandle,
+          targetHandle: conn.targetHandle,
         }));
 
         setNodes(parsedNodes);
@@ -191,6 +197,40 @@ export default function WorkflowBuilderPage() {
     // Trigger debounced change detection
     triggerChangeCheck();
   }, [triggerChangeCheck]);
+
+  // Handle saving workflow as template
+  const handleSaveAsTemplate = async (templateData: {
+    name: string;
+    description: string;
+    category: string;
+    tags: string[];
+    icon: string;
+    visibility: 'private' | 'public';
+    instructions: string;
+  }) => {
+    try {
+      const response = await fetch('/api/templates', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...templateData,
+          sourceWorkflowId: workflow?.id,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to save template');
+      }
+
+      // Success - modal will close automatically
+    } catch (err: any) {
+      throw new Error(err.message || 'Failed to save template');
+    }
+  };
 
   useEffect(() => {
     if (status === "loading") return;
@@ -323,6 +363,12 @@ export default function WorkflowBuilderPage() {
               >
                 Run
               </Button>
+              <Button
+                variant="secondary"
+                onClick={() => setShowSaveAsTemplateModal(true)}
+              >
+                Save as Template
+              </Button>
             </ButtonGroup>
 
             {error && (
@@ -359,6 +405,15 @@ export default function WorkflowBuilderPage() {
           onChange={handleWorkflowChange}
         />
       </div>
+
+      {/* Save as Template Modal */}
+      <SaveAsTemplateModal
+        isOpen={showSaveAsTemplateModal}
+        onClose={() => setShowSaveAsTemplateModal(false)}
+        workflowId={workflow?.id || 0}
+        workflowName={workflow?.name || ''}
+        onSave={handleSaveAsTemplate}
+      />
     </div>
   );
 }

@@ -278,9 +278,9 @@ export default function Home() {
                 <p className="text-text-muted">Simple, usage-based pricing. No hidden fees.</p>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {[
-                    { name: 'Free', price: '$0', requests: '20 requests/hour', icon: Gift },
-                    { name: 'Pro', price: '$9.99', requests: '100 requests/hour', icon: Zap },
-                    { name: 'Business', price: '$29.99', requests: '1,000 requests/hour', icon: Building2 },
+                    { name: 'Free', price: '$0', requests: '20 executions/hour', icon: Gift },
+                    { name: 'Pro', price: '$9.99', requests: '100 executions/hour', icon: Zap },
+                    { name: 'Business', price: '$29.99', requests: '1,000 executions/hour', icon: Building2 },
                   ].map((plan) => (
                     <div key={plan.name} className="p-6 rounded-lg border border-border bg-surface/50 text-center">
                       <div className="flex justify-center mb-4">
@@ -290,10 +290,15 @@ export default function Home() {
                       </div>
                       <h3 className="font-semibold text-foreground mb-2">{plan.name}</h3>
                       <p className="text-2xl font-bold text-foreground">{plan.price}<span className="text-sm font-normal text-text-muted">/month</span></p>
-                      <p className="text-sm text-primary mt-2">{plan.requests}</p>
+                      <p className="text-sm text-primary mt-2">
+                        {plan.requests}
+                      </p>
                     </div>
                   ))}
                 </div>
+                <p className="text-sm text-text-muted text-center">
+                  An execution is one complete run of your workflow, from trigger to final action.
+                </p>
               </section>
 
               {/* FAQ */}

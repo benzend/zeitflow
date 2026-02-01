@@ -65,10 +65,10 @@ export const smsIntegration: Omit<IntegrationDefinition<typeof SMSConfigSchema>,
   uiConfig: {
     to: {
       hint: 'recipients',
-      label: 'To (comma-separated, E.164 format)',
-      placeholder: '+12345678900, +19876543210',
+      label: 'To (comma-separated)',
+      placeholder: '+12345678900, {{contact.phone}}',
       supportsVariables: true,
-      validationHint: 'Use E.164 format (e.g., +12345678900)',
+      validationHint: 'International format supported. Variables like {{contact.phone}} allowed.',
     },
     message: {
       hint: 'textarea',

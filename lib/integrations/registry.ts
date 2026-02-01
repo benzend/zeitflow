@@ -88,7 +88,9 @@ export function getIntegrationConfigKey(
  */
 export function getIntegrationDefaultConfig(integrationId: string): unknown | undefined {
   const integration = getIntegration(integrationId);
-  return integration?.defaultConfig;
+  if (!integration?.defaultConfig) return undefined;
+  // Deep clone to prevent reference sharing between nodes
+  return JSON.parse(JSON.stringify(integration.defaultConfig));
 }
 
 /**

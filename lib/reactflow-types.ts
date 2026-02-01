@@ -42,7 +42,8 @@ export const convertToReactFlow = (
       // Dynamically add all config types from registry
       ALL_CONFIG_KEYS.forEach(configKey => {
         if (node[configKey]) {
-          data[configKey] = node[configKey];
+          // Deep clone to prevent reference sharing
+          data[configKey] = JSON.parse(JSON.stringify(node[configKey]));
         }
       });
 
@@ -89,7 +90,8 @@ export const convertFromReactFlow = (
       // Dynamically add all config types from registry
       ALL_CONFIG_KEYS.forEach(configKey => {
         if (node.data[configKey]) {
-          nodeData[configKey] = node.data[configKey];
+          // Deep clone to prevent reference sharing
+          nodeData[configKey] = JSON.parse(JSON.stringify(node.data[configKey]));
         }
       });
 
@@ -98,8 +100,8 @@ export const convertFromReactFlow = (
     connections: edges.map(edge => ({
       from: edge.source,
       to: edge.target,
-      sourceHandle: edge.sourceHandle,
-      targetHandle: edge.targetHandle
+      sourceHandle: edge.sourceHandle || undefined,
+      targetHandle: edge.targetHandle || undefined
     }))
   };
 };

@@ -100,8 +100,12 @@ export const ALL_CONFIG_KEYS: NodeConfigKey[] = Object.values(NODE_CONFIGS)
 export const NODE_TYPES = Object.keys(NODE_CONFIGS) as NodeType[];
 
 // Get default config for a node type
+// Returns a deep clone to prevent shared object references between nodes
 export function getDefaultConfig(type: NodeType) {
-  return NODE_CONFIGS[type].defaultConfig;
+  const config = NODE_CONFIGS[type].defaultConfig;
+  if (config === null) return null;
+  // Deep clone the config to prevent reference sharing
+  return JSON.parse(JSON.stringify(config));
 }
 
 // Get config key for a node type

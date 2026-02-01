@@ -7,11 +7,13 @@
 
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import TypeaheadTextarea from './TypeaheadTextarea';
+import RecipientsInput from './RecipientsInput';
 import { getIntegrationUIMetadata, IntegrationUIMetadata } from '@/lib/integrations/registry';
 import { FieldUIConfig } from '@/lib/integrations/types';
 import ConditionConfigPreview from './ConditionConfigPreview';
 import ConditionTestPanel from './ConditionTestPanel';
 import { ConditionConfig } from '@/lib/integrations/definitions/condition';
+import { processPhoneRecipients, processEmailRecipients, containsVariableSyntax } from '@/lib/phone-utils';
 
 interface IntegrationConfigFormProps {
   /** Integration ID (e.g., 'email', 'slack', 'sms') */
@@ -26,62 +28,6 @@ interface IntegrationConfigFormProps {
   serverData?: Record<string, unknown[]>;
   /** Custom class name for the container */
   className?: string;
-}
-
-/**
- * Email validation regex
- */
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-/**
- * E.164 phone number validation regex
- */
-const E164_REGEX = /^\+[1-9]\d{1,14}$/;
-
-/**
- * Process comma-separated email addresses
- */
-function processEmailRecipients(input: string): { valid: string[]; invalid: string[] } {
-  const emails = input
-    .split(',')
-    .map(e => e.trim())
-    .filter(e => e.length > 0);
-
-  const valid: string[] = [];
-  const invalid: string[] = [];
-
-  for (const email of emails) {
-    if (EMAIL_REGEX.test(email)) {
-      valid.push(email);
-    } else {
-      invalid.push(email);
-    }
-  }
-
-  return { valid, invalid };
-}
-
-/**
- * Process comma-separated phone numbers
- */
-function processPhoneRecipients(input: string): { valid: string[]; invalid: string[] } {
-  const phones = input
-    .split(',')
-    .map(p => p.trim())
-    .filter(p => p.length > 0);
-
-  const valid: string[] = [];
-  const invalid: string[] = [];
-
-  for (const phone of phones) {
-    if (E164_REGEX.test(phone)) {
-      valid.push(phone);
-    } else {
-      invalid.push(phone);
-    }
-  }
-
-  return { valid, invalid };
 }
 
 /**
@@ -104,18 +50,6 @@ function FieldRenderer({
   variableSuggestions,
   serverData,
 }: FieldRendererProps) {
-  const [rawInput, setRawInput] = useState('');
-  const [warning, setWarning] = useState<string | null>(null);
-
-  // Sync raw input with value for array fields
-  useEffect(() => {
-    if (Array.isArray(value)) {
-      setRawInput(value.join(', '));
-    } else if (typeof value === 'string') {
-      setRawInput(value);
-    }
-  }, [value]);
-
   const inputClassName =
     'w-full bg-background-extra-light border-border border-[0.5px] h-[32px] rounded-[8px] overflow-hidden px-[12px] text-[12px] text-foreground placeholder-text-placeholder outline-none';
 
@@ -124,41 +58,23 @@ function FieldRenderer({
 
   switch (fieldConfig.hint) {
     case 'recipients': {
-      // Email or phone recipients (comma-separated)
-      const isPhone = fieldConfig.validationHint?.includes('E.164');
-
-      const handleChange = (inputValue: string) => {
-        setRawInput(inputValue);
-        const { valid, invalid } = isPhone
-          ? processPhoneRecipients(inputValue)
-          : processEmailRecipients(inputValue);
-
-        onChange(valid);
-
-        if (invalid.length > 0) {
-          const type = isPhone ? 'phone number' : 'email';
-          setWarning(`Invalid ${type}: ${invalid.join(', ')}`);
-        } else {
-          setWarning(null);
-        }
-      };
+      // Email or phone recipients (chip-based input)
+      const isPhone = fieldConfig.validationHint?.toLowerCase().includes('phone') ||
+                      fieldConfig.validationHint?.includes('E.164');
 
       return (
         <div className="mb-[16px]">
           <label className="block text-foreground-light font-medium mb-[8px]">
             {fieldConfig.label}
           </label>
-          <input
-            type="text"
-            value={rawInput}
-            onChange={e => handleChange(e.target.value)}
-            className={inputClassName}
+          <RecipientsInput
+            value={Array.isArray(value) ? value : []}
+            onChange={(newValue) => onChange(newValue)}
+            validationType={isPhone ? 'phone' : 'email'}
             placeholder={fieldConfig.placeholder}
+            variableSuggestions={variableSuggestions}
           />
-          {warning && (
-            <p className="text-warning text-[11px] mt-[4px] px-[2px]">{warning}</p>
-          )}
-          {fieldConfig.validationHint && !warning && (
+          {fieldConfig.validationHint && (
             <p className="text-text-muted text-[10px] mt-[4px] px-[2px]">
               {fieldConfig.validationHint}
             </p>
@@ -365,8 +281,10 @@ export default function IntegrationConfigForm({
 
   const handleFieldChange = useCallback(
     (fieldKey: string, value: unknown) => {
+      // Deep clone to ensure complete isolation
+      const clonedConfig = JSON.parse(JSON.stringify(config));
       onChange({
-        ...config,
+        ...clonedConfig,
         [fieldKey]: value,
       });
     },

@@ -63,8 +63,8 @@ export default function Dashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  // Top-level tab state (workflows vs chains)
-  const [dashboardTab, setDashboardTab] = useState<'workflows' | 'chains'>('workflows');
+  // Top-level tab state (workflows vs chains vs templates)
+  const [dashboardTab, setDashboardTab] = useState<'workflows' | 'chains' | 'templates'>('workflows');
 
   // Chains sub-tab state (for mobile)
   const [chainsSubTab, setChainsSubTab] = useState<'chains' | 'in-progress' | 'completed'>('chains');
@@ -80,6 +80,11 @@ export default function Dashboard() {
   const [workflowsLoading, setWorkflowsLoading] = useState(false);
   const [workflowsFetched, setWorkflowsFetched] = useState(false);
 
+  // Templates state
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [templatesLoading, setTemplatesLoading] = useState(false);
+  const [templatesFetched, setTemplatesFetched] = useState(false);
+
   const [error, setError] = useState("");
   const [newChainName, setNewChainName] = useState("");
   const [showAddChainModal, setShowAddChainModal] = useState(false);
@@ -94,14 +99,14 @@ export default function Dashboard() {
   // Sync tab state with URL query param
   useEffect(() => {
     const { tab } = router.query;
-    if (tab === 'chains' || tab === 'workflows') {
+    if (tab === 'chains' || tab === 'workflows' || tab === 'templates') {
       setDashboardTab(tab);
     }
   }, [router.query]);
 
   // Update URL when tab changes (without full navigation)
   const handleTabChange = (tabId: string) => {
-    const newTab = tabId as 'workflows' | 'chains';
+    const newTab = tabId as 'workflows' | 'chains' | 'templates';
     setDashboardTab(newTab);
     router.replace({ pathname: '/dashboard', query: { tab: newTab } }, undefined, { shallow: true });
   };
@@ -139,6 +144,30 @@ export default function Dashboard() {
     }
   }, [workflowsFetched]);
 
+  // Fetch templates (user's templates)
+  const fetchTemplates = useCallback(async () => {
+    if (templatesFetched) return;
+
+    try {
+      setTemplatesLoading(true);
+      // Fetch only user's templates for dashboard
+      const response = await fetch("/api/templates?visibility=private");
+      const data = await response.json();
+
+      if (data.success) {
+        setTemplates(data.templates || []);
+        setTemplatesFetched(true);
+      } else {
+        setError(data.message || "Failed to fetch templates");
+      }
+    } catch (err) {
+      setError("An error occurred while fetching templates");
+      console.error(err);
+    } finally {
+      setTemplatesLoading(false);
+    }
+  }, [templatesFetched]);
+
   // Fetch chains
   const fetchChains = useCallback(async (opts = { silent: false, force: false }) => {
     if (chainsFetched && !opts.force && !opts.silent) return;
@@ -171,8 +200,10 @@ export default function Dashboard() {
       fetchWorkflows();
     } else if (dashboardTab === 'chains' && !chainsFetched) {
       fetchChains();
+    } else if (dashboardTab === 'templates' && !templatesFetched) {
+      fetchTemplates();
     }
-  }, [session, dashboardTab, workflowsFetched, chainsFetched, fetchWorkflows, fetchChains]);
+  }, [session, dashboardTab, workflowsFetched, chainsFetched, templatesFetched, fetchWorkflows, fetchChains, fetchTemplates]);
 
   // Auto-refresh chains when watching is enabled
   useEffect(() => {
@@ -375,6 +406,7 @@ export default function Dashboard() {
   const topLevelTabs = [
     { id: 'workflows', label: 'Workflows', count: workflowsFetched ? workflows.length : undefined },
     { id: 'chains', label: 'Chains', count: chainsFetched ? chains.length : undefined },
+    { id: 'templates', label: 'Templates', count: templatesFetched ? templates.length : undefined },
   ];
 
   const chainsSubTabs = [
@@ -869,6 +901,127 @@ export default function Dashboard() {
                     )}
                   </div>
                 </section>
+              )}
+            </div>
+          </>
+        )}
+
+        {/* Templates Tab Content */}
+        {dashboardTab === 'templates' && (
+          <>
+            {/* Header */}
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h1 className="text-2xl font-bold text-foreground mb-1">My Templates</h1>
+                <p className="text-foreground-light text-sm">Manage your workflow templates</p>
+              </div>
+              <Button
+                href="/templates"
+                variant="secondary"
+              >
+                Browse Marketplace
+              </Button>
+            </div>
+
+            {/* Templates Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {templatesLoading ? (
+                <>
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="flex flex-col justify-between rounded-lg shadow hover:shadow-md transition duration-200 bg-background-light overflow-hidden animate-pulse">
+                      <div className="h-32 bg-primary/20"></div>
+                      <div className="p-4 flex-1">
+                        <div className="h-5 w-32 bg-primary/20 rounded mb-2"></div>
+                        <div className="h-4 w-full bg-primary/20 rounded mb-2"></div>
+                        <div className="h-4 w-3/4 bg-primary/20 rounded"></div>
+                      </div>
+                      <div className="flex gap-2 p-4 border-t border-primary/10">
+                        <div className="h-8 flex-1 bg-primary/20 rounded"></div>
+                        <div className="h-8 flex-1 bg-primary/20 rounded"></div>
+                      </div>
+                    </div>
+                  ))}
+                </>
+              ) : templates.length === 0 ? (
+                <div className="col-span-full text-center py-12">
+                  <div className="text-6xl mb-4">📋</div>
+                  <h3 className="text-xl font-medium text-foreground-light mb-2">No templates yet</h3>
+                  <p className="text-foreground-light mb-6">
+                    Save your workflows as templates to reuse them later, or browse the marketplace for inspiration.
+                  </p>
+                  <div className="flex gap-3 justify-center">
+                    <Button
+                      href="/templates"
+                      variant="primary"
+                    >
+                      Browse Marketplace
+                    </Button>
+                    <Button
+                      href="/dashboard?tab=workflows"
+                      variant="secondary"
+                    >
+                      View My Workflows
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                templates.map((template: any) => (
+                  <div key={template.id} className="flex flex-col justify-between rounded-lg shadow hover:shadow-md transition duration-200 bg-background-light overflow-hidden">
+                    <div className="relative h-32 bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
+                      {template.previewImage ? (
+                        <img src={template.previewImage} alt={template.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-5xl">{template.icon || '📋'}</span>
+                      )}
+                      {template.visibility === 'public' && (
+                        <div className="absolute top-2 left-2 px-2 py-1 rounded-full text-xs bg-blue-500 text-white font-semibold">
+                          Public
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-4 flex-1">
+                      <h3 className="text-md text-foreground font-semibold mb-2">{template.name}</h3>
+                      {template.description && (
+                        <p className="text-sm text-foreground-light line-clamp-2">{template.description}</p>
+                      )}
+                      <div className="mt-3 text-xs text-gray-500">
+                        {template.useCount} {template.useCount === 1 ? 'use' : 'uses'}
+                      </div>
+                    </div>
+                    <div className="flex gap-2 p-4 border-t border-primary/10">
+                      <Button
+                        href={`/templates?id=${template.id}`}
+                        variant="tertiary"
+                        size="sm"
+                        className="flex-1"
+                      >
+                        View
+                      </Button>
+                      <Button
+                        onClick={async () => {
+                          if (confirm('Are you sure you want to delete this template?')) {
+                            try {
+                              const response = await fetch(`/api/templates/${template.id}`, { method: 'DELETE' });
+                              const data = await response.json();
+                              if (data.success) {
+                                setTemplates(templates.filter((t: any) => t.id !== template.id));
+                              } else {
+                                alert(data.message || 'Failed to delete template');
+                              }
+                            } catch (err) {
+                              alert('Failed to delete template');
+                            }
+                          }
+                        }}
+                        variant="tertiary"
+                        size="sm"
+                        className="!bg-transparent !p-1 text-red-500 hover:text-red-700"
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
+                ))
               )}
             </div>
           </>

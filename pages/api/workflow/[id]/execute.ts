@@ -202,107 +202,137 @@ interface WorkflowNode {
 }
 
 /**
+ * Convert node label to variable name (matches frontend logic)
+ */
+function labelToVariableName(label: string): string {
+  return label
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+}
+
+/**
  * Collects available variables from connected nodes that come before current node
+ * Now returns nested structure matching autocomplete: {node_name: {field: value}}
  */
 function collectAvailableVariables(
-  nodeId: string, 
-  connections: WorkflowConnection[], 
-  nodes: WorkflowNode[], 
+  nodeId: string,
+  connections: WorkflowConnection[],
+  nodes: WorkflowNode[],
   inputData: Record<string, unknown>,
   nodeOutputs: Record<string, unknown>
 ): Record<string, unknown> {
   const variables: Record<string, unknown> = {};
-  
+
   // Find all incoming connections to this node
   const incomingEdges = connections.filter(edge => edge.toNodeId === nodeId);
-  
+
   // For each incoming edge, get the source node and its variables
   incomingEdges.forEach(edge => {
     const sourceNode = nodes.find(n => n.id === edge.fromNodeId);
     if (sourceNode) {
       const config = JSON.parse(sourceNode.config || '{}');
-      
+      const nodeLabel = sourceNode.label || sourceNode.id;
+      const varName = labelToVariableName(nodeLabel);
+
       // Add variables from entry nodes
       if (sourceNode.type === 'entry') {
         if (sourceNode.entryType === 'api' || sourceNode.entryType === 'form' || sourceNode.entryType === 'webhook') {
+          // Create nested object for entry node
+          const entryVars: Record<string, unknown> = {};
+
           // Add input data fields
           if (inputData && typeof inputData === 'object') {
             Object.keys(inputData).forEach(key => {
-              variables[key] = inputData[key];
+              entryVars[key] = inputData[key];
             });
           }
-          
+
           // Add fields from entry node configuration
           if (config.fields && Array.isArray(config.fields)) {
             config.fields.forEach((field: { key: string }) => {
               if (inputData && inputData[field.key]) {
-                variables[field.key] = inputData[field.key];
+                entryVars[field.key] = inputData[field.key];
               }
             });
           }
+
+          variables[varName] = entryVars;
         }
       }
-      
+
       // Add AI output variables
       if (sourceNode.type === 'ai' && nodeOutputs[sourceNode.id]) {
         const nodeOutput = nodeOutputs[sourceNode.id] as { response?: string };
-        const nodeLabel = sourceNode.label || sourceNode.id;
-        const variableName = nodeLabel.toLowerCase().replace(/\s+/g, '_');
-        variables[variableName] = nodeOutput.response;
+        variables[varName] = {
+          output: nodeOutput.response || ''
+        };
       }
-      
+
       // Add scheduler output variables
       if (sourceNode.type === 'scheduler' && nodeOutputs[sourceNode.id]) {
         const schedulerOutput = nodeOutputs[sourceNode.id] as { scheduledTime?: string; calendarLink?: string };
-        variables['scheduled_time'] = schedulerOutput.scheduledTime || '';
-        variables['calendar_link'] = schedulerOutput.calendarLink || '';
+        variables[varName] = {
+          eventId: schedulerOutput.scheduledTime || '',
+          eventLink: schedulerOutput.calendarLink || '',
+          scheduledTime: schedulerOutput.scheduledTime || ''
+        };
       }
 
       // Add email output variables
       if (sourceNode.type === 'email' && nodeOutputs[sourceNode.id]) {
         const emailOutput = nodeOutputs[sourceNode.id] as { success?: boolean; error?: string };
-        const nodeLabel = sourceNode.label || sourceNode.id;
-        const variableName = nodeLabel.toLowerCase().replace(/\s+/g, '_');
-        variables[`${variableName}_status`] = emailOutput.success ? 'sent' : 'failed';
-        if (emailOutput.error) {
-          variables[`${variableName}_error`] = emailOutput.error;
-        }
+        variables[varName] = {
+          messageId: '', // Would need to be captured from email service
+          status: emailOutput.success ? 'sent' : 'failed'
+        };
       }
 
       // Add slack output variables
       if (sourceNode.type === 'slack' && nodeOutputs[sourceNode.id]) {
-        const slackOutput = nodeOutputs[sourceNode.id] as { success?: boolean; error?: string };
-        const nodeLabel = sourceNode.label || sourceNode.id;
-        const variableName = nodeLabel.toLowerCase().replace(/\s+/g, '_');
-        variables[`${variableName}_status`] = slackOutput.success ? 'sent' : 'failed';
-        if (slackOutput.error) {
-          variables[`${variableName}_error`] = slackOutput.error;
-        }
+        const slackOutput = nodeOutputs[sourceNode.id] as { success?: boolean; error?: string; messageId?: string; channel?: string };
+        variables[varName] = {
+          messageId: slackOutput.messageId || '',
+          channel: slackOutput.channel || '',
+          timestamp: '' // Would need to be captured from Slack response
+        };
       }
 
       // Add SMS output variables
       if (sourceNode.type === 'sms' && nodeOutputs[sourceNode.id]) {
-        const smsOutput = nodeOutputs[sourceNode.id] as { success?: boolean; error?: string };
-        const nodeLabel = sourceNode.label || sourceNode.id;
-        const variableName = nodeLabel.toLowerCase().replace(/\s+/g, '_');
-        variables[`${variableName}_status`] = smsOutput.success ? 'sent' : 'failed';
-        if (smsOutput.error) {
-          variables[`${variableName}_error`] = smsOutput.error;
-        }
+        const smsOutput = nodeOutputs[sourceNode.id] as { success?: boolean; error?: string; messageId?: string };
+        variables[varName] = {
+          messageId: smsOutput.messageId || '',
+          status: smsOutput.success ? 'sent' : 'failed'
+        };
       }
 
       // Add Telegram output variables
       if (sourceNode.type === 'telegram' && nodeOutputs[sourceNode.id]) {
-        const telegramOutput = nodeOutputs[sourceNode.id] as { success?: boolean; error?: string; messageId?: number };
-        const nodeLabel = sourceNode.label || sourceNode.id;
-        const variableName = nodeLabel.toLowerCase().replace(/\s+/g, '_');
-        variables[`${variableName}_status`] = telegramOutput.success ? 'sent' : 'failed';
-        if (telegramOutput.error) {
-          variables[`${variableName}_error`] = telegramOutput.error;
-        }
-        if (telegramOutput.messageId) {
-          variables[`${variableName}_message_id`] = telegramOutput.messageId;
-        }
+        const telegramOutput = nodeOutputs[sourceNode.id] as { success?: boolean; error?: string; messageId?: number; chatId?: string };
+        variables[varName] = {
+          messageId: telegramOutput.messageId?.toString() || '',
+          chatId: telegramOutput.chatId || ''
+        };
+      }
+
+      // Add condition output variables
+      if (sourceNode.type === 'condition' && nodeOutputs[sourceNode.id]) {
+        const conditionOutput = nodeOutputs[sourceNode.id] as { result?: boolean; leftValue?: unknown; rightValue?: unknown };
+        variables[varName] = {
+          result: conditionOutput.result || false,
+          leftValue: conditionOutput.leftValue,
+          rightValue: conditionOutput.rightValue
+        };
+      }
+
+      // Add review output variables
+      if (sourceNode.type === 'review' && nodeOutputs[sourceNode.id]) {
+        const reviewOutput = nodeOutputs[sourceNode.id] as { approved?: boolean; feedback?: string };
+        variables[varName] = {
+          approved: reviewOutput.approved || false,
+          feedback: reviewOutput.feedback || ''
+        };
       }
     }
   });
@@ -312,7 +342,7 @@ function collectAvailableVariables(
 
 /**
  * Substitutes variables in a prompt string with their values
- * Supports variable names with spaces, dots, underscores, etc.
+ * Supports nested paths like {{node.field}}
  */
 function substituteVariables(prompt: string, variables: Record<string, unknown>): string {
   let processedPrompt = prompt;
@@ -325,9 +355,28 @@ function substituteVariables(prompt: string, variables: Record<string, unknown>)
     // Escape special regex characters in variable name
     const escapedVarName = varName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const regex = new RegExp(`\\{\\{${escapedVarName}\\}\\}`, 'g');
-    const value = variables[varName];
+
+    // Handle nested paths (e.g., "new_ticket.customer_name")
+    let value: unknown = variables;
+    const parts = varName.split('.');
+
+    for (const part of parts) {
+      if (value === null || value === undefined) {
+        value = undefined;
+        break;
+      }
+      if (typeof value === 'object' && part in value) {
+        value = (value as Record<string, unknown>)[part];
+      } else {
+        value = undefined;
+        break;
+      }
+    }
+
     if (value !== undefined && value !== null) {
-      processedPrompt = processedPrompt.replace(regex, String(value));
+      // Convert to string, handling objects
+      const stringValue = typeof value === 'object' ? JSON.stringify(value) : String(value);
+      processedPrompt = processedPrompt.replace(regex, stringValue);
     } else {
       console.warn(`Variable "${varName}" not found in available variables. Available:`, Object.keys(variables));
       // Replace with empty string if variable not found
@@ -490,6 +539,7 @@ async function executeWorkflow(
   // Initialize BFS with filtered nodes
   const readyQueue = [...startNodes];
   const executed = new Set<string>();
+  const queued = new Set<string>(startNodes); // Track all nodes that were queued for execution
   const outputData: Record<string, unknown> = {};
 
   // Collect all log entries from the execution
@@ -653,9 +703,13 @@ async function executeWorkflow(
       if (selectedPath) {
         // Only follow connections matching the condition result
         successorConnections = allSuccessorConnections.filter(conn => {
-          // If no sourceHandle specified, follow it (backward compatibility)
-          // Otherwise, only follow if sourceHandle matches the condition path
-          return !conn.sourceHandle || conn.sourceHandle === selectedPath;
+          // Condition nodes MUST have explicit sourceHandle
+          if (!conn.sourceHandle) {
+            const errorMsg = `Condition node "${node.id}" has a connection without sourceHandle. All condition node connections must specify sourceHandle ('true' or 'false').`;
+            nodeLogger.error(errorMsg);
+            throw new Error(errorMsg);
+          }
+          return conn.sourceHandle === selectedPath;
         });
 
         nodeLogger.info(`Condition evaluated to ${selectedPath}, following ${successorConnections.length} of ${allSuccessorConnections.length} paths`);
@@ -670,20 +724,23 @@ async function executeWorkflow(
       // Add to queue if all dependencies met
       if (newDegree === 0) {
         readyQueue.push(successorId);
+        queued.add(successorId); // Track that this node was queued for execution
       } else if (newDegree < 0) {
         throw new Error(`Invalid graph state: node ${successorId} has negative in-degree`);
       }
     }
   }
 
-  // Verify all executable nodes were executed (not all nodes, since we may have multiple entry points)
-  if (executed.size < executableNodes.size) {
+  // Verify all queued nodes were executed
+  // Note: With condition nodes, not all executable nodes will be queued (branches not taken)
+  // So we check against 'queued' (nodes that were added to queue) not 'executableNodes' (all reachable nodes)
+  if (executed.size < queued.size) {
     const unexecuted = nodes
-      .filter(n => executableNodes.has(n.id) && !executed.has(n.id))
+      .filter(n => queued.has(n.id) && !executed.has(n.id))
       .map(n => `${n.label} (${n.id})`)
       .join(', ');
     throw new Error(
-      `Workflow incomplete: ${executableNodes.size - executed.size} nodes not executed: ${unexecuted}. ` +
+      `Workflow incomplete: ${queued.size - executed.size} nodes not executed: ${unexecuted}. ` +
       `This indicates either a cycle or disconnected nodes in the execution path.`
     );
   }
