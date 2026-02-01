@@ -11,6 +11,32 @@ type ReleaseNote = {
 
 const releaseNotes: ReleaseNote[] = [
   {
+    version: "1.14.0",
+    date: "2026-02-01",
+    features: [
+      "Added conditional node type for branching workflow logic based on conditions",
+    ],
+    improvements: [
+      "Improved condition node branching and workflow completion handling",
+    ],
+    fixes: [],
+  },
+  {
+    version: "1.13.0",
+    date: "2026-01-25",
+    features: [
+      "Added tabbed dashboard for managing workflows and chains in one view",
+      "Added ability to create nodes by dragging connections to empty space",
+      "Implemented workflow executor for running workflows",
+      "Reoriented workflow pages for improved layout and navigation",
+    ],
+    improvements: [],
+    fixes: [
+      "Fixed node connection handling in workflow builder",
+      "Fixed connect node behavior when linking workflow nodes",
+    ],
+  },
+  {
     version: "1.12.0",
     date: "2026-01-24",
     features: [
