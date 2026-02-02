@@ -235,6 +235,44 @@ export default function Home() {
                 </div>
               </section>
 
+              {/* Templates */}
+              <section className="space-y-8">
+                <div className="flex items-end justify-between">
+                  <div>
+                    <h2 className="text-2xl md:text-3xl font-semibold text-foreground">Start from a template</h2>
+                    <p className="text-text-muted mt-2">Pre-built workflows you can deploy and customize in minutes.</p>
+                  </div>
+                  <Button href="/templates" variant="tertiary" className="hidden sm:inline-flex">
+                    Browse all templates <ArrowRight className="w-4 h-4 ml-1 inline" />
+                  </Button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {[
+                    { icon: '🎧', name: 'Support Ticket Router', desc: 'Route incoming tickets to the right team with AI-powered urgency and category analysis.', tags: ['AI', 'Slack'] },
+                    { icon: '💰', name: 'Lead Qualification', desc: 'Score and qualify sales leads using AI, then route hot prospects to your sales team.', tags: ['AI', 'Sales'] },
+                    { icon: '📬', name: 'Webhook to Email', desc: 'Receive webhook data and forward it via email. Perfect for notifications and alerts.', tags: ['Email', 'Webhook'] },
+                    { icon: '🤖', name: 'FAQ Responder', desc: 'Automatically answer common questions using AI to generate context-aware responses.', tags: ['AI', 'Email'] },
+                    { icon: '📊', name: 'Daily Report Generator', desc: 'Compile and send daily digest emails with AI-generated summaries of key metrics.', tags: ['AI', 'Reporting'] },
+                  ].map((tpl) => (
+                    <article key={tpl.name} className="p-5 rounded-lg border border-border bg-surface/50 hover:border-primary/30 transition-colors">
+                      <div className="text-2xl mb-3">{tpl.icon}</div>
+                      <h3 className="font-semibold text-foreground mb-1">{tpl.name}</h3>
+                      <p className="text-sm text-text-muted mb-3">{tpl.desc}</p>
+                      <div className="flex gap-2">
+                        {tpl.tags.map((tag) => (
+                          <span key={tag} className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">{tag}</span>
+                        ))}
+                      </div>
+                    </article>
+                  ))}
+                </div>
+                <div className="sm:hidden text-center">
+                  <Button href="/templates" variant="tertiary">
+                    Browse all templates <ArrowRight className="w-4 h-4 ml-1 inline" />
+                  </Button>
+                </div>
+              </section>
+
               {/* Integrations */}
               <section className="space-y-8">
                 <h2 className="text-2xl md:text-3xl font-semibold text-foreground">Integrations</h2>
