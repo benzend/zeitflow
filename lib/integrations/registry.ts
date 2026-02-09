@@ -20,6 +20,7 @@ import { slackIntegration } from './definitions/slack';
 import { smsIntegration } from './definitions/sms';
 import { telegramIntegration } from './definitions/telegram';
 import { conditionIntegration } from './definitions/condition';
+import { youtubeIntegration } from './definitions/youtube';
 
 /**
  * All registered integrations
@@ -30,6 +31,7 @@ const integrations = {
   sms: smsIntegration,
   telegram: telegramIntegration,
   condition: conditionIntegration,
+  youtube: youtubeIntegration,
 } as const;
 
 export type RegisteredIntegrationId = keyof typeof integrations;

@@ -24,8 +24,9 @@ pnpm lint
 
 # Run tests
 pnpm test
-pnpm test:watch    # Watch mode
-pnpm test:coverage # With coverage
+pnpm test:watch              # Watch mode
+pnpm test:coverage           # With coverage
+pnpm test -- path/to/file    # Run single test file
 
 # Database migrations
 pnpm migrate
@@ -57,6 +58,8 @@ This is a Next.js application (Pages Router) that implements **ZeitFlow** - a vi
   - `slack` - Slack messaging via Slack Web API
   - `sms` - SMS/text messaging via Twilio
   - `telegram` - Telegram messaging via node-telegram-bot-api
+  - `youtube` - Fetch video data or post comments via YouTube API
+  - `condition` - Conditional branching based on expressions
 - **Workflow Execution**: Track execution state through `workflow_executions` table with structured logging
 - **Execution Logs**: Persisted in `logs` JSON column, viewable in execution details UI
 - **YAML Parsing**: AI can generate workflows from natural language via `lib/workflow-parser.ts`
@@ -70,9 +73,10 @@ Plugin-based architecture for workflow node integrations:
 - **Types** (`types.ts`): `IntegrationDefinition`, `ExecutionContext`, `LogEntry`
 
 To add a new integration:
-1. Create definition in `lib/integrations/definitions/`
-2. Create executor in `lib/integrations/executors/`
-3. Register in `lib/integrations/registry.ts`
+1. Create definition in `lib/integrations/definitions/` (export from `index.ts`)
+2. Create executor in `lib/integrations/executors/` (export from `index.ts`, add to `integrationExecutors` map)
+3. Add config key to `INTEGRATION_CONFIG_KEYS` in `lib/integrations/types.ts`
+4. Register in `lib/integrations/registry.ts`
 
 #### 4. Blog System
 - **MDX Rendering**: Uses `next-mdx-remote` for blog content with custom components

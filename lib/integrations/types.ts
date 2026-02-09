@@ -183,6 +183,7 @@ export const INTEGRATION_CONFIG_KEYS = {
   sms: 'smsConfig',
   telegram: 'telegramConfig',
   condition: 'conditionConfig',
+  youtube: 'youtubeConfig',
 } as const;
 
 export type IntegrationId = keyof typeof INTEGRATION_CONFIG_KEYS;

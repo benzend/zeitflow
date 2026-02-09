@@ -10,6 +10,7 @@ export { executeSlack } from './slack';
 export { executeSMS } from './sms';
 export { executeTelegram } from './telegram';
 export { executeCondition } from './condition';
+export { executeYouTube } from './youtube';
 
 import { ExecutionContext, IntegrationResult } from '../types';
 import { executeEmail } from './email';
@@ -17,6 +18,7 @@ import { executeSlack } from './slack';
 import { executeSMS } from './sms';
 import { executeTelegram } from './telegram';
 import { executeCondition } from './condition';
+import { executeYouTube } from './youtube';
 
 /**
  * Map of integration IDs to their executor functions
@@ -30,6 +32,7 @@ export const integrationExecutors: Record<
   sms: executeSMS,
   telegram: executeTelegram,
   condition: executeCondition,
+  youtube: executeYouTube,
 };
 
 /**
