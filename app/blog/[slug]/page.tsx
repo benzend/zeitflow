@@ -6,6 +6,8 @@ import { db } from '@/lib/db';
 import { blogPostsTable, usersTable } from '@/schema';
 import { eq, and } from 'drizzle-orm';
 import { GODMODE_EMAILS } from '@/lib/constants';
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
@@ -138,6 +140,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     notFound();
   }
 
+  const session = await getServerSession(authOptions);
+  const isCurrentUserAdmin = session?.user?.email ? GODMODE_EMAILS.includes(session.user.email) : false;
+
   const tags = post.tags ? JSON.parse(post.tags) : [];
   const metaDescription = post.excerpt || (post.content ? post.content.substring(0, 160).replace(/[#*`]/g, '').trim() + '...' : '');
   const authorName = post.author.isAdmin ? 'ZeitFlow' : post.author.name;
@@ -202,10 +207,11 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             </Button>
           </div>
           
-          <AdminActions 
+          <AdminActions
             postId={post.id}
             slug={post.slug}
-            isAdmin={post.author.isAdmin}
+            isAdmin={isCurrentUserAdmin}
+            content={post.content}
           />
           
           <BlogPost post={{
