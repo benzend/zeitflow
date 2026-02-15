@@ -1,5 +1,5 @@
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
-import { generateText, GenerateTextResult, CoreMessage } from 'ai';
+import { generateText, GenerateTextResult, ModelMessage } from 'ai';
 
 if (!process.env.OPENROUTER_API_KEY) {
   throw new Error('OPENROUTER_API_KEY is not set');
@@ -14,12 +14,12 @@ const openrouter = createOpenRouter({
   }
 });
 
-export const chat = async (prompt: string, model: string, options: { systemPrompt?: string, history?: CoreMessage[] } = {}): Promise<GenerateTextResult<never, never> | { text: string; error: boolean }> => {
+export const chat = async (prompt: string, model: string, options: { systemPrompt?: string, history?: ModelMessage[] } = {}): Promise<GenerateTextResult<never, never> | { text: string; error: boolean }> => {
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let props = {} as any;
     if (options.systemPrompt) {
-      const messages: CoreMessage[] = [
+      const messages: ModelMessage[] = [
         {
           role: 'system',
           content: options.systemPrompt

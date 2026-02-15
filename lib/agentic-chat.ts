@@ -1,5 +1,5 @@
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
-import { generateText, CoreMessage, tool } from 'ai';
+import { generateText, ModelMessage, tool, stepCountIs } from 'ai';
 import { z } from 'zod';
 import { db } from '@/lib/db';
 import { workflowsTable, chatEventsTable } from '@/schema';
@@ -101,7 +101,7 @@ export const agenticChat = async (
   model: string,
   options: {
     systemPrompt?: string;
-    history?: CoreMessage[];
+    history?: ModelMessage[];
     userId: string;
     threadId?: number;
   }
@@ -111,7 +111,7 @@ export const agenticChat = async (
   let proposedPlan: z.infer<typeof planProposalSchema> | undefined;
 
   try {
-    const messages: CoreMessage[] = [];
+    const messages: ModelMessage[] = [];
 
     if (options.systemPrompt) {
       messages.push({
@@ -132,12 +132,12 @@ export const agenticChat = async (
     const result = await generateText({
       model: openrouter(model),
       messages,
-      maxSteps: 5, // Allow up to 5 agentic steps
+      stopWhen: stepCountIs(5), // Allow up to 5 agentic steps
       tools: {
         // Tool: List user's existing workflows
         list_workflows: tool({
           description: 'List all workflows the user has created. Use this to understand what workflows already exist before creating new ones.',
-          parameters: z.object({}),
+          inputSchema: z.object({}) as any,
           execute: async () => {
             const workflows = await db.select({
               id: workflowsTable.id,
@@ -172,7 +172,7 @@ export const agenticChat = async (
         // Tool: Propose a high-level plan before implementing a workflow
         propose_plan: tool({
           description: 'Propose a high-level plan for a workflow before implementation. Use this FIRST to outline what the workflow will do. After user approval, use propose_workflow for the concrete implementation.',
-          parameters: planProposalSchema,
+          inputSchema: planProposalSchema,
           execute: async (args) => {
             proposedPlan = args;
 
@@ -204,7 +204,7 @@ export const agenticChat = async (
         // Tool: Propose a new workflow for user approval
         propose_workflow: tool({
           description: 'Propose a new workflow for the user to review and approve. The workflow will NOT be created until the user explicitly approves it. Use this when the user wants to create a new workflow.',
-          parameters: workflowProposalSchema,
+          inputSchema: workflowProposalSchema,
           execute: async (args) => {
             // Store the proposed workflow for the response
             proposedWorkflow = args;
@@ -243,7 +243,7 @@ export const agenticChat = async (
         // Tool: Search/query about workflow capabilities
         get_capabilities: tool({
           description: 'Get information about what node types and capabilities are available for building workflows.',
-          parameters: z.object({}),
+          inputSchema: z.object({}),
           execute: async () => {
             const result = {
               nodeTypes: [
@@ -306,7 +306,7 @@ export const agenticChat = async (
         // Tool: Get thread events to understand conversation history
         get_thread_events: tool({
           description: 'Get the event history for the current conversation thread. Use this to understand what plans and workflows have been proposed, approved, or rejected in this conversation. Check for workflow_plan_approved events to know when to proceed with propose_workflow.',
-          parameters: z.object({}),
+          inputSchema: z.object({}),
           execute: async () => {
             if (!options.threadId) {
               return {
