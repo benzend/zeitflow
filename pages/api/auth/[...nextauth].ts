@@ -22,7 +22,7 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       authorization: {
         params: {
-          scope: 'openid email profile https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/youtube.force-ssl',
+          scope: 'openid email profile',
           access_type: 'offline',
           prompt: 'consent',
         },
@@ -40,13 +40,13 @@ export const authOptions: NextAuthOptions = {
         }
 
         const user = await db.select().from(usersTable).where(eq(usersTable.email, credentials.email)).limit(1)
-        
+
         if (user.length === 0 || !user[0].password) {
           return null
         }
 
         const isPasswordValid = await bcrypt.compare(credentials.password, user[0].password)
-        
+
         if (!isPasswordValid) {
           return null
         }
@@ -70,7 +70,7 @@ export const authOptions: NextAuthOptions = {
         url,
       }) {
         const result = await sendMagicLinkEmail(email, url)
-        
+
         if (!result.success) {
           throw new Error(`Failed to send verification email: ${result.error}`)
         }
