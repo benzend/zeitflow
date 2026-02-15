@@ -5,7 +5,7 @@
  * Adding a new node type? Just add it here and most serialization/comparison happens automatically!
  */
 
-import { AINodeConfig, SchedulerConfig, ReviewConfig, EmailConfig, SlackConfig, SMSConfig, TelegramConfig, ConditionConfig } from './workflow-types';
+import { AINodeConfig, SchedulerConfig, ReviewConfig, EmailConfig, SlackConfig, SMSConfig, TelegramConfig, ConditionConfig, YouTubeConfig } from './workflow-types';
 
 /**
  * Node configuration registry
@@ -83,6 +83,14 @@ export const NODE_CONFIGS = {
       operator: 'equals',
       rightValue: 'high'
     } as ConditionConfig,
+  },
+  youtube: {
+    configKey: 'youtubeConfig' as const,
+    defaultConfig: {
+      mode: 'fetch',
+      videoUrl: '',
+      commentText: ''
+    } as YouTubeConfig,
   },
 } as const;
 

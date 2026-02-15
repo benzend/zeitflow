@@ -43,6 +43,7 @@ import ConditionNode from './reactflow-nodes/ConditionNode';
 import Dropdown, { DropdownOption } from './Dropdown';
 import IntegrationConfigForm from './IntegrationConfigForm';
 import { isIntegration, getIntegrationConfigKey } from '@/lib/integrations/registry';
+import { createIntegrationNodeTypes } from './reactflow-nodes/IntegrationNode';
 import ExecuteWorkflowModal from './ExecuteWorkflowModal';
 import { getAvailableVariables, OutputField } from '@/lib/node-outputs';
 
@@ -70,6 +71,7 @@ const nodeTypes: NodeTypes = {
   sms: SMSNode,
   telegram: TelegramNode,
   condition: ConditionNode,
+  ...createIntegrationNodeTypes(['youtube']),
 };
 
 // WebhookConfig component for webhook entry type
@@ -261,6 +263,7 @@ const NODE_TYPE_OPTIONS: DropdownOption[] = [
   { value: 'slack', label: 'Slack' },
   { value: 'sms', label: 'SMS' },
   { value: 'telegram', label: 'Telegram' },
+  { value: 'youtube', label: 'YouTube' },
 ];
 
 // Wrapper component to provide React Flow context
@@ -413,6 +416,7 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
       sms: 'SMS',
       telegram: 'Telegram',
       condition: 'Condition',
+      youtube: 'YouTube',
     };
 
     // Generate ONE ID for both React Flow node and node data
@@ -509,6 +513,7 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
       sms: 'SMS',
       telegram: 'Telegram',
       condition: 'Condition',
+      youtube: 'YouTube',
     };
 
     // Generate ONE ID for both React Flow node and node data

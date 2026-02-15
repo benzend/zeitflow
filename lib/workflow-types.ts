@@ -60,9 +60,15 @@ export interface ConditionConfig {
   rightValue: string;
 }
 
+export interface YouTubeConfig {
+  mode: 'fetch' | 'comment';
+  videoUrl?: string;
+  commentText?: string;
+}
+
 export interface NodeData {
   id: string;
-  type: 'entry' | 'ai' | 'scheduler' | 'review' | 'slack' | 'email' | 'sms' | 'telegram' | 'condition';
+  type: 'entry' | 'ai' | 'scheduler' | 'review' | 'slack' | 'email' | 'sms' | 'telegram' | 'condition' | 'youtube';
   x: number;
   y: number;
   label: string;
@@ -76,6 +82,7 @@ export interface NodeData {
   smsConfig?: SMSConfig;
   telegramConfig?: TelegramConfig;
   conditionConfig?: ConditionConfig;
+  youtubeConfig?: YouTubeConfig;
 }
 
 export interface Connection {
