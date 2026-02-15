@@ -3,6 +3,8 @@ import { Handle, Position, NodeProps } from '@xyflow/react';
 import { ReactFlowNodeData } from '@/lib/reactflow-types';
 import { formatConditionCompact } from '@/lib/integrations/condition-helpers';
 import { ConditionConfig } from '@/lib/integrations/definitions/condition';
+import { AlertTriangle } from 'lucide-react';
+import { Tooltip } from 'react-tippy';
 
 interface ConditionNodeProps extends NodeProps {
   data: ReactFlowNodeData;
@@ -21,6 +23,8 @@ interface ConditionNodeProps extends NodeProps {
 const ConditionNode = memo(({ data, selected }: ConditionNodeProps) => {
   const color = selected ? 'var(--success)' : 'var(--foreground)';
   const borderColor = selected ? 'var(--success)' : 'var(--border)';
+  const invalidVariables = data.invalidVariables as string[] | undefined;
+  const hasInvalidVars = invalidVariables && invalidVariables.length > 0;
 
   // Extract condition config from node data
   const conditionConfig = data.conditionConfig as ConditionConfig | undefined;
@@ -33,6 +37,13 @@ const ConditionNode = memo(({ data, selected }: ConditionNodeProps) => {
         borderColor,
       }}
     >
+      {hasInvalidVars && (
+        <Tooltip title={`Invalid variables: ${invalidVariables.map(v => `{{${v}}}`).join(', ')}`} position="top" theme="dark" size="small">
+          <div className="absolute -top-2 -right-2 w-4 h-4 bg-yellow-500 rounded-full flex items-center justify-center cursor-help z-10">
+            <AlertTriangle className="w-3 h-3 text-white" />
+          </div>
+        </Tooltip>
+      )}
       {/* Input handle on left */}
       <Handle
         type="target"

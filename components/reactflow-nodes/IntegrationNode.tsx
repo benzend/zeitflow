@@ -12,6 +12,8 @@ import { memo } from 'react';
 import { Handle, Position, NodeProps } from '@xyflow/react';
 import { ReactFlowNodeData } from '@/lib/reactflow-types';
 import { getIntegrationUIMetadata } from '@/lib/integrations/registry';
+import { AlertTriangle } from 'lucide-react';
+import { Tooltip } from 'react-tippy';
 
 interface IntegrationNodeProps extends NodeProps {
   data: ReactFlowNodeData & { integrationId?: string };
@@ -32,6 +34,9 @@ const IntegrationNode = memo(({ data, selected }: IntegrationNodeProps) => {
   // Determine colors
   const borderColor = selected ? 'var(--success)' : 'var(--border)';
   const iconColor = selected ? 'var(--success)' : 'var(--foreground)';
+  
+  const invalidVariables = data.invalidVariables as string[] | undefined;
+  const hasInvalidVars = invalidVariables && invalidVariables.length > 0;
 
   // Render icon from metadata or fallback
   const renderIcon = () => {
@@ -66,7 +71,7 @@ const IntegrationNode = memo(({ data, selected }: IntegrationNodeProps) => {
 
   return (
     <div
-      className={`px-3 py-2 bg-background-light border rounded-lg min-w-[95px]`}
+      className={`px-3 py-2 bg-background-light border rounded-lg min-w-[95px] ${hasInvalidVars ? 'border-yellow-500/50' : ''}`}
       style={{ borderColor }}
     >
       <Handle type="target" position={Position.Left} />
@@ -75,6 +80,13 @@ const IntegrationNode = memo(({ data, selected }: IntegrationNodeProps) => {
       <div className="flex items-center gap-2">
         <div className="w-4 h-3 flex-shrink-0">{renderIcon()}</div>
         <span className="text-xs text-foreground whitespace-nowrap">{data.label}</span>
+        {hasInvalidVars && (
+          <Tooltip title={`Invalid variables: ${invalidVariables.map(v => `{{${v}}}`).join(', ')}`} position="top" theme="dark" size="small">
+            <div className="absolute -top-2 -right-2 w-4 h-4 bg-yellow-500 rounded-full flex items-center justify-center cursor-help">
+              <AlertTriangle className="w-3 h-3 text-white" />
+            </div>
+          </Tooltip>
+        )}
       </div>
     </div>
   );

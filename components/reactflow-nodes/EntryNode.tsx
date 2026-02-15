@@ -2,6 +2,8 @@ import { memo, useState } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import { Play } from 'lucide-react';
 import { ReactFlowNodeData } from '@/lib/reactflow-types';
+import { AlertTriangle } from 'lucide-react';
+import { Tooltip } from 'react-tippy';
 
 interface EntryNodeProps {
   data: ReactFlowNodeData & {
@@ -30,10 +32,12 @@ const getEntryTypeLabel = (entryType: string) => {
 const EntryNode = memo(({ data, selected }: EntryNodeProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const color = selected ? 'var(--success)' : 'var(--foreground)';
+  const invalidVariables = data.invalidVariables as string[] | undefined;
+  const hasInvalidVars = invalidVariables && invalidVariables.length > 0;
 
   return (
     <div
-      className={`px-3 py-2 bg-background-light border rounded-lg ${selected ? 'border-success' : 'border-border'} min-w-[98px] relative`}
+      className={`px-3 py-2 bg-background-light border rounded-lg ${selected ? 'border-success' : 'border-border'} min-w-[98px] relative ${hasInvalidVars ? 'border-yellow-500/50' : ''}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -50,6 +54,13 @@ const EntryNode = memo(({ data, selected }: EntryNodeProps) => {
         >
           <Play size={12} fill="currentColor" className="text-background ml-0.5" />
         </button>
+      )}
+      {hasInvalidVars && (
+        <Tooltip title={`Invalid variables: ${invalidVariables.map(v => `{{${v}}}`).join(', ')}`} position="top" theme="dark" size="small">
+          <div className="absolute -top-2 -left-2 w-4 h-4 bg-yellow-500 rounded-full flex items-center justify-center cursor-help">
+            <AlertTriangle className="w-3 h-3 text-white" />
+          </div>
+        </Tooltip>
       )}
       <Handle type="source" position={Position.Right} />
 

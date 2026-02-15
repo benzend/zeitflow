@@ -18,7 +18,7 @@ interface TypeaheadResult {
   handleKeyDown: (e: React.KeyboardEvent) => boolean;
   selectSuggestion: (index: number) => void;
   closeSuggestions: () => void;
-  setTextareaRef: (ref: HTMLTextAreaElement | null) => void;
+  setTextareaRef: (ref: HTMLTextAreaElement | HTMLInputElement | null) => void;
 }
 
 export function useTypeahead(
@@ -34,9 +34,9 @@ export function useTypeahead(
     suggestions: [],
   });
 
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | HTMLInputElement>(null);
 
-  const setTextareaRef = useCallback((ref: HTMLTextAreaElement | null) => {
+  const setTextareaRef = useCallback((ref: HTMLTextAreaElement | HTMLInputElement | null) => {
     textareaRef.current = ref;
   }, []);
 

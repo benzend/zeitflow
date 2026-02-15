@@ -4,7 +4,7 @@ import { findInvalidVariables } from "@/lib/variables-client";
 import { AlertTriangle } from "lucide-react";
 import { Tooltip } from "react-tippy";
 
-interface TypeaheadTextareaProps {
+interface TypeaheadInputProps {
   value: string;
   onChange: (value: string) => void;
   suggestions: (string | { name: string, description: string })[];
@@ -19,7 +19,7 @@ interface TypeaheadTextareaProps {
   showVariableValidation?: boolean;
 }
 
-export default function TypeaheadTextarea({
+export default function TypeaheadInput({
   value,
   onChange,
   suggestions,
@@ -32,8 +32,8 @@ export default function TypeaheadTextarea({
   hintDuration = 2000,
   hintNoSuggestionsMessage = "No suggestions found",
   showVariableValidation = true,
-}: TypeaheadTextareaProps) {
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+}: TypeaheadInputProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [showTimedHint, setShowTimedHint] = useState(false);
 
@@ -52,14 +52,12 @@ export default function TypeaheadTextarea({
     setTextareaRef,
   } = useTypeahead(value, onChange, suggestions);
 
-  // Set the ref when the component mounts or updates
   useEffect(() => {
-    if (textareaRef.current) {
-      setTextareaRef(textareaRef.current);
+    if (inputRef.current) {
+      setTextareaRef(inputRef.current);
     }
   }, [setTextareaRef]);
 
-  // Handle hint timer
   useEffect(() => {
     let timer: NodeJS.Timeout;
     
@@ -78,35 +76,33 @@ export default function TypeaheadTextarea({
     setShowTimedHint(true);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     const selectionStart = e.target.selectionStart;
     onChange(newValue);
     handleTextChange(newValue, selectionStart);
   };
 
-  const handleKeyDownEvent = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyDownEvent = (e: React.KeyboardEvent<HTMLInputElement>) => {
     const handled = handleKeyDown(e);
     if (!handled && isOpen && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
-      // Prevent cursor movement in textarea when suggestions are open
       e.preventDefault();
     }
   };
 
-  const handleTextareaClick = (e: React.MouseEvent<HTMLTextAreaElement>) => {
-    const textarea = e.target as HTMLTextAreaElement;
-    const selectionStart = textarea.selectionStart;
+  const handleInputClick = (e: React.MouseEvent<HTMLInputElement>) => {
+    const input = e.target as HTMLInputElement;
+    const selectionStart = input.selectionStart;
     handleTextChange(value, selectionStart);
   };
 
-  // Close suggestions when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
         dropdownRef.current &&
         !dropdownRef.current.contains(event.target as Node) &&
-        textareaRef.current &&
-        !textareaRef.current.contains(event.target as Node)
+        inputRef.current &&
+        !inputRef.current.contains(event.target as Node)
       ) {
         closeSuggestions();
       }
@@ -122,12 +118,13 @@ export default function TypeaheadTextarea({
 
   return (
     <div className="relative">
-      <textarea
-        ref={textareaRef}
+      <input
+        ref={inputRef}
+        type="text"
         value={value}
         onChange={handleInputChange}
         onKeyDown={handleKeyDownEvent}
-        onClick={handleTextareaClick}
+        onClick={handleInputClick}
         onFocus={handleFocus}
         onBlur={() => setShowTimedHint(false)}
         className={className}
@@ -139,7 +136,7 @@ export default function TypeaheadTextarea({
       
       {hasInvalidVars && (
         <Tooltip title={`Invalid: ${invalidVars.map(v => `{{${v}}}`).join(', ')}`} position="top" theme="dark" size="small">
-          <div className="absolute top-2 right-2 cursor-help">
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 cursor-help">
             <AlertTriangle className="w-4 h-4 text-yellow-500" />
           </div>
         </Tooltip>
@@ -147,7 +144,7 @@ export default function TypeaheadTextarea({
       
       {showHint && !isOpen && !hasInvalidVars && (
         <div
-          className={`absolute top-2 right-2 text-xs text-inverted bg-background-light px-2 py-1 rounded border border-primary/20 transition-opacity ${showTimedHint ? 'opacity-100' : 'opacity-20'}`}>
+          className={`absolute right-2 top-1/2 -translate-y-1/2 text-xs text-inverted bg-background-light px-2 py-1 rounded border border-primary/20 transition-opacity ${showTimedHint ? 'opacity-100' : 'opacity-20'}`}>
           {suggestions.length > 0 ? (
             <>Type <span className="font-mono">{"{{"}{"}}"}</span> for variables</>
           ) : (
@@ -192,7 +189,7 @@ export default function TypeaheadTextarea({
                   {suggestionDescription}
                 </span>
                )}
-             </button>
+            </button>
           )})}
           {filteredSuggestions.length === 0 && (
             <div className="px-3 py-2 text-sm text-foreground-light">

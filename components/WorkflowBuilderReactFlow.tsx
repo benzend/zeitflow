@@ -16,7 +16,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, AlertTriangle } from 'lucide-react';
 import { Button } from './Button';
 import { EmailIcon } from './icons/Email';
 import { SlackIcon } from './icons/Slack';
@@ -46,6 +46,7 @@ import { isIntegration, getIntegrationConfigKey } from '@/lib/integrations/regis
 import { createIntegrationNodeTypes } from './reactflow-nodes/IntegrationNode';
 import ExecuteWorkflowModal from './ExecuteWorkflowModal';
 import { getAvailableVariables, OutputField } from '@/lib/node-outputs';
+import { findInvalidVariables } from '@/lib/variables-client';
 
 interface WorkflowBuilderProps {
   workflowId?: number;
@@ -328,20 +329,7 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
   }, [executeEntryNodeId, nodes]);
 
   // Transform nodes to inject the run callback into entry nodes
-  const nodesWithCallbacks = useMemo(() => {
-    return nodes.map(node => {
-      if (node.type === 'entry') {
-        return {
-          ...node,
-          data: {
-            ...node.data,
-            onRunClick: handleRunFromEntry,
-          },
-        };
-      }
-      return node;
-    });
-  }, [nodes, handleRunFromEntry]);
+  // (defined after getInvalidVariablesForNode)
 
   // Fetch Slack bots on component mount
   useEffect(() => {
@@ -795,6 +783,67 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
       description: output.description,
     }));
   }, [nodes, edges]);
+
+  const getInvalidVariablesForNode = useCallback((nodeId: string): string[] => {
+    const node = nodes.find(n => n.id === nodeId);
+    if (!node) return [];
+
+    const suggestions = getFieldSuggestions(nodeId);
+    const allConfigValues: string[] = [];
+    
+    const extractStrings = (obj: unknown) => {
+      if (typeof obj === 'string') {
+        allConfigValues.push(obj);
+      } else if (Array.isArray(obj)) {
+        obj.forEach(item => extractStrings(item));
+      } else if (obj && typeof obj === 'object') {
+        Object.values(obj).forEach(val => extractStrings(val));
+      }
+    };
+
+    const nodeData = node.data;
+    if (nodeData.aiConfig) extractStrings(nodeData.aiConfig);
+    if (nodeData.emailConfig) extractStrings(nodeData.emailConfig);
+    if (nodeData.slackConfig) extractStrings(nodeData.slackConfig);
+    if (nodeData.smsConfig) extractStrings(nodeData.smsConfig);
+    if (nodeData.telegramConfig) extractStrings(nodeData.telegramConfig);
+    if (nodeData.conditionConfig) extractStrings(nodeData.conditionConfig);
+    if (nodeData.schedulerConfig) extractStrings(nodeData.schedulerConfig);
+    if (nodeData.youtubeConfig) extractStrings(nodeData.youtubeConfig);
+    if (nodeData.fields) extractStrings(nodeData.fields);
+
+    const allInvalidVars = new Set<string>();
+    allConfigValues.forEach(value => {
+      const invalid = findInvalidVariables(value, suggestions);
+      invalid.forEach(v => allInvalidVars.add(v));
+    });
+
+    return Array.from(allInvalidVars);
+  }, [nodes, edges, getFieldSuggestions]);
+
+  // Transform nodes to inject the run callback into entry nodes and invalid variables
+  const nodesWithCallbacks = useMemo(() => {
+    return nodes.map(node => {
+      const invalidVars = getInvalidVariablesForNode(node.id);
+      if (node.type === 'entry') {
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            onRunClick: handleRunFromEntry,
+            invalidVariables: invalidVars,
+          },
+        };
+      }
+      return {
+        ...node,
+        data: {
+          ...node.data,
+          invalidVariables: invalidVars,
+        },
+      };
+    });
+  }, [nodes, handleRunFromEntry, getInvalidVariablesForNode]);
 
   const handleEntryNodeClick = () => {
     const entryNode = findEntryNode();
@@ -1467,6 +1516,8 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
                 {nodes.filter(n => n.data.type !== 'review').map((node) => {
                   const validationStep = (selectedNodeData.reviewConfig as ReviewConfig).validationSteps.find(s => s.nodeId === node.id);
                   const isValidated = validationStep?.validated || false;
+                  const invalidVars = getInvalidVariablesForNode(node.id);
+                  const hasInvalidVars = invalidVars.length > 0;
 
                   return (
                     <div
@@ -1523,14 +1574,21 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
                           </p>
                         </div>
                         <div className="absolute right-[15px] rounded-[2px] size-[9px]">
-                          <div className={`border ${isValidated ? 'border-foreground' : 'border-text-muted'} border-solid inset-0 rounded-[2px]`}>
-                            {isValidated && (
-                              <svg className="block size-full" fill="none" viewBox="0 0 7 6" style={{ transform: 'translate(1px, 2px) scale(0.8)' }}>
-                                <line stroke="var(--foreground)" x1="0.299998" x2="2.96666" y1="3.6" y2="5.59997" />
-                                <line stroke="var(--foreground)" x1="2.2719" x2="6.16078" y1="5.693" y2="0.693011" />
-                              </svg>
-                            )}
-                          </div>
+                          {hasInvalidVars && (
+                            <div className="text-yellow-500" title={`Invalid variables: ${invalidVars.map(v => `{{${v}}}`).join(', ')}`}>
+                              <AlertTriangle className="w-4 h-4" />
+                            </div>
+                          )}
+                          {!hasInvalidVars && (
+                            <div className={`border ${isValidated ? 'border-foreground' : 'border-text-muted'} border-solid inset-0 rounded-[2px]`}>
+                              {isValidated && (
+                                <svg className="block size-full" fill="none" viewBox="0 0 7 6" style={{ transform: 'translate(1px, 2px) scale(0.8)' }}>
+                                  <line stroke="var(--foreground)" x1="0.299998" x2="2.96666" y1="3.6" y2="5.59997" />
+                                  <line stroke="var(--foreground)" x1="2.2719" x2="6.16078" y1="5.693" y2="0.693011" />
+                                </svg>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>

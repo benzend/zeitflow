@@ -75,3 +75,19 @@ export function extractVariablesFromChainSteps(steps: Array<{ prompt: string }>)
   
   return [...allVariables].sort();
 }
+
+/**
+ * Finds variables used in a value that are not in the available suggestions
+ * Returns array of invalid variable names
+ */
+export function findInvalidVariables(
+  value: string,
+  suggestions: (string | { name: string; description: string })[]
+): string[] {
+  const usedVariables = extractVariables(value);
+  const availableNames = new Set(
+    suggestions.map(s => typeof s === 'string' ? s : s.name)
+  );
+  
+  return usedVariables.filter(v => !availableNames.has(v));
+}

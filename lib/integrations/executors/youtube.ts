@@ -7,6 +7,11 @@
 
 import { ExecutionContext, IntegrationResult } from '../types';
 import { YouTubeConfig } from '../definitions/youtube';
+import { db } from '@/lib/db';
+import { accountsTable } from '@/schema';
+import { eq } from 'drizzle-orm';
+
+const YOUTUBE_CONNECT_URL = '/api/auth/connect/youtube';
 
 /**
  * Execute the YouTube integration
@@ -15,13 +20,29 @@ export async function executeYouTube(
   config: YouTubeConfig,
   context: ExecutionContext
 ): Promise<IntegrationResult> {
-  const { logger } = context;
+  const { logger, userId } = context;
   const endTimer = logger.startTimer('youtube_execute');
 
   logger.info('Starting YouTube integration', {
     mode: config.mode,
     hasVideoUrl: !!config.videoUrl,
   });
+
+  // Check if user has a connected Google account
+  const account = await db.select()
+    .from(accountsTable)
+    .where(eq(accountsTable.userId, userId))
+    .limit(1);
+
+  if (account.length === 0) {
+    logger.error('No Google account connected', { userId });
+    endTimer();
+    return {
+      success: false,
+      error: `No Google account connected. Please connect your Google account to use YouTube integration.`,
+      data: { status: 'failed', connectUrl: YOUTUBE_CONNECT_URL },
+    };
+  }
 
   // Substitute variables
   const videoUrl = context.substituteVariables(config.videoUrl || '');
@@ -96,14 +117,14 @@ export async function executeYouTube(
       errorMessage.includes('403');
 
     const displayError = isAuthError
-      ? `YouTube authorization error: ${errorMessage}. You may need to re-authenticate with Google to grant YouTube permissions.`
+      ? `YouTube authorization error: ${errorMessage}. Please reconnect your Google account with YouTube permissions.`
       : errorMessage;
 
     logger.error('YouTube operation failed', { error: displayError });
     return {
       success: false,
       error: displayError,
-      data: { status: 'failed' },
+      data: { status: 'failed', connectUrl: YOUTUBE_CONNECT_URL },
     };
   }
 }

@@ -7,6 +7,7 @@
 
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import TypeaheadTextarea from './TypeaheadTextarea';
+import TypeaheadInput from './TypeaheadInput';
 import RecipientsInput from './RecipientsInput';
 import { getIntegrationUIMetadata, IntegrationUIMetadata } from '@/lib/integrations/registry';
 import { FieldUIConfig } from '@/lib/integrations/types';
@@ -14,6 +15,7 @@ import ConditionConfigPreview from './ConditionConfigPreview';
 import ConditionTestPanel from './ConditionTestPanel';
 import { ConditionConfig } from '@/lib/integrations/definitions/condition';
 import { processPhoneRecipients, processEmailRecipients, containsVariableSyntax } from '@/lib/phone-utils';
+import { Button } from './Button';
 
 interface IntegrationConfigFormProps {
   /** Integration ID (e.g., 'email', 'slack', 'sms') */
@@ -85,6 +87,31 @@ function FieldRenderer({
 
     case 'text':
     case 'email': {
+      if (fieldConfig.supportsVariables) {
+        return (
+          <div className="mb-[16px]">
+            <label className="block text-foreground-light font-medium mb-[8px]">
+              {fieldConfig.label}
+            </label>
+            <div className="bg-background-extra-light mt-[4px] rounded">
+              <TypeaheadInput
+                value={(value as string) || ''}
+                onChange={v => onChange(v)}
+                suggestions={variableSuggestions}
+                className={inputClassName}
+                placeholder={fieldConfig.placeholder}
+                hintNoSuggestionsMessage="No variables found"
+              />
+            </div>
+            {fieldConfig.validationHint && (
+              <p className="text-text-muted text-[10px] mt-[4px] px-[2px]">
+                {fieldConfig.validationHint}
+              </p>
+            )}
+          </div>
+        );
+      }
+
       return (
         <div className="mb-[16px]">
           <label className="block text-foreground-light font-medium mb-[8px]">
@@ -278,6 +305,17 @@ export default function IntegrationConfigForm({
   className = '',
 }: IntegrationConfigFormProps) {
   const metadata = useMemo(() => getIntegrationUIMetadata(integrationId), [integrationId]);
+  const [isConnecting, setIsConnecting] = useState(false);
+
+  const needsOAuth = metadata?.auth?.type === 'oauth';
+  const connectUrl = needsOAuth ? `/api/auth/connect/${integrationId}` : null;
+
+  const handleConnect = () => {
+    if (connectUrl) {
+      setIsConnecting(true);
+      window.location.href = connectUrl;
+    }
+  };
 
   const handleFieldChange = useCallback(
     (fieldKey: string, value: unknown) => {
@@ -308,6 +346,23 @@ export default function IntegrationConfigForm({
         <h3 className="text-foreground text-lg font-bold mb-[4px]">{name} Configuration</h3>
         <p className="text-text-muted text-sm leading-relaxed">{description}</p>
       </div>
+
+      {/* OAuth connection prompt */}
+      {needsOAuth && connectUrl && (
+        <div className="mb-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+          <p className="text-sm text-foreground mb-2">
+            This integration requires access to your {name} account.
+          </p>
+          <Button
+            onClick={handleConnect}
+            disabled={isConnecting}
+            variant="secondary"
+            className="w-full"
+          >
+            {isConnecting ? 'Connecting...' : `Connect ${name} Account`}
+          </Button>
+        </div>
+      )}
 
       {/* Special preview for condition nodes */}
       {integrationId === 'condition' && (
