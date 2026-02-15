@@ -80,7 +80,7 @@ export default function TypeaheadInput({
     const newValue = e.target.value;
     const selectionStart = e.target.selectionStart;
     onChange(newValue);
-    handleTextChange(newValue, selectionStart);
+    handleTextChange(newValue, selectionStart ?? 0);
   };
 
   const handleKeyDownEvent = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -93,7 +93,7 @@ export default function TypeaheadInput({
   const handleInputClick = (e: React.MouseEvent<HTMLInputElement>) => {
     const input = e.target as HTMLInputElement;
     const selectionStart = input.selectionStart;
-    handleTextChange(value, selectionStart);
+    handleTextChange(value, selectionStart ?? 0);
   };
 
   useEffect(() => {

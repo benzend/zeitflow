@@ -82,7 +82,7 @@ export default function TypeaheadTextarea({
     const newValue = e.target.value;
     const selectionStart = e.target.selectionStart;
     onChange(newValue);
-    handleTextChange(newValue, selectionStart);
+    handleTextChange(newValue, selectionStart ?? 0);
   };
 
   const handleKeyDownEvent = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -96,7 +96,7 @@ export default function TypeaheadTextarea({
   const handleTextareaClick = (e: React.MouseEvent<HTMLTextAreaElement>) => {
     const textarea = e.target as HTMLTextAreaElement;
     const selectionStart = textarea.selectionStart;
-    handleTextChange(value, selectionStart);
+    handleTextChange(value, selectionStart ?? 0);
   };
 
   // Close suggestions when clicking outside
