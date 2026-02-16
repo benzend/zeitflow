@@ -115,9 +115,74 @@ export default function Terms() {
             </div>
           </section>
 
-          {/* 5. Acceptable Use Policy */}
+          {/* 5. Marketplace & Template Licensing */}
           <section className="bg-surface border border-border rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-4 text-foreground">5. Acceptable Use Policy</h2>
+            <h2 className="text-2xl font-semibold mb-4 text-foreground">5. Marketplace &amp; Template Licensing</h2>
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-medium mb-2 text-foreground">Platform Ownership</h3>
+                <p className="text-foreground leading-relaxed">
+                  We own the Platform and all underlying technology, including the code that powers workflows,
+                  the user interface, the marketplace infrastructure, and the engine that connects to AI providers.
+                  Nothing in these Terms transfers ownership of our proprietary software to you.
+                </p>
+              </div>
+              <div>
+                <h3 className="text-lg font-medium mb-2 text-foreground">Official Templates</h3>
+                <p className="text-foreground leading-relaxed">
+                  Pre-built workflow templates provided by ZeitFlow (&quot;Official Templates&quot;) are our intellectual
+                  property. You are granted a license to use Official Templates within the Service for your own
+                  purposes. You may not package, redistribute, resell, or claim ownership of Official Templates
+                  or any derivative works based on their structure.
+                </p>
+              </div>
+              <div>
+                <h3 className="text-lg font-medium mb-2 text-foreground">Creator-Uploaded Templates</h3>
+                <p className="text-foreground leading-relaxed">
+                  Users who upload templates to the Marketplace (&quot;Creators&quot;) retain ownership of the original
+                  templates they create, including the specific sequence of prompts, variables, and logic.
+                  By listing a template on the Marketplace, the Creator grants ZeitFlow a worldwide, non-exclusive,
+                  royalty-free license to host, display, distribute, and promote that template on the Platform.
+                </p>
+              </div>
+              <div>
+                <h3 className="text-lg font-medium mb-2 text-foreground">Buyer Usage Rights</h3>
+                <p className="text-foreground leading-relaxed">
+                  When a user purchases or uses a Marketplace template, they are granted a perpetual,
+                  non-transferable license to execute that template for their own internal business purposes.
+                  Buyers may not redistribute, resell, sublicense, or publicly share purchased templates.
+                </p>
+              </div>
+              <div>
+                <h3 className="text-lg font-medium mb-2 text-foreground">Template Content Requirements</h3>
+                <p className="text-foreground leading-relaxed mb-3">
+                  All templates uploaded to the Marketplace must comply with the following requirements.
+                  Creators represent and warrant that:
+                </p>
+                <ul className="list-disc pl-6 space-y-2 text-foreground leading-relaxed">
+                  <li>They are the original creator of the template or have obtained all necessary licenses and permissions to distribute it</li>
+                  <li>The template does not contain or facilitate the generation of copyrighted material owned by third parties without proper licensing</li>
+                  <li>The template does not contain, generate, or facilitate any illegal content, including but not limited to child sexual abuse material (CSAM), non-consensual intimate imagery, or content that exploits minors in any way</li>
+                  <li>The template does not facilitate hate speech, harassment, fraud, phishing, or any activity prohibited by our Acceptable Use Policy</li>
+                  <li>The template does not contain malware, malicious code, or mechanisms designed to harm users or their systems</li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="text-lg font-medium mb-2 text-foreground">Content Moderation &amp; Removal</h3>
+                <p className="text-foreground leading-relaxed">
+                  We reserve the right to review, reject, remove, or disable any template from the Marketplace
+                  at any time, for any reason, with or without notice. This includes templates that violate these
+                  Terms, our Acceptable Use Policy, applicable laws, or that we determine in our sole discretion
+                  to be harmful, misleading, or inappropriate. Repeat violations will result in permanent removal
+                  of the Creator&apos;s Marketplace privileges and potential account termination.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* 6. Acceptable Use Policy */}
+          <section className="bg-surface border border-border rounded-lg p-6">
+            <h2 className="text-2xl font-semibold mb-4 text-foreground">6. Acceptable Use Policy</h2>
             <p className="text-foreground leading-relaxed mb-4">
               You agree not to use the Service to:
             </p>
@@ -142,9 +207,9 @@ export default function Terms() {
             </p>
           </section>
 
-          {/* 6. User Responsibilities */}
+          {/* 7. User Responsibilities */}
           <section className="bg-surface border border-border rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-4 text-foreground">6. User Responsibilities</h2>
+            <h2 className="text-2xl font-semibold mb-4 text-foreground">7. User Responsibilities</h2>
             <ul className="list-disc pl-6 space-y-2 text-foreground leading-relaxed">
               <li>You are responsible for the content of your prompts, workflow configurations, and any data processed through the Service</li>
               <li>You must maintain the security of your account credentials and must not share them with others</li>
@@ -154,9 +219,9 @@ export default function Terms() {
             </ul>
           </section>
 
-          {/* 7. AI Accuracy Disclaimer */}
+          {/* 8. AI Accuracy Disclaimer */}
           <section className="bg-surface border border-border rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-4 text-foreground">7. AI Output Disclaimer</h2>
+            <h2 className="text-2xl font-semibold mb-4 text-foreground">8. AI Output Disclaimer</h2>
             <p className="text-foreground leading-relaxed mb-4">
               <strong>AI models can produce inaccurate, incomplete, or misleading output (&quot;hallucinations&quot;).</strong> The
               Service relies on third-party AI models that may generate factually incorrect information, produce
@@ -171,9 +236,9 @@ export default function Terms() {
             </ul>
           </section>
 
-          {/* 8. Third-Party Services */}
+          {/* 9. Third-Party Services */}
           <section className="bg-surface border border-border rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-4 text-foreground">8. Third-Party Services</h2>
+            <h2 className="text-2xl font-semibold mb-4 text-foreground">9. Third-Party Services</h2>
             <p className="text-foreground leading-relaxed mb-4">
               The Service integrates with and relies on third-party services. Your use of these integrations
               is also subject to the terms and policies of those third-party providers:
@@ -195,9 +260,9 @@ export default function Terms() {
             </p>
           </section>
 
-          {/* 9. Service Availability & Rate Limits */}
+          {/* 10. Service Availability & Rate Limits */}
           <section className="bg-surface border border-border rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-4 text-foreground">9. Service Availability &amp; Rate Limits</h2>
+            <h2 className="text-2xl font-semibold mb-4 text-foreground">10. Service Availability &amp; Rate Limits</h2>
             <p className="text-foreground leading-relaxed mb-4">
               We strive to maintain high service availability but do not guarantee uninterrupted access.
               The Service may be temporarily unavailable due to maintenance, updates, or technical issues.
@@ -209,22 +274,195 @@ export default function Terms() {
             </p>
           </section>
 
-          {/* 10. Subscription & Payments */}
+          {/* 11. Subscription & Payments */}
           <section className="bg-surface border border-border rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-4 text-foreground">10. Subscriptions &amp; Payments</h2>
+            <h2 className="text-2xl font-semibold mb-4 text-foreground">11. Subscriptions &amp; Payments</h2>
             <p className="text-foreground leading-relaxed mb-4">
               Certain features of the Service require a paid subscription. Payments are processed through
               Stripe. By subscribing to a paid plan, you agree to pay the applicable fees and authorize
               recurring charges. You may cancel your subscription at any time through your account settings.
-              Cancellation takes effect at the end of the current billing period. Refund requests are handled
-              on a case-by-case basis; please contact{' '}
-              <a href="mailto:support@zeitflow.ai" className="text-primary hover:underline">support@zeitflow.ai</a>.
+              Cancellation takes effect at the end of the current billing period.
+            </p>
+            <p className="text-foreground leading-relaxed">
+              <strong>Immediate Access Acknowledgment:</strong> By subscribing and using the Service, you
+              acknowledge that you are requesting immediate access to the digital service and that you
+              understand this may affect your right to a cooling-off period in jurisdictions where such
+              rights apply (see Section 12 for details).
             </p>
           </section>
 
-          {/* 11. Termination */}
+          {/* 12. Refund & Cancellation Policy */}
           <section className="bg-surface border border-border rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-4 text-foreground">11. Termination</h2>
+            <h2 className="text-2xl font-semibold mb-4 text-foreground">12. Refund &amp; Cancellation Policy</h2>
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-medium mb-2 text-foreground">Digital Service &amp; Consumption</h3>
+                <p className="text-foreground leading-relaxed">
+                  You acknowledge that the Service processes data through third-party AI APIs in real-time.
+                  Once a workflow or chain has been executed, the associated costs incurred from third-party
+                  providers (OpenRouter and downstream AI models) are non-recoverable. Due to the immediate
+                  nature of digital service delivery, <strong>all sales are final once services have been
+                  consumed</strong> (i.e., workflows executed, chains processed, or API calls made).
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-medium mb-2 text-foreground">Subscription Cancellations</h3>
+                <ul className="list-disc pl-6 space-y-2 text-foreground leading-relaxed">
+                  <li>You may cancel your subscription at any time through your account settings</li>
+                  <li>Cancellation takes effect at the end of the current billing period - you retain access until then</li>
+                  <li>No prorated refunds are provided for partial billing periods</li>
+                  <li>If you cancel and re-subscribe, you will be charged at the current rate</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-medium mb-2 text-foreground">When Refunds May Be Issued</h3>
+                <ul className="list-disc pl-6 space-y-2 text-foreground leading-relaxed">
+                  <li><strong>Platform Technical Error:</strong> If a workflow fails due to a documented technical
+                    error on our platform (not a third-party API timeout or rate limit), we will credit your
+                    account for the failed execution. Cash refunds are generally not issued for platform downtime.</li>
+                  <li><strong>Duplicate Charges:</strong> If you are charged more than once for the same billing
+                    period due to a billing error, we will refund the duplicate charge.</li>
+                  <li><strong>Unauthorized Charges:</strong> If your account was compromised and unauthorized
+                    charges were made, contact us immediately at{' '}
+                    <a href="mailto:support@zeitflow.ai" className="text-primary hover:underline">support@zeitflow.ai</a>.</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-medium mb-2 text-foreground">When Refunds Are Not Provided</h3>
+                <ul className="list-disc pl-6 space-y-2 text-foreground leading-relaxed">
+                  <li>Dissatisfaction with AI output quality (output quality varies by model and prompt)</li>
+                  <li>Failure to use the Service during a billing period</li>
+                  <li>Third-party service outages (e.g., OpenRouter, Twilio, or Resend downtime)</li>
+                  <li>Account suspension or termination due to Terms of Service violations</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-medium mb-2 text-foreground">Marketplace Template Refunds</h3>
+                <p className="text-foreground leading-relaxed mb-3">
+                  Marketplace templates are digital goods. The following refund policy applies:
+                </p>
+                <ul className="list-disc pl-6 space-y-2 text-foreground leading-relaxed">
+                  <li><strong>Subjective dissatisfaction</strong> (&quot;I didn&apos;t like the template&quot;): No refund. Review the template description and preview before acquiring.</li>
+                  <li><strong>Broken or non-functional template:</strong> If a template is fundamentally flawed and
+                    does not execute as described, you may receive a credit or partial refund. Contact{' '}
+                    <a href="mailto:support@zeitflow.ai" className="text-primary hover:underline">support@zeitflow.ai</a> with details.</li>
+                  <li><strong>Accidental purchase:</strong> Refund may be issued within 24 hours only if the template
+                    has not been executed or downloaded.</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-medium mb-2 text-foreground">EU/UK Cooling-Off Period</h3>
+                <p className="text-foreground leading-relaxed">
+                  Under the EU Consumer Rights Directive and UK Consumer Rights Act, digital services may be
+                  subject to a 14-day cooling-off period. However, by creating an account and using the Service,
+                  you acknowledge and agree that: (a) you are requesting immediate access to the Service, and
+                  (b) you understand that once you execute your first workflow or chain, you waive your right
+                  to the 14-day cooling-off period for that billing period, as the digital service has been
+                  substantially performed.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-medium mb-2 text-foreground">Account Credits</h3>
+                <p className="text-foreground leading-relaxed">
+                  In lieu of cash refunds, we may offer account credits at our discretion. Account credits
+                  can be applied to future subscription periods or Marketplace purchases. Credits have no
+                  cash value and are non-transferable.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* 13. Chargebacks */}
+          <section className="bg-surface border border-border rounded-lg p-6">
+            <h2 className="text-2xl font-semibold mb-4 text-foreground">13. Chargebacks &amp; Payment Disputes</h2>
+            <p className="text-foreground leading-relaxed mb-4">
+              We have a <strong>zero-tolerance policy for fraudulent chargebacks</strong>. If you have a billing
+              concern, you must contact us at{' '}
+              <a href="mailto:support@zeitflow.ai" className="text-primary hover:underline">support@zeitflow.ai</a>{' '}
+              before initiating a dispute with your bank or payment provider.
+            </p>
+            <p className="text-foreground leading-relaxed mb-4">
+              If you dispute a legitimate charge with your bank or payment provider without first attempting
+              to resolve the issue with us:
+            </p>
+            <ul className="list-disc pl-6 space-y-2 text-foreground leading-relaxed">
+              <li>Your account and all associated data will be immediately suspended pending investigation</li>
+              <li>If the chargeback is determined to be fraudulent, your account will be permanently terminated</li>
+              <li>You will be responsible for any chargeback fees and associated costs we incur</li>
+              <li>We reserve the right to pursue recovery of the disputed amount through appropriate legal channels</li>
+            </ul>
+            <p className="text-foreground leading-relaxed mt-4">
+              We maintain detailed records of account activity, service usage, and consent to these Terms,
+              which we will provide to payment processors during any dispute resolution process.
+            </p>
+          </section>
+
+          {/* 14. Intermediary Liability & DMCA */}
+          <section className="bg-surface border border-border rounded-lg p-6">
+            <h2 className="text-2xl font-semibold mb-4 text-foreground">14. Intermediary Liability &amp; Copyright (DMCA)</h2>
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-medium mb-2 text-foreground">Intermediary Status</h3>
+                <p className="text-foreground leading-relaxed">
+                  As a provider of an intermediary platform service, ZeitFlow is not responsible for the content
+                  of templates, prompts, or outputs generated by users. Users represent and warrant that they
+                  own or have obtained all necessary licenses and permissions for all material they upload,
+                  create, or distribute through the Service. While we do not monitor all user-generated content,
+                  we will respond promptly to valid notices of alleged infringement.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-medium mb-2 text-foreground">DMCA Takedown Notices</h3>
+                <p className="text-foreground leading-relaxed mb-3">
+                  If you believe that content on the Service infringes your copyright, you may submit a
+                  DMCA takedown notice to our designated agent at{' '}
+                  <a href="mailto:legal@zeitflow.ai" className="text-primary hover:underline">legal@zeitflow.ai</a>.
+                  Your notice must include:
+                </p>
+                <ul className="list-disc pl-6 space-y-2 text-foreground leading-relaxed">
+                  <li>Identification of the copyrighted work you believe has been infringed</li>
+                  <li>Identification of the material on the Service that you believe is infringing, with enough detail for us to locate it</li>
+                  <li>Your contact information (name, address, email, phone number)</li>
+                  <li>A statement that you have a good-faith belief that the use is not authorized by the copyright owner, its agent, or the law</li>
+                  <li>A statement, under penalty of perjury, that the information in your notice is accurate and that you are the copyright owner or authorized to act on their behalf</li>
+                  <li>Your physical or electronic signature</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-medium mb-2 text-foreground">Content Removal &amp; Review Process</h3>
+                <p className="text-foreground leading-relaxed">
+                  We reserve the right to remove any content immediately upon receiving a valid takedown
+                  notice or upon our own determination that content violates these Terms, our Acceptable
+                  Use Policy, or applicable law. For Marketplace templates, we may implement a review process
+                  before templates are published to help prevent malicious content, malware, or material that
+                  could compromise user data or systems.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-medium mb-2 text-foreground">Repeat Infringer Policy</h3>
+                <p className="text-foreground leading-relaxed">
+                  We maintain a policy to terminate the accounts of repeat infringers. Users who receive
+                  multiple valid copyright complaints, or who repeatedly violate our content policies, will
+                  have their accounts permanently terminated and will be banned from creating new accounts.
+                  We track infringement notices and policy violations per account, and termination may occur
+                  without prior warning for severe violations.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* 15. Termination */}
+          <section className="bg-surface border border-border rounded-lg p-6">
+            <h2 className="text-2xl font-semibold mb-4 text-foreground">15. Termination</h2>
             <p className="text-foreground leading-relaxed mb-4">
               We reserve the right to suspend or terminate your account and access to the Service at our
               sole discretion, with or without notice, for any reason, including but not limited to:
@@ -243,9 +481,9 @@ export default function Terms() {
             </p>
           </section>
 
-          {/* 12. Indemnification */}
+          {/* 16. Indemnification */}
           <section className="bg-surface border border-border rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-4 text-foreground">12. Indemnification</h2>
+            <h2 className="text-2xl font-semibold mb-4 text-foreground">16. Indemnification</h2>
             <p className="text-foreground leading-relaxed">
               You agree to indemnify, defend, and hold harmless ZeitFlow and its officers, directors,
               employees, and agents from and against any claims, liabilities, damages, losses, and expenses
@@ -256,9 +494,9 @@ export default function Terms() {
             </p>
           </section>
 
-          {/* 13. Limitation of Liability */}
+          {/* 17. Limitation of Liability */}
           <section className="bg-surface border border-border rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-4 text-foreground">13. Limitation of Liability</h2>
+            <h2 className="text-2xl font-semibold mb-4 text-foreground">17. Limitation of Liability</h2>
             <p className="text-foreground leading-relaxed mb-4">
               TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, THE SERVICE IS PROVIDED &quot;AS IS&quot; AND
               &quot;AS AVAILABLE&quot; WITHOUT WARRANTIES OF ANY KIND, WHETHER EXPRESS OR IMPLIED, INCLUDING
@@ -279,9 +517,9 @@ export default function Terms() {
             </p>
           </section>
 
-          {/* 14. Dispute Resolution */}
+          {/* 18. Dispute Resolution */}
           <section className="bg-surface border border-border rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-4 text-foreground">14. Dispute Resolution</h2>
+            <h2 className="text-2xl font-semibold mb-4 text-foreground">18. Dispute Resolution</h2>
             <p className="text-foreground leading-relaxed mb-4">
               <strong>Informal Resolution:</strong> Before filing any formal dispute, you agree to first
               contact us at <a href="mailto:support@zeitflow.ai" className="text-primary hover:underline">support@zeitflow.ai</a> and
@@ -306,9 +544,9 @@ export default function Terms() {
             </p>
           </section>
 
-          {/* 15. Data Protection Commitment */}
+          {/* 19. Data Protection Commitment */}
           <section className="bg-surface border border-border rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-4 text-foreground">15. Data Protection</h2>
+            <h2 className="text-2xl font-semibold mb-4 text-foreground">19. Data Protection</h2>
             <p className="text-foreground leading-relaxed mb-4">
               We are committed to protecting your data. Key points:
             </p>
@@ -322,9 +560,9 @@ export default function Terms() {
             </ul>
           </section>
 
-          {/* 16. Contact */}
+          {/* 20. Contact */}
           <section className="bg-surface border border-border rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-4 text-foreground">16. Contact Information</h2>
+            <h2 className="text-2xl font-semibold mb-4 text-foreground">20. Contact Information</h2>
             <p className="text-foreground leading-relaxed mb-4">
               If you have any questions about these Terms, please contact us:
             </p>
