@@ -114,7 +114,9 @@ export default function Contact() {
               <h2 className="text-xl font-semibold text-foreground">Legal</h2>
             </div>
             <p className="text-foreground leading-relaxed mb-4">
-              Legal notices, DMCA takedowns, or other legal matters.
+              Legal notices, DMCA takedowns, copyright infringement, or other legal matters.
+              You can also use our{' '}
+              <a href="/report" className="text-primary hover:underline">Report Content form</a>.
             </p>
             <a
               href="mailto:legal@zeitflow.ai"
@@ -128,8 +130,68 @@ export default function Contact() {
           </section>
         </div>
 
-        {/* Additional Info */}
+        {/* Support Hours & SLA */}
         <div className="mt-12 space-y-8">
+          <section className="bg-surface border border-border rounded-lg p-6">
+            <h2 className="text-2xl font-semibold mb-4 text-foreground">Support Hours &amp; Response Times</h2>
+            <p className="text-foreground leading-relaxed mb-4">
+              ZeitFlow is operated independently. This means your support requests are handled personally
+              by the developer - you get thoughtful, technical responses, not canned replies from a script.
+              However, this also means support is not 24/7.
+            </p>
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-medium mb-2 text-foreground">Support Hours</h3>
+                <p className="text-foreground leading-relaxed">
+                  <strong>Monday - Friday:</strong> 9:00 AM - 5:00 PM EST<br />
+                  <strong>Weekends &amp; U.S. Public Holidays:</strong> Closed<br />
+                  <span className="text-text-muted text-sm">
+                    Any message received after 5:00 PM will be treated as received at 9:00 AM the following business day.
+                  </span>
+                </p>
+              </div>
+              <div>
+                <h3 className="text-lg font-medium mb-2 text-foreground">Response Time Targets</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-foreground text-sm border-collapse">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="text-left py-3 pr-4 font-semibold">Priority</th>
+                        <th className="text-left py-3 pr-4 font-semibold">Issue Type</th>
+                        <th className="text-left py-3 font-semibold">Target Response</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      <tr>
+                        <td className="py-3 pr-4"><span className="text-red-400 font-medium">Critical</span></td>
+                        <td className="py-3 pr-4">Full system outage (no one can run workflows)</td>
+                        <td className="py-3">8 business hours</td>
+                      </tr>
+                      <tr>
+                        <td className="py-3 pr-4"><span className="text-yellow-400 font-medium">Urgent</span></td>
+                        <td className="py-3 pr-4">Paid account billing issues or broken paid features</td>
+                        <td className="py-3">24 business hours</td>
+                      </tr>
+                      <tr>
+                        <td className="py-3 pr-4"><span className="text-blue-400 font-medium">Normal</span></td>
+                        <td className="py-3 pr-4">General how-to questions or template bugs</td>
+                        <td className="py-3">3-5 business days</td>
+                      </tr>
+                      <tr>
+                        <td className="py-3 pr-4"><span className="text-text-muted font-medium">Feedback</span></td>
+                        <td className="py-3 pr-4">Feature requests or free tier questions</td>
+                        <td className="py-3">Best effort</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <p className="text-text-muted text-sm mt-3">
+                  These are targets, not guarantees. Critical issues affecting all users are always prioritized first.
+                </p>
+              </div>
+            </div>
+          </section>
+
           <section className="bg-surface border border-border rounded-lg p-6">
             <h2 className="text-2xl font-semibold mb-4 text-foreground">Before You Reach Out</h2>
             <p className="text-foreground leading-relaxed mb-4">

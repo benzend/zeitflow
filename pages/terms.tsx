@@ -263,15 +263,49 @@ export default function Terms() {
           {/* 10. Service Availability & Rate Limits */}
           <section className="bg-surface border border-border rounded-lg p-6">
             <h2 className="text-2xl font-semibold mb-4 text-foreground">10. Service Availability &amp; Rate Limits</h2>
-            <p className="text-foreground leading-relaxed mb-4">
-              We strive to maintain high service availability but do not guarantee uninterrupted access.
-              The Service may be temporarily unavailable due to maintenance, updates, or technical issues.
-            </p>
-            <p className="text-foreground leading-relaxed">
-              We implement rate limits to ensure fair usage. Current limits include 20 requests per hour
-              for queue operations and 100 requests per hour for workflow API calls. Rate limits may vary
-              by subscription plan. Excessive or abusive usage may result in temporary or permanent restrictions.
-            </p>
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-medium mb-2 text-foreground">Service Availability</h3>
+                <p className="text-foreground leading-relaxed">
+                  We strive to maintain high service availability but do not guarantee uninterrupted access.
+                  The Service may be temporarily unavailable due to maintenance, updates, or technical issues.
+                </p>
+              </div>
+              <div>
+                <h3 className="text-lg font-medium mb-2 text-foreground">Hard Limits</h3>
+                <p className="text-foreground leading-relaxed">
+                  We impose strict rate limits to ensure platform stability. The current standard limits are
+                  20 requests per hour for queue operations and 100 requests per hour for workflow API calls.
+                  Rate limits may vary by subscription plan. We reserve the right to modify these limits at
+                  any time, with or without notice, based on infrastructure load or security requirements.
+                </p>
+              </div>
+              <div>
+                <h3 className="text-lg font-medium mb-2 text-foreground">Abuse Detection</h3>
+                <p className="text-foreground leading-relaxed">
+                  Any attempt to circumvent rate limits — including but not limited to using multiple accounts,
+                  automated scripting, API abuse, or &quot;botting&quot; the queue — is a material breach of these Terms.
+                </p>
+              </div>
+              <div>
+                <h3 className="text-lg font-medium mb-2 text-foreground">Enforcement Actions</h3>
+                <p className="text-foreground leading-relaxed mb-3">
+                  If your usage is deemed excessive or abusive at our sole discretion, we reserve the right to:
+                </p>
+                <ul className="list-disc pl-6 space-y-2 text-foreground leading-relaxed">
+                  <li>Temporarily suspend your IP address or account for a cooling-off period</li>
+                  <li>Permanently terminate your access to the Service without a refund</li>
+                  <li>Blacklist your payment method and email address from future registrations</li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="text-lg font-medium mb-2 text-foreground">No Liability for Enforcement</h3>
+                <p className="text-foreground leading-relaxed">
+                  We are not liable for any data loss, workflow interruption, or business damages resulting
+                  from a suspension or ban triggered by rate limit violations or abuse detection.
+                </p>
+              </div>
+            </div>
           </section>
 
           {/* 11. Subscription & Payments */}
@@ -422,7 +456,9 @@ export default function Terms() {
                 <h3 className="text-lg font-medium mb-2 text-foreground">DMCA Takedown Notices</h3>
                 <p className="text-foreground leading-relaxed mb-3">
                   If you believe that content on the Service infringes your copyright, you may submit a
-                  DMCA takedown notice to our designated agent at{' '}
+                  DMCA takedown notice using our{' '}
+                  <a href="/report" className="text-primary hover:underline">Report Content form</a> or
+                  by emailing our designated agent at{' '}
                   <a href="mailto:legal@zeitflow.ai" className="text-primary hover:underline">legal@zeitflow.ai</a>.
                   Your notice must include:
                 </p>
