@@ -7,90 +7,347 @@ export default function Terms() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Head>
-        <title>Terms of Service - ZeitFlow | AI Prompt Chain Management</title>
-        <meta name="description" content="Read ZeitFlow's terms of service to understand the rules and guidelines for using our AI prompt chain and workflow automation platform." />
-        <meta name="keywords" content="terms of service, terms, legal, ZeitFlow, AI prompt chains, workflow management, user agreement, service terms" />
+        <title>Terms of Service - ZeitFlow | AI Workflow Automation Platform</title>
+        <meta name="description" content="Read ZeitFlow's terms of service to understand the rules and guidelines for using our AI workflow automation platform." />
+        <meta name="keywords" content="terms of service, terms, legal, ZeitFlow, AI workflows, workflow automation, user agreement, service terms" />
         <meta property="og:title" content="Terms of Service - ZeitFlow" />
-        <meta property="og:description" content="Read the terms and conditions for using ZeitFlow's AI prompt chain platform." />
+        <meta property="og:description" content="Read the terms and conditions for using ZeitFlow's AI workflow automation platform." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/terms`} />
         <meta property="og:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/logo-on-black.png`} />
         <meta property="og:site_name" content="ZeitFlow" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Terms of Service - ZeitFlow" />
-        <meta name="twitter:description" content="Read the terms and conditions for using ZeitFlow's AI prompt chain platform." />
+        <meta name="twitter:description" content="Read the terms and conditions for using ZeitFlow's AI workflow automation platform." />
         <meta name="twitter:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/logo-on-black.png`} />
         <meta name="robots" content="index, follow" />
         <link rel="canonical" href={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/terms`} />
       </Head>
       <Navigation />
       <main className="max-w-4xl mx-auto px-4 py-16 mt-10">
-        <h1 className="text-4xl font-bold mb-12 text-primary">Terms of Service</h1>
-        
+        <h1 className="text-4xl font-bold mb-4 text-primary">Terms of Service</h1>
+        <p className="text-text-muted mb-12">
+          Effective Date: February 16, 2026 | Last Updated: February 16, 2026
+        </p>
+
         <div className="space-y-8">
+          {/* 1. Acceptance */}
           <section className="bg-surface border border-border rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-4 text-foreground">Acceptance of Terms</h2>
+            <h2 className="text-2xl font-semibold mb-4 text-foreground">1. Acceptance of Terms</h2>
             <p className="text-foreground leading-relaxed">
-              By accessing and using this AI chain processing service, you accept and agree to be 
-              bound by the terms and provision of this agreement.
+              By accessing or using ZeitFlow (&quot;the Service&quot;), operated by ZeitFlow (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;),
+              you agree to be bound by these Terms of Service (&quot;Terms&quot;). If you do not agree to these Terms,
+              you must not access or use the Service. We may update these Terms from time to time. We will notify
+              you of material changes via the email address associated with your account or through a prominent
+              notice on the Service. Continued use of the Service after such notification constitutes acceptance
+              of the updated Terms.
             </p>
           </section>
 
+          {/* 2. Eligibility / Age Restriction */}
           <section className="bg-surface border border-border rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-4 text-foreground">Service Description</h2>
+            <h2 className="text-2xl font-semibold mb-4 text-foreground">2. Eligibility</h2>
+            <p className="text-foreground leading-relaxed mb-4">
+              The Service is intended solely for users who are 18 years of age or older (or 16 in jurisdictions
+              where this is the legal minimum age for consent to data processing). By using the Service, you
+              represent and warrant that you meet this age requirement.
+            </p>
             <p className="text-foreground leading-relaxed">
-              Our service allows you to create and execute chains of AI prompts. We process your 
-              requests through third-party AI providers and return the results to you.
+              <strong>Children&apos;s Privacy (COPPA Compliance):</strong> We do not knowingly collect personal
+              information from children under the age of 13. If we learn that a user is under 13, we will
+              terminate the account and delete all associated data immediately. If you believe a child under
+              13 has provided us with personal information, please contact us at{' '}
+              <a href="mailto:privacy@zeitflow.ai" className="text-primary hover:underline">privacy@zeitflow.ai</a> so
+              we can take appropriate action.
             </p>
           </section>
 
+          {/* 3. Service Description */}
           <section className="bg-surface border border-border rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-4 text-foreground">User Responsibilities</h2>
+            <h2 className="text-2xl font-semibold mb-4 text-foreground">3. Service Description</h2>
+            <p className="text-foreground leading-relaxed">
+              ZeitFlow is an AI workflow automation platform that allows you to create, configure, and execute
+              automated workflows. The Service processes your requests through third-party AI model providers
+              (via OpenRouter, which routes to downstream providers such as Google, Anthropic, Meta, and others)
+              and returns the results to you. The Service also integrates with third-party services including
+              but not limited to email providers, SMS providers, messaging platforms, and calendar services.
+            </p>
+          </section>
+
+          {/* 4. Intellectual Property & Content Ownership */}
+          <section className="bg-surface border border-border rounded-lg p-6">
+            <h2 className="text-2xl font-semibold mb-4 text-foreground">4. Intellectual Property &amp; Content Ownership</h2>
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-medium mb-2 text-foreground">Your Content</h3>
+                <p className="text-foreground leading-relaxed">
+                  You retain ownership of all content you submit to the Service, including prompts, workflow
+                  configurations, uploaded files, and any other input data (&quot;Your Content&quot;). By using the
+                  Service, you grant us a limited, non-exclusive license to process Your Content solely for
+                  the purpose of providing and operating the Service.
+                </p>
+              </div>
+              <div>
+                <h3 className="text-lg font-medium mb-2 text-foreground">AI-Generated Output</h3>
+                <p className="text-foreground leading-relaxed">
+                  To the extent permitted by applicable law, you own the output generated by the Service based
+                  on Your Content (&quot;Output&quot;). However, we make no guarantees regarding the uniqueness of any
+                  Output, as similar prompts from different users may produce similar results. We do not claim
+                  ownership of your Output.
+                </p>
+              </div>
+              <div>
+                <h3 className="text-lg font-medium mb-2 text-foreground">Our Content</h3>
+                <p className="text-foreground leading-relaxed">
+                  The Service itself, including its design, code, branding, documentation, and any templates
+                  or content created by ZeitFlow, remains our intellectual property or the property of our
+                  licensors.
+                </p>
+              </div>
+              <div>
+                <h3 className="text-lg font-medium mb-2 text-foreground">No Training on Your Data</h3>
+                <p className="text-foreground leading-relaxed">
+                  We do not use Your Content or Output to train, fine-tune, or improve any AI models. Your
+                  data is processed solely to fulfill your requests and is handled in accordance with our{' '}
+                  <a href="/privacy" className="text-primary hover:underline">Privacy Policy</a>.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* 5. Acceptable Use Policy */}
+          <section className="bg-surface border border-border rounded-lg p-6">
+            <h2 className="text-2xl font-semibold mb-4 text-foreground">5. Acceptable Use Policy</h2>
+            <p className="text-foreground leading-relaxed mb-4">
+              You agree not to use the Service to:
+            </p>
             <ul className="list-disc pl-6 space-y-2 text-foreground leading-relaxed">
-              <li>You must not use the service for illegal or unauthorized purposes</li>
-              <li>You are responsible for the content of your prompts and chains</li>
-              <li>You must not attempt to circumvent rate limits or abuse the service</li>
-              <li>You must not share your account credentials with others</li>
+              <li>Generate, distribute, or facilitate the creation of malware, viruses, or other harmful code</li>
+              <li>Produce content that constitutes hate speech, harassment, threats, or incitement to violence</li>
+              <li>Create deepfakes, non-consensual intimate imagery, or impersonate real individuals without authorization</li>
+              <li>Generate content that sexually exploits or endangers minors in any way</li>
+              <li>Engage in fraud, phishing, social engineering, or any form of deception</li>
+              <li>Violate any applicable local, state, national, or international law or regulation</li>
+              <li>Infringe upon the intellectual property rights of any third party</li>
+              <li>Attempt to reverse-engineer, decompile, or extract the source code of the Service</li>
+              <li>Circumvent rate limits, access controls, or other technical restrictions</li>
+              <li>Use the Service to send unsolicited bulk communications (spam)</li>
+              <li>Interfere with or disrupt the integrity or performance of the Service</li>
+              <li>Access or attempt to access other users&apos; accounts or data without authorization</li>
+            </ul>
+            <p className="text-foreground leading-relaxed mt-4">
+              We reserve the right to investigate and take appropriate action against anyone who, in our sole
+              discretion, violates this Acceptable Use Policy, including removing content, suspending or
+              terminating accounts, and reporting to law enforcement authorities.
+            </p>
+          </section>
+
+          {/* 6. User Responsibilities */}
+          <section className="bg-surface border border-border rounded-lg p-6">
+            <h2 className="text-2xl font-semibold mb-4 text-foreground">6. User Responsibilities</h2>
+            <ul className="list-disc pl-6 space-y-2 text-foreground leading-relaxed">
+              <li>You are responsible for the content of your prompts, workflow configurations, and any data processed through the Service</li>
+              <li>You must maintain the security of your account credentials and must not share them with others</li>
+              <li>You are responsible for all activity that occurs under your account</li>
+              <li>You must promptly notify us at <a href="mailto:support@zeitflow.ai" className="text-primary hover:underline">support@zeitflow.ai</a> if you suspect unauthorized use of your account</li>
+              <li>If you connect third-party accounts (e.g., Google, Slack), you are responsible for ensuring you have the necessary permissions to authorize those connections</li>
             </ul>
           </section>
 
+          {/* 7. AI Accuracy Disclaimer */}
           <section className="bg-surface border border-border rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-4 text-foreground">Service Availability</h2>
-            <p className="text-foreground leading-relaxed">
-              We strive to maintain high service availability but do not guarantee uninterrupted 
-              access. The service may be temporarily unavailable due to maintenance, updates, 
-              or technical issues.
+            <h2 className="text-2xl font-semibold mb-4 text-foreground">7. AI Output Disclaimer</h2>
+            <p className="text-foreground leading-relaxed mb-4">
+              <strong>AI models can produce inaccurate, incomplete, or misleading output (&quot;hallucinations&quot;).</strong> The
+              Service relies on third-party AI models that may generate factually incorrect information, produce
+              biased results, or provide responses that appear authoritative but are wrong.
+            </p>
+            <ul className="list-disc pl-6 space-y-2 text-foreground leading-relaxed">
+              <li>You should independently verify any AI-generated output before relying on it for decisions,
+                especially in areas involving health, legal, financial, or safety matters</li>
+              <li>The Service is not a substitute for professional advice of any kind</li>
+              <li>We are not responsible for any actions you take based on AI-generated output</li>
+              <li>AI output quality may vary depending on the model selected and the specificity of your prompts</li>
+            </ul>
+          </section>
+
+          {/* 8. Third-Party Services */}
+          <section className="bg-surface border border-border rounded-lg p-6">
+            <h2 className="text-2xl font-semibold mb-4 text-foreground">8. Third-Party Services</h2>
+            <p className="text-foreground leading-relaxed mb-4">
+              The Service integrates with and relies on third-party services. Your use of these integrations
+              is also subject to the terms and policies of those third-party providers:
+            </p>
+            <ul className="list-disc pl-6 space-y-2 text-foreground leading-relaxed">
+              <li><strong>AI Processing:</strong> OpenRouter (which routes to model providers including Google, Anthropic, Meta, OpenAI, and others)</li>
+              <li><strong>Email:</strong> Resend</li>
+              <li><strong>SMS:</strong> Twilio</li>
+              <li><strong>Messaging:</strong> Slack, Telegram</li>
+              <li><strong>Calendar:</strong> Google Calendar</li>
+              <li><strong>Payments:</strong> Stripe</li>
+              <li><strong>Storage:</strong> Vercel Blob</li>
+              <li><strong>Database:</strong> Neon (PostgreSQL)</li>
+            </ul>
+            <p className="text-foreground leading-relaxed mt-4">
+              If a third-party provider changes their terms, experiences downtime, or discontinues their
+              service, it may affect the functionality of ZeitFlow. We are not liable for any disruption
+              caused by third-party service changes.
             </p>
           </section>
 
+          {/* 9. Service Availability & Rate Limits */}
           <section className="bg-surface border border-border rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-4 text-foreground">Rate Limits</h2>
+            <h2 className="text-2xl font-semibold mb-4 text-foreground">9. Service Availability &amp; Rate Limits</h2>
+            <p className="text-foreground leading-relaxed mb-4">
+              We strive to maintain high service availability but do not guarantee uninterrupted access.
+              The Service may be temporarily unavailable due to maintenance, updates, or technical issues.
+            </p>
             <p className="text-foreground leading-relaxed">
-              We implement rate limits to ensure fair usage. Current limits include 20 requests 
-              per hour for queue operations. Excessive usage may result in temporary restrictions.
+              We implement rate limits to ensure fair usage. Current limits include 20 requests per hour
+              for queue operations and 100 requests per hour for workflow API calls. Rate limits may vary
+              by subscription plan. Excessive or abusive usage may result in temporary or permanent restrictions.
             </p>
           </section>
 
+          {/* 10. Subscription & Payments */}
           <section className="bg-surface border border-border rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-4 text-foreground">Limitation of Liability</h2>
-            <p className="text-foreground leading-relaxed">
-              We provide the service &quot;as is&quot; without warranties. We are not liable for any damages 
-              arising from your use of the service, including but not limited to data loss or 
-              service interruptions.
+            <h2 className="text-2xl font-semibold mb-4 text-foreground">10. Subscriptions &amp; Payments</h2>
+            <p className="text-foreground leading-relaxed mb-4">
+              Certain features of the Service require a paid subscription. Payments are processed through
+              Stripe. By subscribing to a paid plan, you agree to pay the applicable fees and authorize
+              recurring charges. You may cancel your subscription at any time through your account settings.
+              Cancellation takes effect at the end of the current billing period. Refund requests are handled
+              on a case-by-case basis; please contact{' '}
+              <a href="mailto:support@zeitflow.ai" className="text-primary hover:underline">support@zeitflow.ai</a>.
             </p>
           </section>
 
+          {/* 11. Termination */}
           <section className="bg-surface border border-border rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-4 text-foreground">Modifications</h2>
+            <h2 className="text-2xl font-semibold mb-4 text-foreground">11. Termination</h2>
+            <p className="text-foreground leading-relaxed mb-4">
+              We reserve the right to suspend or terminate your account and access to the Service at our
+              sole discretion, with or without notice, for any reason, including but not limited to:
+            </p>
+            <ul className="list-disc pl-6 space-y-2 text-foreground leading-relaxed">
+              <li>Violation of these Terms or the Acceptable Use Policy</li>
+              <li>Conduct that we determine is harmful to other users, third parties, or the Service</li>
+              <li>Extended periods of inactivity</li>
+              <li>Requests by law enforcement or government agencies</li>
+              <li>Non-payment of subscription fees</li>
+            </ul>
+            <p className="text-foreground leading-relaxed mt-4">
+              You may terminate your account at any time through the account settings page. Upon termination,
+              your right to use the Service ceases immediately. We will delete your account data in accordance
+              with our <a href="/privacy" className="text-primary hover:underline">Privacy Policy</a>.
+            </p>
+          </section>
+
+          {/* 12. Indemnification */}
+          <section className="bg-surface border border-border rounded-lg p-6">
+            <h2 className="text-2xl font-semibold mb-4 text-foreground">12. Indemnification</h2>
             <p className="text-foreground leading-relaxed">
-              We reserve the right to modify these terms at any time. Continued use of the service 
-              after changes constitutes acceptance of the new terms.
+              You agree to indemnify, defend, and hold harmless ZeitFlow and its officers, directors,
+              employees, and agents from and against any claims, liabilities, damages, losses, and expenses
+              (including reasonable legal fees) arising out of or in any way connected with: (a) your access
+              to or use of the Service; (b) Your Content or any Output generated from Your Content; (c) your
+              violation of these Terms; or (d) your violation of any third-party rights, including intellectual
+              property, privacy, or publicity rights.
+            </p>
+          </section>
+
+          {/* 13. Limitation of Liability */}
+          <section className="bg-surface border border-border rounded-lg p-6">
+            <h2 className="text-2xl font-semibold mb-4 text-foreground">13. Limitation of Liability</h2>
+            <p className="text-foreground leading-relaxed mb-4">
+              TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, THE SERVICE IS PROVIDED &quot;AS IS&quot; AND
+              &quot;AS AVAILABLE&quot; WITHOUT WARRANTIES OF ANY KIND, WHETHER EXPRESS OR IMPLIED, INCLUDING
+              BUT NOT LIMITED TO IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE,
+              AND NON-INFRINGEMENT.
+            </p>
+            <p className="text-foreground leading-relaxed mb-4">
+              IN NO EVENT SHALL ZEITFLOW BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL,
+              OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS, DATA, USE, OR GOODWILL, ARISING OUT OF OR IN
+              CONNECTION WITH YOUR USE OF THE SERVICE, WHETHER BASED ON WARRANTY, CONTRACT, TORT (INCLUDING
+              NEGLIGENCE), OR ANY OTHER LEGAL THEORY, EVEN IF WE HAVE BEEN ADVISED OF THE POSSIBILITY OF
+              SUCH DAMAGES.
+            </p>
+            <p className="text-foreground leading-relaxed">
+              OUR TOTAL AGGREGATE LIABILITY FOR ALL CLAIMS ARISING OUT OF OR RELATING TO THESE TERMS OR
+              THE SERVICE SHALL NOT EXCEED THE GREATER OF (A) THE AMOUNT YOU PAID US IN THE TWELVE (12)
+              MONTHS PRECEDING THE CLAIM, OR (B) ONE HUNDRED U.S. DOLLARS ($100).
+            </p>
+          </section>
+
+          {/* 14. Dispute Resolution */}
+          <section className="bg-surface border border-border rounded-lg p-6">
+            <h2 className="text-2xl font-semibold mb-4 text-foreground">14. Dispute Resolution</h2>
+            <p className="text-foreground leading-relaxed mb-4">
+              <strong>Informal Resolution:</strong> Before filing any formal dispute, you agree to first
+              contact us at <a href="mailto:support@zeitflow.ai" className="text-primary hover:underline">support@zeitflow.ai</a> and
+              attempt to resolve the dispute informally for at least 30 days.
+            </p>
+            <p className="text-foreground leading-relaxed mb-4">
+              <strong>Binding Arbitration:</strong> If the dispute is not resolved informally, you and
+              ZeitFlow agree to resolve any remaining dispute through binding arbitration administered by
+              the American Arbitration Association (AAA) under its Commercial Arbitration Rules. The
+              arbitration shall be conducted in English. Judgment on the arbitration award may be entered
+              in any court of competent jurisdiction.
+            </p>
+            <p className="text-foreground leading-relaxed mb-4">
+              <strong>Class Action Waiver:</strong> You agree that any dispute resolution proceedings will
+              be conducted only on an individual basis and not as a class, consolidated, or representative
+              action.
+            </p>
+            <p className="text-foreground leading-relaxed">
+              <strong>Governing Law:</strong> These Terms shall be governed by and construed in accordance
+              with the laws of the State of Delaware, United States, without regard to its conflict of law
+              provisions.
+            </p>
+          </section>
+
+          {/* 15. Data Protection Commitment */}
+          <section className="bg-surface border border-border rounded-lg p-6">
+            <h2 className="text-2xl font-semibold mb-4 text-foreground">15. Data Protection</h2>
+            <p className="text-foreground leading-relaxed mb-4">
+              We are committed to protecting your data. Key points:
+            </p>
+            <ul className="list-disc pl-6 space-y-2 text-foreground leading-relaxed">
+              <li><strong>We do not sell your personal information.</strong> Your data is never sold to advertisers, data brokers, or any third parties.</li>
+              <li><strong>We do not use your data for advertising.</strong> Your prompts, workflows, and personal information are not used for ad targeting.</li>
+              <li><strong>We do not train AI models on your data.</strong> Your Content and Output are not used to train, fine-tune, or improve any AI models.</li>
+              <li>For full details on how we collect, use, and protect your data, please review our{' '}
+                <a href="/privacy" className="text-primary hover:underline">Privacy Policy</a>.
+              </li>
+            </ul>
+          </section>
+
+          {/* 16. Contact */}
+          <section className="bg-surface border border-border rounded-lg p-6">
+            <h2 className="text-2xl font-semibold mb-4 text-foreground">16. Contact Information</h2>
+            <p className="text-foreground leading-relaxed mb-4">
+              If you have any questions about these Terms, please contact us:
+            </p>
+            <ul className="list-none space-y-2 text-foreground leading-relaxed">
+              <li><strong>General Support:</strong>{' '}
+                <a href="mailto:support@zeitflow.ai" className="text-primary hover:underline">support@zeitflow.ai</a>
+              </li>
+              <li><strong>Privacy Inquiries:</strong>{' '}
+                <a href="mailto:privacy@zeitflow.ai" className="text-primary hover:underline">privacy@zeitflow.ai</a>
+              </li>
+              <li><strong>Legal Inquiries:</strong>{' '}
+                <a href="mailto:legal@zeitflow.ai" className="text-primary hover:underline">legal@zeitflow.ai</a>
+              </li>
+            </ul>
+            <p className="text-foreground leading-relaxed mt-4">
+              You can also reach us through our{' '}
+              <a href="/contact" className="text-primary hover:underline">Contact page</a>.
             </p>
           </section>
 
           <section className="text-center pt-8">
             <p className="text-sm text-text-muted">
-              Last updated: {new Date().toLocaleDateString()}
+              Effective Date: February 16, 2026
             </p>
           </section>
         </div>

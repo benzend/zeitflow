@@ -20,6 +20,13 @@ export const Footer = () => (
           >
             Terms of Service
           </Button>
+          <Button
+            href="/contact"
+            variant="tertiary"
+            className="!bg-transparent !p-0 text-text-muted hover:text-primary transition-colors text-sm"
+          >
+            Contact
+          </Button>
         </div>
         <div className="text-text-muted text-xs">
           @madeunlinked
