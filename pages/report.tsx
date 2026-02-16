@@ -62,7 +62,7 @@ export default function Report() {
       `Date: ${formData.date}`
     );
 
-    window.location.href = `mailto:legal@zeitflow.ai?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:legal@zeitflow.io?subject=${subject}&body=${body}`;
     setSubmitted(true);
   };
 
@@ -86,11 +86,11 @@ export default function Report() {
         <meta property="og:title" content="Report Content - ZeitFlow" />
         <meta property="og:description" content="Report copyright infringement, illegal content, or Terms of Service violations." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/report`} />
-        <meta property="og:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/logo-on-black.png`} />
+        <meta property="og:url" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'}/report`} />
+        <meta property="og:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'}/logo-on-black.png`} />
         <meta property="og:site_name" content="ZeitFlow" />
         <meta name="robots" content="index, follow" />
-        <link rel="canonical" href={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/report`} />
+        <link rel="canonical" href={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'}/report`} />
       </Head>
       <Navigation />
       <main className="max-w-4xl mx-auto px-4 py-16 mt-10">
@@ -98,7 +98,7 @@ export default function Report() {
         <p className="text-text-muted mb-8 text-lg">
           Use this form to report copyright infringement, illegal content, or violations of our
           Terms of Service. You can also email reports directly to{" "}
-          <a href="mailto:legal@zeitflow.ai" className="text-primary hover:underline">legal@zeitflow.ai</a>.
+          <a href="mailto:legal@zeitflow.io" className="text-primary hover:underline">legal@zeitflow.io</a>.
         </p>
 
         {submitted ? (
@@ -107,7 +107,7 @@ export default function Report() {
             <p className="text-foreground leading-relaxed mb-4">
               Your email client should have opened with the report details. If it didn&apos;t,
               please copy the information and send it directly to{" "}
-              <a href="mailto:legal@zeitflow.ai" className="text-primary hover:underline">legal@zeitflow.ai</a>.
+              <a href="mailto:legal@zeitflow.io" className="text-primary hover:underline">legal@zeitflow.io</a>.
             </p>
             <p className="text-foreground leading-relaxed mb-6">
               We will review your report and take appropriate action. You will receive a
@@ -261,7 +261,7 @@ export default function Report() {
                         id="infringingUrl"
                         name="infringingUrl"
                         required
-                        placeholder="https://zeitflow.ai/templates/..."
+                        placeholder="https://zeitflow.io/templates/..."
                         value={formData.infringingUrl}
                         onChange={handleChange}
                         className="w-full px-3 py-2 border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"

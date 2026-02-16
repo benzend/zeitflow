@@ -12,15 +12,15 @@ export default function Privacy() {
         <meta property="og:title" content="Privacy Policy - ZeitFlow" />
         <meta property="og:description" content="Learn how ZeitFlow protects your privacy and data when using our AI workflow automation services." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/privacy`} />
-        <meta property="og:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/logo-on-black.png`} />
+        <meta property="og:url" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'}/privacy`} />
+        <meta property="og:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'}/logo-on-black.png`} />
         <meta property="og:site_name" content="ZeitFlow" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Privacy Policy - ZeitFlow" />
         <meta name="twitter:description" content="Learn how ZeitFlow protects your privacy and data when using our AI workflow automation services." />
-        <meta name="twitter:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/logo-on-black.png`} />
+        <meta name="twitter:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'}/logo-on-black.png`} />
         <meta name="robots" content="index, follow" />
-        <link rel="canonical" href={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/privacy`} />
+        <link rel="canonical" href={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'}/privacy`} />
       </Head>
       <Navigation />
       <main className="max-w-4xl mx-auto px-4 py-16 mt-10">
@@ -225,7 +225,7 @@ export default function Privacy() {
             </ul>
             <p className="text-foreground leading-relaxed mt-4">
               To exercise any of these rights, contact us at{' '}
-              <a href="mailto:privacy@zeitflow.ai" className="text-primary hover:underline">privacy@zeitflow.ai</a>.
+              <a href="mailto:privacy@zeitflow.io" className="text-primary hover:underline">privacy@zeitflow.io</a>.
               We will respond to your request within 30 days. If we need additional time, we will notify you
               of the reason and extension period.
             </p>
@@ -240,7 +240,7 @@ export default function Privacy() {
             <ul className="list-disc pl-6 space-y-2 text-foreground leading-relaxed">
               <li><strong>Legal Basis for Processing:</strong> We process your data based on: (a) performance of our contract with you (providing the Service), (b) your consent (for optional features like analytics), (c) our legitimate interests (security, fraud prevention, service improvement), and (d) legal obligations.</li>
               <li><strong>International Data Transfers:</strong> Your data may be transferred to and processed in the United States and other countries where our sub-processors operate. We rely on Standard Contractual Clauses (SCCs) and other appropriate safeguards to protect your data during international transfers.</li>
-              <li><strong>Data Protection Officer:</strong> For GDPR-related inquiries, contact us at <a href="mailto:privacy@zeitflow.ai" className="text-primary hover:underline">privacy@zeitflow.ai</a>.</li>
+              <li><strong>Data Protection Officer:</strong> For GDPR-related inquiries, contact us at <a href="mailto:privacy@zeitflow.io" className="text-primary hover:underline">privacy@zeitflow.io</a>.</li>
               <li><strong>Supervisory Authority:</strong> You have the right to lodge a complaint with your local data protection supervisory authority if you believe we have not complied with applicable data protection laws.</li>
             </ul>
           </section>
@@ -261,7 +261,7 @@ export default function Privacy() {
             </ul>
             <p className="text-foreground leading-relaxed mt-4">
               To exercise your CCPA/CPRA rights, contact us at{' '}
-              <a href="mailto:privacy@zeitflow.ai" className="text-primary hover:underline">privacy@zeitflow.ai</a>.
+              <a href="mailto:privacy@zeitflow.io" className="text-primary hover:underline">privacy@zeitflow.io</a>.
             </p>
           </section>
 
@@ -299,7 +299,7 @@ export default function Privacy() {
                 <ul className="list-disc pl-6 space-y-1 text-foreground leading-relaxed mt-2">
                   <li>Using your browser&apos;s Do Not Track (DNT) setting</li>
                   <li>Installing a browser extension that blocks analytics scripts</li>
-                  <li>Contacting us at <a href="mailto:privacy@zeitflow.ai" className="text-primary hover:underline">privacy@zeitflow.ai</a> to request opt-out</li>
+                  <li>Contacting us at <a href="mailto:privacy@zeitflow.io" className="text-primary hover:underline">privacy@zeitflow.io</a> to request opt-out</li>
                 </ul>
               </div>
 
@@ -331,7 +331,7 @@ export default function Privacy() {
             <p className="text-foreground leading-relaxed mt-4">
               If you are a parent or guardian and believe your child under 13 has provided us with personal
               information, please contact us immediately at{' '}
-              <a href="mailto:privacy@zeitflow.ai" className="text-primary hover:underline">privacy@zeitflow.ai</a> so
+              <a href="mailto:privacy@zeitflow.io" className="text-primary hover:underline">privacy@zeitflow.io</a> so
               we can take appropriate action.
             </p>
           </section>
@@ -398,7 +398,7 @@ export default function Privacy() {
             <p className="text-foreground leading-relaxed mt-4">
               If you need assistance with account deletion or have questions about data removal, contact
               us at{' '}
-              <a href="mailto:privacy@zeitflow.ai" className="text-primary hover:underline">privacy@zeitflow.ai</a>.
+              <a href="mailto:privacy@zeitflow.io" className="text-primary hover:underline">privacy@zeitflow.io</a>.
             </p>
           </section>
 
@@ -447,13 +447,13 @@ export default function Privacy() {
             </p>
             <ul className="list-none space-y-2 text-foreground leading-relaxed">
               <li><strong>Privacy Inquiries:</strong>{' '}
-                <a href="mailto:privacy@zeitflow.ai" className="text-primary hover:underline">privacy@zeitflow.ai</a>
+                <a href="mailto:privacy@zeitflow.io" className="text-primary hover:underline">privacy@zeitflow.io</a>
               </li>
               <li><strong>General Support:</strong>{' '}
-                <a href="mailto:support@zeitflow.ai" className="text-primary hover:underline">support@zeitflow.ai</a>
+                <a href="mailto:support@zeitflow.io" className="text-primary hover:underline">support@zeitflow.io</a>
               </li>
               <li><strong>Data Deletion Requests:</strong>{' '}
-                <a href="mailto:privacy@zeitflow.ai" className="text-primary hover:underline">privacy@zeitflow.ai</a> (or use the{' '}
+                <a href="mailto:privacy@zeitflow.io" className="text-primary hover:underline">privacy@zeitflow.io</a> (or use the{' '}
                 <a href="/settings" className="text-primary hover:underline">account settings page</a>)
               </li>
             </ul>

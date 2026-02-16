@@ -13,15 +13,15 @@ export default function Terms() {
         <meta property="og:title" content="Terms of Service - ZeitFlow" />
         <meta property="og:description" content="Read the terms and conditions for using ZeitFlow's AI workflow automation platform." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/terms`} />
-        <meta property="og:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/logo-on-black.png`} />
+        <meta property="og:url" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'}/terms`} />
+        <meta property="og:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'}/logo-on-black.png`} />
         <meta property="og:site_name" content="ZeitFlow" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Terms of Service - ZeitFlow" />
         <meta name="twitter:description" content="Read the terms and conditions for using ZeitFlow's AI workflow automation platform." />
-        <meta name="twitter:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/logo-on-black.png`} />
+        <meta name="twitter:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'}/logo-on-black.png`} />
         <meta name="robots" content="index, follow" />
-        <link rel="canonical" href={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/terms`} />
+        <link rel="canonical" href={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'}/terms`} />
       </Head>
       <Navigation />
       <main className="max-w-4xl mx-auto px-4 py-16 mt-10">
@@ -57,7 +57,7 @@ export default function Terms() {
               information from children under the age of 13. If we learn that a user is under 13, we will
               terminate the account and delete all associated data immediately. If you believe a child under
               13 has provided us with personal information, please contact us at{' '}
-              <a href="mailto:privacy@zeitflow.ai" className="text-primary hover:underline">privacy@zeitflow.ai</a> so
+              <a href="mailto:privacy@zeitflow.io" className="text-primary hover:underline">privacy@zeitflow.io</a> so
               we can take appropriate action.
             </p>
           </section>
@@ -214,7 +214,7 @@ export default function Terms() {
               <li>You are responsible for the content of your prompts, workflow configurations, and any data processed through the Service</li>
               <li>You must maintain the security of your account credentials and must not share them with others</li>
               <li>You are responsible for all activity that occurs under your account</li>
-              <li>You must promptly notify us at <a href="mailto:support@zeitflow.ai" className="text-primary hover:underline">support@zeitflow.ai</a> if you suspect unauthorized use of your account</li>
+              <li>You must promptly notify us at <a href="mailto:support@zeitflow.io" className="text-primary hover:underline">support@zeitflow.io</a> if you suspect unauthorized use of your account</li>
               <li>If you connect third-party accounts (e.g., Google, Slack), you are responsible for ensuring you have the necessary permissions to authorize those connections</li>
             </ul>
           </section>
@@ -360,7 +360,7 @@ export default function Terms() {
                     period due to a billing error, we will refund the duplicate charge.</li>
                   <li><strong>Unauthorized Charges:</strong> If your account was compromised and unauthorized
                     charges were made, contact us immediately at{' '}
-                    <a href="mailto:support@zeitflow.ai" className="text-primary hover:underline">support@zeitflow.ai</a>.</li>
+                    <a href="mailto:support@zeitflow.io" className="text-primary hover:underline">support@zeitflow.io</a>.</li>
                 </ul>
               </div>
 
@@ -383,7 +383,7 @@ export default function Terms() {
                   <li><strong>Subjective dissatisfaction</strong> (&quot;I didn&apos;t like the template&quot;): No refund. Review the template description and preview before acquiring.</li>
                   <li><strong>Broken or non-functional template:</strong> If a template is fundamentally flawed and
                     does not execute as described, you may receive a credit or partial refund. Contact{' '}
-                    <a href="mailto:support@zeitflow.ai" className="text-primary hover:underline">support@zeitflow.ai</a> with details.</li>
+                    <a href="mailto:support@zeitflow.io" className="text-primary hover:underline">support@zeitflow.io</a> with details.</li>
                   <li><strong>Accidental purchase:</strong> Refund may be issued within 24 hours only if the template
                     has not been executed or downloaded.</li>
                 </ul>
@@ -418,7 +418,7 @@ export default function Terms() {
             <p className="text-foreground leading-relaxed mb-4">
               We have a <strong>zero-tolerance policy for fraudulent chargebacks</strong>. If you have a billing
               concern, you must contact us at{' '}
-              <a href="mailto:support@zeitflow.ai" className="text-primary hover:underline">support@zeitflow.ai</a>{' '}
+              <a href="mailto:support@zeitflow.io" className="text-primary hover:underline">support@zeitflow.io</a>{' '}
               before initiating a dispute with your bank or payment provider.
             </p>
             <p className="text-foreground leading-relaxed mb-4">
@@ -459,7 +459,7 @@ export default function Terms() {
                   DMCA takedown notice using our{' '}
                   <a href="/report" className="text-primary hover:underline">Report Content form</a> or
                   by emailing our designated agent at{' '}
-                  <a href="mailto:legal@zeitflow.ai" className="text-primary hover:underline">legal@zeitflow.ai</a>.
+                  <a href="mailto:legal@zeitflow.io" className="text-primary hover:underline">legal@zeitflow.io</a>.
                   Your notice must include:
                 </p>
                 <ul className="list-disc pl-6 space-y-2 text-foreground leading-relaxed">
@@ -558,7 +558,7 @@ export default function Terms() {
             <h2 className="text-2xl font-semibold mb-4 text-foreground">18. Dispute Resolution</h2>
             <p className="text-foreground leading-relaxed mb-4">
               <strong>Informal Resolution:</strong> Before filing any formal dispute, you agree to first
-              contact us at <a href="mailto:support@zeitflow.ai" className="text-primary hover:underline">support@zeitflow.ai</a> and
+              contact us at <a href="mailto:support@zeitflow.io" className="text-primary hover:underline">support@zeitflow.io</a> and
               attempt to resolve the dispute informally for at least 30 days.
             </p>
             <p className="text-foreground leading-relaxed mb-4">
@@ -604,13 +604,13 @@ export default function Terms() {
             </p>
             <ul className="list-none space-y-2 text-foreground leading-relaxed">
               <li><strong>General Support:</strong>{' '}
-                <a href="mailto:support@zeitflow.ai" className="text-primary hover:underline">support@zeitflow.ai</a>
+                <a href="mailto:support@zeitflow.io" className="text-primary hover:underline">support@zeitflow.io</a>
               </li>
               <li><strong>Privacy Inquiries:</strong>{' '}
-                <a href="mailto:privacy@zeitflow.ai" className="text-primary hover:underline">privacy@zeitflow.ai</a>
+                <a href="mailto:privacy@zeitflow.io" className="text-primary hover:underline">privacy@zeitflow.io</a>
               </li>
               <li><strong>Legal Inquiries:</strong>{' '}
-                <a href="mailto:legal@zeitflow.ai" className="text-primary hover:underline">legal@zeitflow.ai</a>
+                <a href="mailto:legal@zeitflow.io" className="text-primary hover:underline">legal@zeitflow.io</a>
               </li>
             </ul>
             <p className="text-foreground leading-relaxed mt-4">

@@ -13,15 +13,15 @@ export default function Contact() {
         <meta property="og:title" content="Contact Us - ZeitFlow" />
         <meta property="og:description" content="Get in touch with the ZeitFlow team for support, privacy inquiries, or general questions." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/contact`} />
-        <meta property="og:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/logo-on-black.png`} />
+        <meta property="og:url" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'}/contact`} />
+        <meta property="og:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'}/logo-on-black.png`} />
         <meta property="og:site_name" content="ZeitFlow" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Contact Us - ZeitFlow" />
         <meta name="twitter:description" content="Get in touch with the ZeitFlow team for support, privacy inquiries, or general questions." />
-        <meta name="twitter:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/logo-on-black.png`} />
+        <meta name="twitter:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'}/logo-on-black.png`} />
         <meta name="robots" content="index, follow" />
-        <link rel="canonical" href={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/contact`} />
+        <link rel="canonical" href={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'}/contact`} />
       </Head>
       <Navigation />
       <main className="max-w-4xl mx-auto px-4 py-16 mt-10">
@@ -45,10 +45,10 @@ export default function Contact() {
               Questions about using ZeitFlow, account issues, billing, or general feedback.
             </p>
             <a
-              href="mailto:support@zeitflow.ai"
+              href="mailto:support@zeitflow.io"
               className="text-primary hover:underline font-medium text-lg"
             >
-              support@zeitflow.ai
+              support@zeitflow.io
             </a>
             <p className="text-text-muted text-sm mt-3">
               We aim to respond within 1-2 business days.
@@ -69,10 +69,10 @@ export default function Contact() {
               Data access requests, deletion requests, GDPR/CCPA inquiries, or any privacy-related concerns.
             </p>
             <a
-              href="mailto:privacy@zeitflow.ai"
+              href="mailto:privacy@zeitflow.io"
               className="text-primary hover:underline font-medium text-lg"
             >
-              privacy@zeitflow.ai
+              privacy@zeitflow.io
             </a>
             <p className="text-text-muted text-sm mt-3">
               Privacy requests are handled within 30 days as required by law.
@@ -93,10 +93,10 @@ export default function Contact() {
               Found a bug or have a feature request? Let us know so we can make ZeitFlow better.
             </p>
             <a
-              href="mailto:support@zeitflow.ai"
+              href="mailto:support@zeitflow.io"
               className="text-primary hover:underline font-medium text-lg"
             >
-              support@zeitflow.ai
+              support@zeitflow.io
             </a>
             <p className="text-text-muted text-sm mt-3">
               Include steps to reproduce any bugs and we&apos;ll look into it.
@@ -119,10 +119,10 @@ export default function Contact() {
               <a href="/report" className="text-primary hover:underline">Report Content form</a>.
             </p>
             <a
-              href="mailto:legal@zeitflow.ai"
+              href="mailto:legal@zeitflow.io"
               className="text-primary hover:underline font-medium text-lg"
             >
-              legal@zeitflow.ai
+              legal@zeitflow.io
             </a>
             <p className="text-text-muted text-sm mt-3">
               For time-sensitive legal matters, please note the urgency in your subject line.
@@ -223,7 +223,7 @@ export default function Contact() {
               Need to delete your account or manage your data? You can do that directly from your{' '}
               <a href="/settings" className="text-primary hover:underline">account settings</a>.
               If you&apos;re locked out of your account or experiencing issues with login, email us at{' '}
-              <a href="mailto:support@zeitflow.ai" className="text-primary hover:underline">support@zeitflow.ai</a>{' '}
+              <a href="mailto:support@zeitflow.io" className="text-primary hover:underline">support@zeitflow.io</a>{' '}
               with the email address associated with your account and we&apos;ll help you get back in.
             </p>
           </section>
