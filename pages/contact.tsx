@@ -27,7 +27,7 @@ export default function Contact() {
       <main className="max-w-4xl mx-auto px-4 py-16 mt-10">
         <h1 className="text-4xl font-bold mb-4 text-primary">Contact Us</h1>
         <p className="text-text-muted mb-12 text-lg">
-          Have a question, need help, or want to share feedback? Reach out directly - a real person will get back to you.
+          Have a question, need help, or want to share feedback? Reach out directly — I read and respond to every message personally.
         </p>
 
         <div className="grid gap-8 md:grid-cols-2">
@@ -51,7 +51,7 @@ export default function Contact() {
               support@zeitflow.io
             </a>
             <p className="text-text-muted text-sm mt-3">
-              We aim to respond within 1-2 business days.
+              I aim to respond within 1-2 business days.
             </p>
           </section>
 
@@ -90,7 +90,7 @@ export default function Contact() {
               <h2 className="text-xl font-semibold text-foreground">Bug Reports &amp; Feedback</h2>
             </div>
             <p className="text-foreground leading-relaxed mb-4">
-              Found a bug or have a feature request? Let us know so we can make ZeitFlow better.
+              Found a bug or have a feature request? Let me know so I can make ZeitFlow better.
             </p>
             <a
               href="mailto:support@zeitflow.io"
@@ -99,7 +99,7 @@ export default function Contact() {
               support@zeitflow.io
             </a>
             <p className="text-text-muted text-sm mt-3">
-              Include steps to reproduce any bugs and we&apos;ll look into it.
+              Include steps to reproduce any bugs and I&apos;ll look into it.
             </p>
           </section>
 
@@ -135,9 +135,9 @@ export default function Contact() {
           <section className="bg-surface border border-border rounded-lg p-6">
             <h2 className="text-2xl font-semibold mb-4 text-foreground">Support Hours &amp; Response Times</h2>
             <p className="text-foreground leading-relaxed mb-4">
-              ZeitFlow is operated independently. This means your support requests are handled personally
-              by the developer - you get thoughtful, technical responses, not canned replies from a script.
-              However, this also means support is not 24/7.
+              ZeitFlow is built and operated by one person — me. That means when you email support,
+              you&apos;re talking to the person who actually built the platform. You&apos;ll get thoughtful,
+              technical responses, not canned replies from a script. The tradeoff is that support isn&apos;t 24/7.
             </p>
             <div className="space-y-4">
               <div>
@@ -224,7 +224,7 @@ export default function Contact() {
               <a href="/settings" className="text-primary hover:underline">account settings</a>.
               If you&apos;re locked out of your account or experiencing issues with login, email us at{' '}
               <a href="mailto:support@zeitflow.io" className="text-primary hover:underline">support@zeitflow.io</a>{' '}
-              with the email address associated with your account and we&apos;ll help you get back in.
+              with the email address associated with your account and I&apos;ll help you get back in.
             </p>
           </section>
         </div>

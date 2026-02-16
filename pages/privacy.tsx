@@ -414,9 +414,62 @@ export default function Privacy() {
             </p>
           </section>
 
-          {/* 14. Do Not Sell */}
+          {/* 14. Law Enforcement & Third-Party Data Requests */}
           <section className="bg-surface border border-border rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-4 text-foreground">14. We Do Not Sell Your Information</h2>
+            <h2 className="text-2xl font-semibold mb-4 text-foreground">14. Law Enforcement &amp; Third-Party Data Requests</h2>
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-medium mb-2 text-foreground">Our Commitment</h3>
+                <p className="text-foreground leading-relaxed">
+                  We take your privacy extremely seriously. <strong>Under no circumstances will we voluntarily
+                  disclose your personal information, prompt history, workflow data, or account information to
+                  any third party</strong> — including law enforcement agencies, government bodies, or private
+                  litigants — unless we are legally compelled to do so.
+                </p>
+              </div>
+              <div>
+                <h3 className="text-lg font-medium mb-2 text-foreground">The Warrant &amp; Court Order Requirement</h3>
+                <p className="text-foreground leading-relaxed">
+                  Access to user data by any third party is strictly prohibited unless we are served with
+                  <strong> both a valid search warrant and a court order</strong> issued by a court of competent
+                  jurisdiction, specifically identifying the data to be disclosed. We will not honor informal
+                  requests, voluntary information-sharing agreements, or requests that do not meet this
+                  standard. Broad or vague requests that do not specify the particular data sought will be
+                  challenged.
+                </p>
+              </div>
+              <div>
+                <h3 className="text-lg font-medium mb-2 text-foreground">No Voluntary Disclosure</h3>
+                <p className="text-foreground leading-relaxed">
+                  We do not participate in voluntary data-sharing programs with law enforcement or government
+                  agencies. We do not provide &quot;backdoor&quot; access to user data. We do not retain data
+                  beyond our stated retention periods for the purpose of making it available to third parties.
+                </p>
+              </div>
+              <div>
+                <h3 className="text-lg font-medium mb-2 text-foreground">User Notification</h3>
+                <p className="text-foreground leading-relaxed">
+                  If we receive a valid legal request for your data, we will notify you at the email address
+                  associated with your account as soon as legally permitted. The only exception to this
+                  notification is if we are subject to a court-issued gag order or similar legal prohibition
+                  that prevents us from informing you. Once any such prohibition expires, we will notify you
+                  promptly.
+                </p>
+              </div>
+              <div>
+                <h3 className="text-lg font-medium mb-2 text-foreground">Compelled Disclosure</h3>
+                <p className="text-foreground leading-relaxed">
+                  If we are legally compelled to disclose your data pursuant to a valid warrant and court order,
+                  we will disclose only the specific data identified in the order — nothing more. We are not
+                  liable for any disclosure made in compliance with valid legal process.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* 15. Do Not Sell */}
+          <section className="bg-surface border border-border rounded-lg p-6">
+            <h2 className="text-2xl font-semibold mb-4 text-foreground">15. We Do Not Sell Your Information</h2>
             <p className="text-foreground leading-relaxed">
               We want to be unambiguous about this: <strong>we do not sell, rent, lease, or trade your
               personal information to any third party for any purpose.</strong> Your prompts, workflow
@@ -426,9 +479,9 @@ export default function Privacy() {
             </p>
           </section>
 
-          {/* 15. Changes to This Policy */}
+          {/* 16. Changes to This Policy */}
           <section className="bg-surface border border-border rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-4 text-foreground">15. Changes to This Policy</h2>
+            <h2 className="text-2xl font-semibold mb-4 text-foreground">16. Changes to This Policy</h2>
             <p className="text-foreground leading-relaxed">
               We may update this Privacy Policy from time to time. We will notify you of material changes
               by sending an email to the address associated with your account and/or by placing a prominent
@@ -438,9 +491,9 @@ export default function Privacy() {
             </p>
           </section>
 
-          {/* 16. Contact */}
+          {/* 17. Contact */}
           <section className="bg-surface border border-border rounded-lg p-6">
-            <h2 className="text-2xl font-semibold mb-4 text-foreground">16. Contact Us</h2>
+            <h2 className="text-2xl font-semibold mb-4 text-foreground">17. Contact Us</h2>
             <p className="text-foreground leading-relaxed mb-4">
               If you have questions about this Privacy Policy, want to exercise your data rights, or have
               a privacy concern, please contact us:
