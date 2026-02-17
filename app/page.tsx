@@ -43,15 +43,15 @@ export default function Home() {
         <meta property="og:title" content="Zeitflow - Workflow automation without the complexity" />
         <meta property="og:description" content="Zeitflow connects forms and APIs to AI parsing, notifications, and HTTP endpoints. Build workflows visually, deploy instantly, and monitor every run." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'} />
-        <meta property="og:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/logo-on-black.png`} />
+        <meta property="og:url" content={process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'} />
+        <meta property="og:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'}/logo-on-black.png`} />
         <meta property="og:site_name" content="Zeitflow" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Zeitflow - Workflow automation without the complexity" />
         <meta name="twitter:description" content="Zeitflow connects forms and APIs to AI parsing, notifications, and HTTP endpoints. Build workflows visually, deploy instantly, and monitor every run." />
-        <meta name="twitter:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/logo-on-black.png`} />
+        <meta name="twitter:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'}/logo-on-black.png`} />
         <meta name="robots" content="index, follow" />
-        <link rel="canonical" href={process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'} />
+        <link rel="canonical" href={process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'} />
       </Head>
       <Providers>
         <div className="min-h-screen bg-gradient-to-b from-surface to-surface-hover text-foreground flex flex-col relative">

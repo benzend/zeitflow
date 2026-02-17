@@ -16,6 +16,7 @@ export default function Register({ providers }: { providers: Provider[] }) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [requiresVerification, setRequiresVerification] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   useEffect(() => {
     if (router.query.email) {
@@ -98,15 +99,15 @@ export default function Register({ providers }: { providers: Provider[] }) {
         <meta property="og:title" content="Register - ZeitFlow" />
         <meta property="og:description" content="Create your account and start building powerful AI prompt chains and automation workflows." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/auth/register`} />
-        <meta property="og:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/logo-on-black.png`} />
+        <meta property="og:url" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'}/auth/register`} />
+        <meta property="og:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'}/logo-on-black.png`} />
         <meta property="og:site_name" content="ZeitFlow" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Register - ZeitFlow" />
         <meta name="twitter:description" content="Create your account and start building powerful AI prompt chains and automation workflows." />
-        <meta name="twitter:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/logo-on-black.png`} />
+        <meta name="twitter:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'}/logo-on-black.png`} />
         <meta name="robots" content="noindex, nofollow" />
-        <link rel="canonical" href={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.ai'}/auth/register`} />
+        <link rel="canonical" href={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'}/auth/register`} />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
@@ -167,6 +168,27 @@ export default function Register({ providers }: { providers: Provider[] }) {
                     placeholder="Enter your password (min 6 characters)"
                   />
                 </div>
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={agreedToTerms}
+                    onChange={(e) => setAgreedToTerms(e.target.checked)}
+                    required
+                    className="mt-1 accent-primary"
+                  />
+                  <span className="text-primary/80 text-sm">
+                    I agree to the{' '}
+                    <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary-light">
+                      Terms of Service
+                    </a>{' '}
+                    and{' '}
+                    <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary-light">
+                      Privacy Policy
+                    </a>
+                    . I acknowledge that I am 18 years of age or older and consent to immediate access
+                    to this digital service.
+                  </span>
+                </label>
                 {error && (
                   <p className="text-red-500 text-sm">{error}</p>
                 )}
@@ -175,7 +197,7 @@ export default function Register({ providers }: { providers: Provider[] }) {
                 )}
                 <Button
                   type="submit"
-                  disabled={isLoading}
+                  disabled={isLoading || !agreedToTerms}
                   variant="primary"
                   className="w-full"
                 >
@@ -241,10 +263,6 @@ export default function Register({ providers }: { providers: Provider[] }) {
             )}
 
             <div className="mt-8 text-center">
-              <p className="text-primary/60 text-sm">
-                By creating an account, you agree to our <Button href="/terms" variant="tertiary" className="!bg-transparent !p-0 underline text-primary">terms of service</Button> and{' '}
-                <Button href="/privacy" variant="tertiary" className="!bg-transparent !p-0 underline text-primary">privacy policy</Button>.
-              </p>
               <p className="mt-2 text-primary/60 text-sm">
                 Already have an account?{' '}
                 <Button

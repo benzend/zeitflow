@@ -45,6 +45,11 @@ export default function ProfileDropdown() {
       label: "Terms of Service",
       href: "/terms",
       description: "Our terms and conditions"
+    },
+    {
+      label: "Contact Us",
+      href: "/contact",
+      description: "Get in touch with us"
     }
   ];
 
