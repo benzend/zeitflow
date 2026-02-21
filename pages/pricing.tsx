@@ -43,14 +43,15 @@ export default function Pricing() {
       name: 'Free',
       price: '$0',
       period: '/month',
-      description: 'Perfect for getting started',
+      description: 'Build and test agent-ready workflows',
       features: [
-        '20 requests per hour',
-        'Basic AI chain processing',
-        'Community support',
-        'Standard processing speed'
+        '20 executions per hour',
+        'Full MCP support',
+        'All integrations included',
+        'Complete audit logs',
+        'Visual workflow builder'
       ],
-      buttonText: 'Get Started',
+      buttonText: 'Start Building',
       buttonClass: 'bg-gray-600 hover:bg-gray-700 text-white',
       popular: false,
       priceId: null
@@ -59,12 +60,13 @@ export default function Pricing() {
       name: 'Pro',
       price: '$9.99',
       period: '/month',
-      description: 'Best for growing businesses',
+      description: 'For teams shipping to production',
       features: [
-        '100 requests per hour',
-        'Advanced AI chain processing',
+        '100 executions per hour',
+        'Full MCP support',
+        'All integrations included',
         'Priority support',
-        'Advanced features',
+        'Multi-model AI routing',
         'Faster processing'
       ],
       buttonText: 'Upgrade to Pro',
@@ -76,14 +78,14 @@ export default function Pricing() {
       name: 'Business',
       price: '$29.99',
       period: '/month',
-      description: 'For businesses and power users',
+      description: 'Enterprise-grade scale and support',
       features: [
-        '1000 requests per hour',
-        'Premium AI chain processing',
+        '1,000 executions per hour',
+        'Full MCP support',
+        'All integrations included',
         'Premium support',
-        'All features included',
-        'Fastest processing',
-        'Team collaboration'
+        'Team collaboration',
+        'Fastest processing'
       ],
       buttonText: 'Upgrade to Business',
       buttonClass: 'bg-purple-600 hover:bg-purple-700 text-white',
@@ -95,18 +97,18 @@ export default function Pricing() {
   return (
     <div className="min-h-screen bg-background">
       <Head>
-        <title>Pricing - ZeitFlow | AI Prompt Chain Management</title>
-        <meta name="description" content="Choose the perfect ZeitFlow plan for your AI prompt chain and workflow automation needs. Free, Pro, and Business options available." />
-        <meta name="keywords" content="pricing, plans, subscription, ZeitFlow, AI prompt chains, workflow management, automation, cost, pricing plans" />
+        <title>Pricing - ZeitFlow | Agent-Native Automation Platform</title>
+        <meta name="description" content="Simple, predictable pricing for agent-native automation. No per-agent fees. No integration surcharges. MCP support on every plan." />
+        <meta name="keywords" content="pricing, plans, ZeitFlow, AI agent automation, MCP, enterprise automation, agent-native workflows" />
         <meta property="og:title" content="Pricing - ZeitFlow" />
-        <meta property="og:description" content="Choose the perfect plan for your AI prompt chain and workflow automation needs." />
+        <meta property="og:description" content="Simple, predictable pricing for agent-native automation. MCP support and all integrations included on every plan." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'}/pricing`} />
         <meta property="og:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'}/logo-on-black.png`} />
         <meta property="og:site_name" content="ZeitFlow" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Pricing - ZeitFlow" />
-        <meta name="twitter:description" content="Choose the perfect plan for your AI prompt chain and workflow automation needs." />
+        <meta name="twitter:description" content="Simple, predictable pricing for agent-native automation. MCP support and all integrations included on every plan." />
         <meta name="twitter:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'}/logo-on-black.png`} />
         <meta name="robots" content="index, follow" />
         <link rel="canonical" href={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'}/pricing`} />
@@ -118,11 +120,11 @@ export default function Pricing() {
           {/* Header */}
           <div className="text-center mb-16 animate-slide-up-fade">
             <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6">
-              Choose Your
-              <span className="text-primary ml-3">Plan</span>
+              Simple, predictable
+              <span className="text-primary ml-3">pricing</span>
             </h1>
             <p className="text-xl text-text-muted max-w-2xl mx-auto">
-              Scale your AI chain processing with flexible pricing that grows with your needs
+              No per-agent fees. No integration surcharges. MCP support and full audit logs on every plan.
             </p>
           </div>
 
@@ -195,10 +197,18 @@ export default function Pricing() {
             <div className="space-y-6">
               <div className="bg-surface rounded-lg p-6 border border-border">
                 <h3 className="text-lg font-semibold text-foreground mb-2">
-                  What are AI chain requests?
+                  What counts as an execution?
                 </h3>
                 <p className="text-text-muted">
-                  Each AI chain request processes a sequence of AI prompts. The number of steps in your chain determines how many requests are consumed.
+                  One execution is a complete run of your workflow, from trigger to final action. Whether triggered by an AI agent via MCP, an API call, or a form submission, each run counts as one execution.
+                </p>
+              </div>
+              <div className="bg-surface rounded-lg p-6 border border-border">
+                <h3 className="text-lg font-semibold text-foreground mb-2">
+                  Is MCP support included on the free plan?
+                </h3>
+                <p className="text-text-muted">
+                  Yes. MCP support, all integrations, and full audit logs are included on every plan. We don&apos;t gate features — only execution volume scales with your plan.
                 </p>
               </div>
               <div className="bg-surface rounded-lg p-6 border border-border">
@@ -206,15 +216,15 @@ export default function Pricing() {
                   Can I change my plan anytime?
                 </h3>
                 <p className="text-text-muted">
-                  Yes, you can upgrade or downgrade your plan at any time. Changes will be reflected in your next billing cycle.
+                  Yes. Upgrade or downgrade at any time. Changes are reflected in your next billing cycle.
                 </p>
               </div>
               <div className="bg-surface rounded-lg p-6 border border-border">
                 <h3 className="text-lg font-semibold text-foreground mb-2">
-                  What happens if I exceed my request limit?
+                  What happens if I exceed my execution limit?
                 </h3>
                 <p className="text-text-muted">
-                  Your requests will be queued until the next hour when your limit resets. Consider upgrading for higher limits and priority processing.
+                  Executions are queued until the next hour when your limit resets. Upgrade for higher throughput and priority processing.
                 </p>
               </div>
             </div>
