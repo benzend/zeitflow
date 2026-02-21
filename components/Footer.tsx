@@ -37,8 +37,7 @@ export const Footer = () => (
 
     <div className="flex flex-col items-center gap-2 mt-4 text-sm text-text-muted animate-slide-up-fade delay-500">
       <span>
-        Made with <span className="text-primary animate-pulse">♥</span>{' '}
-        for prompt chain enthusiasts
+        Agent-native automation infrastructure
       </span>
     </div>
   </footer>

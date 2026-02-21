@@ -18,23 +18,23 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ZeitFlow - AI Workflow Automation",
-  description: "Rethinking the way you work with AI using a unique, powerful system for managing and executing AI prompt chains",
-  keywords: ["AI", "prompt chains", "automation", "GPT-4", "productivity", "workflow"],
+  title: "ZeitFlow - The Automation Platform Built for AI Agents",
+  description: "Build lightning-fast, enterprise-grade workflows that AI agents discover and use through MCP. Agent-native automation infrastructure for the new era.",
+  keywords: ["AI agents", "MCP", "Model Context Protocol", "agent-native automation", "enterprise workflows", "AI workflow platform"],
   authors: [{ name: "ZeitFlow" }],
   creator: "ZeitFlow",
   publisher: "ZeitFlow",
   robots: "index, follow",
   openGraph: {
-    title: "ZeitFlow - AI Chain Processing Platform",
-    description: "Rethinking the way you work with AI using a unique, powerful system for managing and executing AI prompt chains",
+    title: "ZeitFlow - The Automation Platform Built for AI Agents",
+    description: "Lightning-fast, enterprise-grade automations that AI agents natively discover and use through MCP. The automation platform for the agent era.",
     type: "website",
     locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: "ZeitFlow - AI Chain Processing Platform",
-    description: "Rethinking the way you work with AI using a unique, powerful system for managing and executing AI prompt chains",
+    title: "ZeitFlow - The Automation Platform Built for AI Agents",
+    description: "Lightning-fast, enterprise-grade automations that AI agents natively discover and use through MCP. The automation platform for the agent era.",
   },
 };
 
