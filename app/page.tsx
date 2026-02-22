@@ -34,6 +34,7 @@ import {
   X,
   Webhook,
   MessageSquare,
+  Terminal,
 } from 'lucide-react';
 
 export default function Home() {
@@ -221,6 +222,97 @@ export default function Home() {
                       ))}
                     </div>
                   </div>
+                </div>
+              </section>
+
+              {/* Connect in Seconds - Developer-focused CLI/MCP */}
+              <section className="space-y-8">
+                <div className="text-center space-y-4">
+                  <h2 className="text-2xl md:text-3xl font-semibold text-foreground">
+                    Connect in seconds
+                  </h2>
+                  <p className="text-text-muted max-w-2xl mx-auto">
+                    Add ZeitFlow to any MCP-compatible client. Your AI agent gets 16 workflow tools instantly.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Remote / Streamable HTTP Config */}
+                  <div className="rounded-lg border border-border overflow-hidden">
+                    <div className="flex items-center gap-2 px-4 py-3 bg-surface/50 border-b border-border">
+                      <Globe className="w-4 h-4 text-primary" />
+                      <span className="text-sm font-medium text-foreground">Remote (recommended)</span>
+                      <span className="ml-auto text-xs text-text-muted">Streamable HTTP</span>
+                    </div>
+                    <div className="bg-[#1a1a1a] p-4 overflow-x-auto">
+                      <pre className="text-sm font-mono text-[#e5e7eb] leading-relaxed whitespace-pre">{`{
+  "mcpServers": {
+    "zeitflow": {
+      "serverUrl": "https://www.zeitflow.io/api/mcp",
+      "headers": {
+        "Authorization": "Bearer <your-token>"
+      }
+    }
+  }
+}`}</pre>
+                    </div>
+                    <div className="px-4 py-3 bg-surface/30 border-t border-border">
+                      <p className="text-xs text-text-muted">
+                        Works with Claude Desktop, Cursor, Windsurf, and any MCP client.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Local npx Config */}
+                  <div className="rounded-lg border border-border overflow-hidden">
+                    <div className="flex items-center gap-2 px-4 py-3 bg-surface/50 border-b border-border">
+                      <Terminal className="w-4 h-4 text-primary" />
+                      <span className="text-sm font-medium text-foreground">Local (npx)</span>
+                      <span className="ml-auto text-xs text-text-muted">stdio transport</span>
+                    </div>
+                    <div className="bg-[#1a1a1a] p-4 overflow-x-auto">
+                      <pre className="text-sm font-mono text-[#e5e7eb] leading-relaxed whitespace-pre">{`{
+  "mcpServers": {
+    "zeitflow": {
+      "command": "npx",
+      "args": ["@zeitflow/mcp"],
+      "env": {
+        "ZEITFLOW_API_TOKEN": "<your-token>"
+      }
+    }
+  }
+}`}</pre>
+                    </div>
+                    <div className="px-4 py-3 bg-surface/30 border-t border-border">
+                      <p className="text-xs text-text-muted">
+                        Runs locally via npx. No installation required.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Terminal one-liner */}
+                <div className="rounded-lg border border-border overflow-hidden max-w-xl mx-auto">
+                  <div className="flex items-center gap-2 px-4 py-2 bg-surface/50 border-b border-border">
+                    <div className="flex gap-1.5">
+                      <div className="w-3 h-3 rounded-full bg-[#ff5f57]" />
+                      <div className="w-3 h-3 rounded-full bg-[#febc2e]" />
+                      <div className="w-3 h-3 rounded-full bg-[#28c840]" />
+                    </div>
+                    <span className="text-xs text-text-muted ml-2">Terminal</span>
+                  </div>
+                  <div className="bg-[#1a1a1a] px-4 py-3">
+                    <pre className="text-sm font-mono">
+                      <span className="text-[#a3e635]">$</span>
+                      <span className="text-[#e5e7eb]"> npx @zeitflow/mcp</span>
+                    </pre>
+                  </div>
+                </div>
+
+                <div className="text-center">
+                  <Button href="/connect" variant="secondary" size="md">
+                    See setup guides for all clients <ArrowRight className="w-4 h-4 ml-1 inline" />
+                  </Button>
                 </div>
               </section>
 
