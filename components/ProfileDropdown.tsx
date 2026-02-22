@@ -27,6 +27,11 @@ export default function ProfileDropdown() {
 
   const menuItems = [
     {
+      label: "Connect AI Agent",
+      href: "/connect",
+      description: "Set up MCP for Claude, Cursor, VS Code"
+    },
+    {
       label: "Account Settings",
       href: "/settings",
       description: "Manage your account preferences"

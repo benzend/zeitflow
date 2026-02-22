@@ -140,6 +140,19 @@ export default function Settings() {
               </div>
             </section>
 
+            {/* MCP / AI Agent Connection */}
+            <section>
+              <h2 className="text-xl font-semibold text-foreground mb-4">AI Agent Connection (MCP)</h2>
+              <div className="bg-background-light-light p-4 rounded-lg">
+                <p className="text-gray-400 mb-4">
+                  Connect Claude, Cursor, VS Code, or any MCP-compatible AI agent to ZeitFlow so it can create and manage workflows on your behalf.
+                </p>
+                <Button href="/connect" variant="primary" size="sm">
+                  Set Up Connection
+                </Button>
+              </div>
+            </section>
+
             {/* Slack Integration */}
             <section>
               <h2 className="text-xl font-semibold text-foreground mb-4">Slack Integration</h2>

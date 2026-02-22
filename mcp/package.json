@@ -1,0 +1,31 @@
+{
+  "name": "@zeitflow/mcp",
+  "version": "0.1.0",
+  "description": "ZeitFlow MCP server — connect AI agents to your ZeitFlow workflows",
+  "license": "MIT",
+  "bin": {
+    "zeitflow-mcp": "./dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.publish.json"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "zeitflow",
+    "ai",
+    "workflow",
+    "automation"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/benzend/joice",
+    "directory": "mcp"
+  }
+}

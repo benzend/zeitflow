@@ -22,103 +22,80 @@ export const guides: Guide[] = [
     content: `
 # Connect AI Agents to ZeitFlow via MCP
 
-ZeitFlow ships with a **Model Context Protocol (MCP)** server that lets AI agents — like Claude Desktop and Claude Code — create, configure, and execute workflows on your behalf.
+ZeitFlow ships with a **Model Context Protocol (MCP)** server that lets AI agents — like Claude Desktop, Claude Code, Cursor, and VS Code — create, configure, and execute workflows on your behalf.
 
 Once connected, you can say things like *"Create a workflow that takes a blog topic, generates an outline with AI, then emails me the result"* and the agent will build it directly in ZeitFlow.
+
+> **Quickest path:** Go to **[/connect](/connect)** in ZeitFlow — it generates ready-to-paste configs with your token pre-filled.
 
 ---
 
 ## Prerequisites
 
-- A **ZeitFlow account** with at least one workflow (so you know the system)
-- **Node.js 18+** and **pnpm** installed
-- The ZeitFlow repository cloned locally
-- Your **database URL** (the same \`DATABASE_URL\` used by the app)
+- A **ZeitFlow account**
+- Your **API token** (get it at [/connect](/connect) or any workflow's Execution tab)
+
+That's it. The remote MCP endpoint requires **no local setup** — no cloning, no dependencies, no database URL.
 
 ---
 
 ## Step 1: Get your API Token
 
-1. Log in to ZeitFlow and open any workflow
-2. Go to the **Execution** tab
-3. Your API token is displayed under **"Your API Token"**
-4. If you don't have one yet, click **"Generate API Token"**
-
-Copy this token — you'll need it in the next step.
+1. Log in to ZeitFlow
+2. Go to **[/connect](/connect)** (or open any workflow's Execution tab)
+3. Copy your API token (generate one if you don't have one yet)
 
 ---
 
-## Step 2: Install dependencies
+## Step 2: Configure your MCP client
 
-If you haven't already, install the project dependencies:
+### Option A: Remote URL (recommended — zero install)
+
+Works with any MCP client that supports Streamable HTTP (Claude Desktop, Claude Code, Cursor, VS Code, Windsurf):
+
+\`\`\`json
+{
+  "mcpServers": {
+    "zeitflow": {
+      "serverUrl": "https://www.zeitflow.io/api/mcp",
+      "headers": {
+        "Authorization": "Bearer your-api-token-here"
+      }
+    }
+  }
+}
+\`\`\`
+
+No local setup, no database URL, no dependencies. Just paste and go.
+
+### Option B: Claude Code CLI one-liner
 
 \`\`\`bash
-pnpm install
+claude mcp add zeitflow --transport http --url "https://www.zeitflow.io/api/mcp" --header "Authorization: Bearer your-api-token-here"
 \`\`\`
 
----
-
-## Step 3: Configure your MCP client
-
-### Claude Desktop
-
-Add the following to your Claude Desktop config file:
-
-- **macOS**: \`~/Library/Application Support/Claude/claude_desktop_config.json\`
-- **Windows**: \`%APPDATA%\\Claude\\claude_desktop_config.json\`
+### Option C: npx (for stdio-only clients)
 
 \`\`\`json
 {
   "mcpServers": {
     "zeitflow": {
-      "command": "pnpm",
-      "args": ["mcp"],
-      "cwd": "/path/to/zeitflow",
+      "command": "npx",
+      "args": ["-y", "@zeitflow/mcp"],
       "env": {
-        "ZEITFLOW_API_TOKEN": "your-api-token-here",
-        "DATABASE_URL": "your-database-url-here"
+        "ZEITFLOW_API_TOKEN": "your-api-token-here"
       }
     }
   }
 }
 \`\`\`
 
-> Replace \`/path/to/zeitflow\` with the absolute path to your cloned ZeitFlow repo.
+### Option D: Local development (direct DB access)
 
-Restart Claude Desktop after saving. You should see "zeitflow" appear in the MCP tools menu (the hammer icon).
-
-### Claude Code
-
-Add a \`.mcp.json\` file in your project root (or \`~/.claude/mcp.json\` for global access):
-
-\`\`\`json
-{
-  "mcpServers": {
-    "zeitflow": {
-      "command": "pnpm",
-      "args": ["mcp"],
-      "cwd": "/path/to/zeitflow",
-      "env": {
-        "ZEITFLOW_API_TOKEN": "your-api-token-here",
-        "DATABASE_URL": "your-database-url-here"
-      }
-    }
-  }
-}
-\`\`\`
-
-### Run directly from terminal
-
-You can also test the MCP server standalone:
+If you're a contributor with access to the ZeitFlow database:
 
 \`\`\`bash
 ZEITFLOW_API_TOKEN=your-token DATABASE_URL=your-db-url pnpm mcp
-\`\`\`
-
-If configured correctly you'll see:
-
-\`\`\`
-ZeitFlow MCP server running (user: you@example.com)
 \`\`\`
 
 ---
