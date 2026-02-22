@@ -1,6 +1,6 @@
 # Authentication Setup Guide
 
-This guide walks you through setting up authentication for your Joice application, including Google OAuth and magic link sign-in with Resend.
+This guide walks you through setting up authentication for your ZeitFlow application, including Google OAuth and magic link sign-in with Resend.
 
 ## 1. Google Cloud Console Setup
 

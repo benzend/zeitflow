@@ -258,7 +258,7 @@ These edge cases are documented and tested:
 ### Can't Find Documentation?
 All files are in project root:
 ```
-/Users/benjaminscott/Projects/joice/
+<project-root>/
 ├── TESTING_README.md (this file)
 ├── TESTING_COMPLETE.md
 ├── MANUAL_TESTING_GUIDE.md
