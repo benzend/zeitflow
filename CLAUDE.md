@@ -33,6 +33,9 @@ pnpm migrate
 
 # Backfill asset metadata (dimensions, blur placeholders)
 pnpm backfill-assets
+
+# Start MCP server (for AI agent integration)
+ZEITFLOW_API_TOKEN=<token> pnpm mcp
 ```
 
 ## Architecture Overview
@@ -64,7 +67,19 @@ This is a Next.js application (Pages Router) that implements **ZeitFlow** - a vi
 - **Execution Logs**: Persisted in `logs` JSON column, viewable in execution details UI
 - **YAML Parsing**: AI can generate workflows from natural language via `lib/workflow-parser.ts`
 
-#### 3. Integration System (`lib/integrations/`)
+#### 3. MCP Server (`mcp/server.ts`)
+Model Context Protocol server that allows AI agents to create and manage workflows programmatically:
+- **Authentication**: Via `ZEITFLOW_API_TOKEN` env var (user's API token)
+- **Transport**: stdio (standard MCP transport for CLI/desktop integration)
+- **Tools**:
+  - `list_node_types` / `list_ai_models` - Discovery
+  - `create_workflow` / `get_workflow` / `list_workflows` / `update_workflow` / `delete_workflow` - Workflow CRUD
+  - `add_node` / `update_node` / `remove_node` - Node management
+  - `connect_nodes` / `remove_connection` - Connection management
+  - `execute_workflow` / `get_execution` / `list_executions` - Execution
+  - `create_workflow_from_template` - Bulk creation of a complete workflow with nodes and connections in one call
+
+#### 4. Integration System (`lib/integrations/`)
 Plugin-based architecture for workflow node integrations:
 - **Registry** (`registry.ts`): Central registry for all integrations
 - **Definitions** (`definitions/`): Individual integration configs (email, slack, sms)
