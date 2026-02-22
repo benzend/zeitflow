@@ -129,6 +129,35 @@ export const mdxComponents = {
     <li className="ml-2">{children}</li>
   ),
   
+  // Tables
+  table: ({ children }: { children: React.ReactNode }) => (
+    <div className="overflow-x-auto mb-4">
+      <table className="w-full border-collapse text-sm">
+        {children}
+      </table>
+    </div>
+  ),
+
+  thead: ({ children }: { children: React.ReactNode }) => (
+    <thead className="border-b-2 border-border">{children}</thead>
+  ),
+
+  tbody: ({ children }: { children: React.ReactNode }) => (
+    <tbody className="divide-y divide-border">{children}</tbody>
+  ),
+
+  tr: ({ children }: { children: React.ReactNode }) => (
+    <tr className="border-b border-border">{children}</tr>
+  ),
+
+  th: ({ children }: { children: React.ReactNode }) => (
+    <th className="px-4 py-2 text-left font-semibold text-foreground">{children}</th>
+  ),
+
+  td: ({ children }: { children: React.ReactNode }) => (
+    <td className="px-4 py-2 text-foreground">{children}</td>
+  ),
+
   // Horizontal rules
   hr: () => (
     <hr className="border-border my-8" />
