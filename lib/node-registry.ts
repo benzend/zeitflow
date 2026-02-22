@@ -65,7 +65,10 @@ export const NODE_CONFIGS = {
     configKey: 'smsConfig' as const,
     defaultConfig: {
       to: [],
-      message: 'Workflow update: {{previousOutput}}'
+      message: 'Workflow update: {{previousOutput}}',
+      twilioAccountSid: '',
+      twilioAuthToken: '',
+      twilioPhoneNumber: ''
     } as SMSConfig,
   },
   telegram: {

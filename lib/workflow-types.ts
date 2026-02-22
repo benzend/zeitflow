@@ -46,6 +46,9 @@ export interface SlackConfig {
 export interface SMSConfig {
   to: string[]; // Array of recipient phone numbers in E.164 format
   message?: string; // Message body (160 chars for single SMS)
+  twilioAccountSid?: string; // Optional override for system TWILIO_ACCOUNT_SID
+  twilioAuthToken?: string; // Optional override for system TWILIO_AUTH_TOKEN
+  twilioPhoneNumber?: string; // Optional override for system TWILIO_PHONE_NUMBER
 }
 
 export interface TelegramConfig {
