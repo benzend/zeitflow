@@ -1,6 +1,7 @@
 pub mod auth;
 pub mod execution;
 pub mod integration;
+pub mod template;
 pub mod workflow;
 
 use anyhow::Result;
@@ -51,6 +52,13 @@ pub enum Command {
         action: integration::IntegrationCommand,
     },
 
+    /// Manage workflow templates
+    #[command(alias = "tpl")]
+    Template {
+        #[command(subcommand)]
+        action: template::TemplateCommand,
+    },
+
     /// Authentication
     Auth {
         #[command(subcommand)]
@@ -62,7 +70,10 @@ pub async fn run(cli: Cli) -> Result<()> {
     match cli.command {
         Command::Workflow { action } => workflow::run(action, cli.output, cli.api_url).await,
         Command::Execution { action } => execution::run(action, cli.output, cli.api_url).await,
-        Command::Integration { action } => integration::run(action, cli.output, cli.api_url).await,
+        Command::Integration { action } => {
+            integration::run(action, cli.output, cli.api_url).await
+        }
+        Command::Template { action } => template::run(action, cli.output, cli.api_url).await,
         Command::Auth { action } => auth::run(action, cli.output).await,
     }
 }

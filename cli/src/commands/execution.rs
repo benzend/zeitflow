@@ -8,6 +8,14 @@ use crate::output::{self, OutputFormat};
 
 #[derive(Subcommand)]
 pub enum ExecutionCommand {
+    /// List executions for a workflow (fetched from workflow stats)
+    #[command(alias = "ls")]
+    List {
+        /// Workflow ID
+        #[arg(long)]
+        workflow: i64,
+    },
+
     /// Get execution details and logs
     Get {
         /// Execution ID
@@ -41,6 +49,60 @@ pub async fn run(
     let client = ApiClient::new(&config)?;
 
     match action {
+        ExecutionCommand::List { workflow } => {
+            let stats: Value = client
+                .get(&format!("/api/workflow/{workflow}/stats"))
+                .await?;
+
+            match format {
+                OutputFormat::Json => output::print_json(&stats, format),
+                OutputFormat::Text => {
+                    // Stats endpoint returns execution summaries
+                    let executions = stats
+                        .get("executions")
+                        .and_then(|e| e.as_array())
+                        .or_else(|| stats.get("recentExecutions").and_then(|e| e.as_array()))
+                        .cloned()
+                        .unwrap_or_default();
+
+                    if executions.is_empty() {
+                        // Show aggregate stats if no execution list
+                        println!("Workflow {workflow} stats:");
+                        if let Some(total) = stats.get("totalExecutions") {
+                            println!("  Total executions: {total}");
+                        }
+                        if let Some(completed) = stats.get("completedExecutions") {
+                            println!("  Completed: {completed}");
+                        }
+                        if let Some(failed) = stats.get("failedExecutions") {
+                            println!("  Failed: {failed}");
+                        }
+                    } else {
+                        let rows: Vec<Vec<String>> = executions
+                            .iter()
+                            .map(|e| {
+                                vec![
+                                    e["id"].to_string(),
+                                    e["status"]
+                                        .as_str()
+                                        .unwrap_or("unknown")
+                                        .to_string(),
+                                    e["createdAt"]
+                                        .as_str()
+                                        .or_else(|| e["startedAt"].as_str())
+                                        .unwrap_or("")
+                                        .to_string(),
+                                ]
+                            })
+                            .collect();
+
+                        output::print_table(&["ID", "STATUS", "STARTED"], &rows);
+                    }
+                }
+            }
+            Ok(())
+        }
+
         ExecutionCommand::Get { id } => {
             let execution: Value = client
                 .get(&format!("/api/workflow/execution/{id}"))
@@ -54,10 +116,13 @@ pub async fn run(
                         .and_then(|o| o.get("execution"))
                         .unwrap_or(&execution);
 
-                    println!(
-                        "Execution #{id}  status: {}",
-                        exec["status"].as_str().unwrap_or("unknown")
-                    );
+                    let status = exec["status"].as_str().unwrap_or("unknown");
+                    println!("Execution #{id}  status: {status}");
+
+                    if let Some(wf) = execution.get("workflow") {
+                        let name = wf["name"].as_str().unwrap_or("?");
+                        println!("Workflow: {name}");
+                    }
 
                     if let Some(input) = exec.get("inputData") {
                         if !input.is_null() {
@@ -77,6 +142,26 @@ pub async fn run(
                                 serde_json::to_string_pretty(output_data)?
                             );
                         }
+                    }
+
+                    if let Some(error) = exec.get("error") {
+                        if !error.is_null() {
+                            println!(
+                                "\nError: {}",
+                                error.as_str().unwrap_or("")
+                            );
+                        }
+                    }
+
+                    // Show log summary
+                    let logs = exec["logs"]
+                        .as_array()
+                        .map(|a| a.len())
+                        .unwrap_or(0);
+                    if logs > 0 {
+                        println!(
+                            "\n{logs} log entries. Run: zeitflow execution logs {id}"
+                        );
                     }
                 }
             }
