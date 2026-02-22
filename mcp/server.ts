@@ -29,8 +29,8 @@
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { eq } from "drizzle-orm";
-import { usersTable } from "../schema.js";
-import { createMcpServer } from "./create-server.js";
+import { usersTable } from "../schema";
+import { createMcpServer } from "./create-server";
 
 // ---------------------------------------------------------------------------
 // Database & Auth

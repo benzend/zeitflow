@@ -14,9 +14,9 @@ import {
   workflowNodesTable,
   workflowConnectionsTable,
   workflowExecutionsTable,
-} from "../schema.js";
-import { NODE_CONFIGS, NODE_TYPES } from "../lib/node-registry.js";
-import { AI_MODELS } from "../lib/constants.js";
+} from "../schema";
+import { NODE_CONFIGS, NODE_TYPES } from "../lib/node-registry";
+import { AI_MODELS } from "../lib/constants";
 import crypto from "crypto";
 
 // ---------------------------------------------------------------------------
