@@ -189,29 +189,56 @@ Review the following blog post for grammar and style:
 
 ## Important Notes
 
-- **\`execute_workflow\` requires the Next.js app to be running** — it delegates to the \`/api/workflow/[id]/execute\` HTTP endpoint. All other tools talk directly to the database.
-- The MCP server uses **stdio transport**, which is the standard for CLI and desktop MCP clients.
 - Each MCP session authenticates as **one user** via the API token. The agent can only access that user's workflows.
 - Workflows created via MCP start in **draft** status. Use \`update_workflow\` to publish them when ready.
+- **Remote endpoint** (Option A): Everything goes through \`/api/mcp\` — no local setup needed. This is the recommended approach.
+- **Local stdio** (Option D): \`execute_workflow\` requires the Next.js app to be running (\`pnpm dev\`) since it calls the HTTP execute endpoint. All other tools talk directly to the database.
+
+---
+
+## Testing Locally
+
+To test the remote MCP endpoint against a local dev server:
+
+\`\`\`bash
+# 1. Start ZeitFlow
+pnpm dev
+
+# 2. Test with curl (replace YOUR_TOKEN)
+curl -X POST http://localhost:3000/api/mcp \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer YOUR_TOKEN" \\
+  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}},"id":1}'
+\`\`\`
+
+If you get back a JSON-RPC response with \`serverInfo\`, the endpoint is working. Then configure your MCP client to point to \`http://localhost:3000/api/mcp\`.
+
+For stdio mode, test directly:
+
+\`\`\`bash
+ZEITFLOW_API_TOKEN=your-token DATABASE_URL=your-db-url pnpm mcp
+\`\`\`
+
+You should see: \`ZeitFlow MCP server running (user: you@example.com)\`
 
 ---
 
 ## Troubleshooting
 
+**401 "Missing or invalid Authorization header"**
+Include \`Authorization: Bearer <token>\` in your request headers. For the remote endpoint, this is required.
+
+**401 "Invalid API token — no matching user found"**
+Your token doesn't match any user. Generate a fresh one at [/connect](/connect).
+
 **"DATABASE_URL environment variable is required"**
-You need to pass the \`DATABASE_URL\` env var. Check your \`.env.local\` file for the value.
-
-**"ZEITFLOW_API_TOKEN environment variable is required"**
-Set your API token. Find it in the Execution tab of any workflow in the ZeitFlow UI.
-
-**"Invalid ZEITFLOW_API_TOKEN – no matching user found"**
-Your token doesn't match any user in the database. Generate a fresh one from the UI.
+Only applies to local stdio mode (Option D). The remote endpoint doesn't need this.
 
 **"Failed to reach execution endpoint"**
-The \`execute_workflow\` tool needs the ZeitFlow Next.js server running (\`pnpm dev\`). Other tools work without it.
+The \`execute_workflow\` tool (in local mode) needs the Next.js server running (\`pnpm dev\`).
 
-**Claude Desktop doesn't show zeitflow tools**
-Make sure \`cwd\` points to the correct directory. Restart Claude Desktop after editing the config. Check the MCP logs for errors.
+**Client doesn't show zeitflow tools**
+Restart your MCP client after changing config. For Claude Desktop, check logs at \`~/Library/Logs/Claude/\`. For Cursor, check the MCP panel in settings.
 `,
   },
   {
