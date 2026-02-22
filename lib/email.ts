@@ -1,4 +1,6 @@
 import { Resend } from 'resend'
+import { ResultAsync } from 'neverthrow';
+import { AppError, integrationError } from './errors';
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -87,3 +89,27 @@ export async function sendWorkflowEmail(
     return { success: false, error: 'Failed to send email' };
   }
 }
+
+/**
+ * Type-safe workflow email using neverthrow ResultAsync.
+ * Returns void on success, or an AppError on failure.
+ */
+export const sendWorkflowEmailSafe = (
+  config: { to: string[]; subject?: string; message?: string; from?: string },
+  variables?: Record<string, string>
+): ResultAsync<void, AppError> => {
+  return ResultAsync.fromPromise(
+    (async () => {
+      const result = await sendWorkflowEmail(config, variables);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to send email');
+      }
+    })(),
+    (error) =>
+      integrationError(
+        'email',
+        error instanceof Error ? error.message : 'Email send failed',
+        { recipients: config.to.length }
+      )
+  );
+};

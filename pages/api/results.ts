@@ -1,19 +1,16 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from './auth/[...nextauth]';
-import { generateAiDescription } from '@/pages/api/chain-step';
 import { db } from '@/lib/db';
-import { 
-  chainsTable, 
-  chainStepsTable, 
-  queuedChainStepsTable, 
-  queuedChainsTable, 
+import {
+  chainsTable,
+  chainStepsTable,
+  queuedChainStepsTable,
+  queuedChainsTable,
   SelectQueuedChainVariables,
-  usersTable, 
   queuedChainVariablesTable
 } from '@/schema';
-import { isRateLimited } from '@/lib/rate-limit';
 import { eq } from 'drizzle-orm';
+import { generateAiDescription } from '@/pages/api/chain-step';
+import { apiHandler, sendError } from '@/lib/api-handler';
+import { validationError, notFoundError, authorizationError } from '@/lib/errors';
 
 type QueuedChainStepWithDetails = {
   id: number;
@@ -30,80 +27,18 @@ type QueuedChainStepWithDetails = {
   cycleCount: number;
 };
 
-type ResponseData = {
-  success: boolean;
-  message: string;
-  queuedChain?: {
-    id: number;
-    chainId: number;
-    status: string;
-    error: string | null;
-    createdAt: Date;
-    updatedAt: Date;
-    chainName: string | null;
-  };
-  queuedChainSteps?: QueuedChainStepWithDetails[];
-  queuedChainVariables?: SelectQueuedChainVariables[];
-};
+export default apiHandler({
+  rateLimitKey: 'results',
+  rateLimitWindowMs: 60 * 1000,
+  rateLimitMax: 1000,
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<ResponseData>
-) {
-  if (req.method !== 'GET') {
-    return res
-      .status(405)
-      .json({ success: false, message: 'Method not allowed' });
-  }
-
-  // Check authentication
-  const session = await getServerSession(req, res, authOptions);
-  if (!session?.user?.email) {
-    return res
-      .status(401)
-      .json({ success: false, message: 'Unauthorized' });
-  }
-
-  // Get client IP for rate limiting
-  const ip = req.headers['x-forwarded-for'] ||
-    req.socket.remoteAddress ||
-    'unknown-ip';
-
-  const clientIp = Array.isArray(ip) ? ip[0] : ip;
-
-  // Check rate limit
-  const isLimited = await isRateLimited({
-    key: `results:${clientIp}`,
-    windowMs: 60 * 1000, // 1 minute in milliseconds
-    maxRequests: 1000
-  });
-
-  if (isLimited) {
-    return res
-      .status(429)
-      .json({ success: false, message: 'Too many requests. Please try again later.' });
-  }
-
-  const user = await db.select()
-    .from(usersTable)
-    .where(eq(usersTable.email, session.user.email))
-    .limit(1);
-
-  if (user.length === 0) {
-    return res
-      .status(401)
-      .json({ success: false, message: 'Unauthorized' });
-  }
-
-  try {
+  GET: async (req, res, { userId }) => {
     const queuedChainId = req.query.id ? parseInt(req.query.id as string, 10) : null;
 
     if (!queuedChainId) {
-      return res.status(400)
-        .json({ success: false, message: 'Queued chain ID is required' });
+      return sendError(res, validationError('Queued chain ID is required'));
     }
 
-    // Get the queued chain with chain details
     const queuedChain = await db
       .select({
         id: queuedChainsTable.id,
@@ -121,17 +56,13 @@ export default async function handler(
       .limit(1);
 
     if (queuedChain.length === 0) {
-      return res.status(404)
-        .json({ success: false, message: 'Queued chain not found' });
+      return sendError(res, notFoundError('Queued chain'));
     }
 
-    // Check if user owns this chain
-    if (queuedChain[0].chainUserId !== user[0].id) {
-      return res.status(403)
-        .json({ success: false, message: 'Not authorized to view this chain' });
+    if (queuedChain[0].chainUserId !== userId) {
+      return sendError(res, authorizationError('Not authorized to view this chain'));
     }
 
-    // Get all queued chain steps with their original prompts
     const queuedChainSteps = await db
       .select({
         id: queuedChainStepsTable.id,
@@ -186,11 +117,5 @@ export default async function handler(
       queuedChainSteps: queuedChainSteps as QueuedChainStepWithDetails[],
       queuedChainVariables: queuedChainVariables as SelectQueuedChainVariables[],
     });
-
-  } catch (error) {
-    console.error('Results operation error:', error);
-    return res
-      .status(500)
-      .json({ success: false, message: 'Failed to process request' });
-  }
-}
+  },
+});

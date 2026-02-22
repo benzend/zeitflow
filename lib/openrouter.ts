@@ -1,5 +1,7 @@
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { generateText, GenerateTextResult, ModelMessage } from 'ai';
+import { ResultAsync } from 'neverthrow';
+import { AppError, integrationError, configurationError } from './errors';
 
 if (!process.env.OPENROUTER_API_KEY) {
   throw new Error('OPENROUTER_API_KEY is not set');
@@ -54,4 +56,30 @@ export const chat = async (prompt: string, model: string, options: { systemPromp
     };
   }
 }
+
+/**
+ * Type-safe chat using neverthrow ResultAsync.
+ * Returns the generated text on success, or an AppError on failure.
+ */
+export const chatSafe = (
+  prompt: string,
+  model: string,
+  options: { systemPrompt?: string; history?: ModelMessage[] } = {}
+): ResultAsync<string, AppError> => {
+  return ResultAsync.fromPromise(
+    (async () => {
+      const result = await chat(prompt, model, options);
+      if ('error' in result && result.error) {
+        throw new Error(result.text);
+      }
+      return result.text;
+    })(),
+    (error) =>
+      integrationError(
+        'openrouter',
+        error instanceof Error ? error.message : 'AI service error',
+        { model, promptLength: prompt.length }
+      )
+  );
+};
 

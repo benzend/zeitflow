@@ -209,7 +209,7 @@ describe('/api/workflow/[id]', () => {
       expect(res._getStatusCode()).toBe(401);
       const responseData = JSON.parse(res._getData());
       expect(responseData.success).toBe(false);
-      expect(responseData.message).toBe('You must be signed in to access workflows');
+      expect(responseData.message).toBe('You must be signed in to access this resource');
     });
 
     it.skip('should return 404 for non-existent workflow', async () => {
