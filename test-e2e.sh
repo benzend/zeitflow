@@ -6,7 +6,7 @@ echo "=========================================================="
 
 # Test 1: Test workflow parser functionality
 echo "📋 Test 1: Testing workflow parser with sample YAML..."
-cd /Users/benjaminscott/Projects/joice
+cd "$(dirname "$0")"
 
 # Create a test workflow YAML
 TEST_WORKFLOW='workflow:
