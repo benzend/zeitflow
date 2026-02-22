@@ -39,6 +39,9 @@ const SMSIcon = ({ className, color }: { className?: string; color?: string }) =
 export const SMSConfigSchema = z.object({
   to: z.array(z.string()).default([]),
   message: z.string().optional().default(''),
+  twilioAccountSid: z.string().optional().default(''),
+  twilioAuthToken: z.string().optional().default(''),
+  twilioPhoneNumber: z.string().optional().default(''),
 });
 
 export type SMSConfig = z.infer<typeof SMSConfigSchema>;
@@ -60,6 +63,9 @@ export const smsIntegration: Omit<IntegrationDefinition<typeof SMSConfigSchema>,
   defaultConfig: {
     to: [],
     message: 'Workflow update: {{previousOutput}}',
+    twilioAccountSid: '',
+    twilioAuthToken: '',
+    twilioPhoneNumber: '',
   },
 
   uiConfig: {
@@ -76,6 +82,27 @@ export const smsIntegration: Omit<IntegrationDefinition<typeof SMSConfigSchema>,
       placeholder: 'Workflow update: {{previousOutput}}',
       supportsVariables: true,
       validationHint: '160 chars per SMS segment',
+    },
+    twilioAccountSid: {
+      hint: 'text',
+      label: 'Twilio Account SID (optional)',
+      placeholder: 'Leave empty to use system default',
+      supportsVariables: false,
+      validationHint: 'Find your Account SID at twilio.com/console. Only needed if no system credentials are configured.',
+    },
+    twilioAuthToken: {
+      hint: 'text',
+      label: 'Twilio Auth Token (optional)',
+      placeholder: 'Leave empty to use system default',
+      supportsVariables: false,
+      validationHint: 'Find your Auth Token at twilio.com/console.',
+    },
+    twilioPhoneNumber: {
+      hint: 'text',
+      label: 'Twilio Phone Number (optional)',
+      placeholder: '+15551234567',
+      supportsVariables: false,
+      validationHint: 'Your Twilio phone number in E.164 format. Leave empty to use system default.',
     },
   },
 

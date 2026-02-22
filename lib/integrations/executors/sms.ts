@@ -26,29 +26,28 @@ export async function executeSMS(
   logger.info('Starting SMS send', {
     recipientCount: config.to.length,
     hasMessage: !!config.message,
+    hasCustomCredentials: !!(config.twilioAccountSid && config.twilioAuthToken),
   });
 
+  // Determine which Twilio credentials to use (per-workflow or system)
+  const accountSid = config.twilioAccountSid || process.env.TWILIO_ACCOUNT_SID;
+  const authToken = config.twilioAuthToken || process.env.TWILIO_AUTH_TOKEN;
+  const phoneNumber = config.twilioPhoneNumber || process.env.TWILIO_PHONE_NUMBER;
+
   // Validate Twilio credentials
-  if (
-    !process.env.TWILIO_ACCOUNT_SID ||
-    !process.env.TWILIO_AUTH_TOKEN ||
-    !process.env.TWILIO_PHONE_NUMBER
-  ) {
+  if (!accountSid || !authToken || !phoneNumber) {
     logger.error('Twilio credentials not configured');
     endTimer();
     return {
       success: false,
-      error: 'Twilio credentials not configured',
+      error: 'Twilio credentials not configured. Set TWILIO_ACCOUNT_SID/TWILIO_AUTH_TOKEN/TWILIO_PHONE_NUMBER environment variables or provide them in the node config.',
       data: { status: 'failed', error: 'Missing credentials' },
     };
   }
 
   // Dynamic import
   const twilio = (await import('twilio')).default;
-  const twilioClient = twilio(
-    process.env.TWILIO_ACCOUNT_SID,
-    process.env.TWILIO_AUTH_TOKEN
-  );
+  const twilioClient = twilio(accountSid, authToken);
 
   // Substitute variables
   const recipients = config.to.map(recipient => context.substituteVariables(recipient.trim()));
@@ -90,7 +89,7 @@ export async function executeSMS(
       logger.debug('Sending to recipient', { recipient: recipient.slice(0, 6) + '****' });
       return twilioClient.messages.create({
         body: message,
-        from: process.env.TWILIO_PHONE_NUMBER!,
+        from: phoneNumber,
         to: recipient,
       });
     })
