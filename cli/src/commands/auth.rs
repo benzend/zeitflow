@@ -1,16 +1,17 @@
-use anyhow::Result;
+use anyhow::{Context, Result};
 use clap::Subcommand;
+use std::io::{self, Write};
 
 use crate::config::Config;
 use crate::output::{self, OutputFormat};
 
 #[derive(Subcommand)]
 pub enum AuthCommand {
-    /// Log in with API token
+    /// Log in with API token (opens browser or use --token for scripting)
     Login {
-        /// API token from ZeitFlow settings page
+        /// API token (skips interactive browser flow)
         #[arg(long)]
-        token: String,
+        token: Option<String>,
     },
 
     /// Log out and remove stored credentials
@@ -18,28 +19,54 @@ pub enum AuthCommand {
 
     /// Show current auth status
     Status,
-
-    /// Set the API server URL
-    #[command(name = "set-url")]
-    SetUrl {
-        /// API server URL (e.g. https://zeitflow.example.com)
-        url: String,
-    },
 }
 
-pub async fn run(action: AuthCommand, format: OutputFormat, ) -> Result<()> {
+pub async fn run(action: AuthCommand, format: OutputFormat, api_url: Option<String>) -> Result<()> {
     match action {
         AuthCommand::Login { token } => {
+            let config = Config::load()?;
+            let base_url = api_url
+                .as_deref()
+                .unwrap_or_else(|| config.url());
+            let connect_url = format!("{}/connect", base_url.trim_end_matches('/'));
+
+            let token = if let Some(t) = token {
+                t
+            } else {
+                // Interactive flow: open browser and prompt for token
+                eprintln!("Opening {} in your browser...", connect_url);
+                eprintln!("(If it doesn't open, visit the URL manually)\n");
+                let _ = open::that(&connect_url);
+
+                eprint!("Paste your API token: ");
+                io::stderr().flush()?;
+                let mut input = String::new();
+                io::stdin()
+                    .read_line(&mut input)
+                    .context("Failed to read token from stdin")?;
+                let t = input.trim().to_string();
+                if t.is_empty() {
+                    anyhow::bail!("No token provided.");
+                }
+                t
+            };
+
+            // Validate token by making a test API call
+            let url = api_url
+                .as_deref()
+                .unwrap_or_else(|| config.url());
+            validate_token(&token, url).await?;
+
             let mut config = Config::load()?;
-            config.api_token = Some(token);
+            config.token = Some(token);
             config.save()?;
-            output::print_success("Authenticated successfully. Token saved.");
+            output::print_success("Authenticated successfully. Token saved to ~/.zeitflow/config.json");
             Ok(())
         }
 
         AuthCommand::Logout => {
             let mut config = Config::load()?;
-            config.api_token = None;
+            config.token = None;
             config.save()?;
             output::print_success("Logged out. Token removed.");
             Ok(())
@@ -47,14 +74,14 @@ pub async fn run(action: AuthCommand, format: OutputFormat, ) -> Result<()> {
 
         AuthCommand::Status => {
             let config = Config::load()?;
-            let authenticated = config.api_token.is_some();
-            let url = config.api_url().to_string();
+            let authenticated = config.token.is_some();
+            let url = config.url().to_string();
 
             match format {
                 OutputFormat::Json => {
                     let status = serde_json::json!({
                         "authenticated": authenticated,
-                        "api_url": url,
+                        "url": url,
                     });
                     output::print_json(&status, format);
                 }
@@ -69,13 +96,27 @@ pub async fn run(action: AuthCommand, format: OutputFormat, ) -> Result<()> {
             }
             Ok(())
         }
-
-        AuthCommand::SetUrl { url } => {
-            let mut config = Config::load()?;
-            config.api_url = Some(url.clone());
-            config.save()?;
-            output::print_success(&format!("API URL set to {url}"));
-            Ok(())
-        }
     }
+}
+
+async fn validate_token(token: &str, base_url: &str) -> Result<()> {
+    let client = reqwest::Client::new();
+    let url = format!("{}/api/workflows", base_url.trim_end_matches('/'));
+    let resp = client
+        .get(&url)
+        .header("Authorization", format!("Bearer {token}"))
+        .send()
+        .await
+        .context("Failed to connect to ZeitFlow API")?;
+
+    if resp.status() == reqwest::StatusCode::UNAUTHORIZED {
+        anyhow::bail!("Invalid token. Check your token at {}/connect", base_url);
+    }
+    if !resp.status().is_success() {
+        anyhow::bail!(
+            "API returned status {}. Is the server reachable?",
+            resp.status()
+        );
+    }
+    Ok(())
 }

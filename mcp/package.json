@@ -1,10 +1,11 @@
 {
   "name": "@zeitflow/mcp",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "ZeitFlow MCP server — connect AI agents to your ZeitFlow workflows",
   "license": "MIT",
   "bin": {
-    "zeitflow-mcp": "./dist/cli.js"
+    "zeitflow-mcp": "dist/cli.js",
+    "mcp": "dist/cli.js"
   },
   "files": [
     "dist"
@@ -20,6 +21,9 @@
     "workflow",
     "automation"
   ],
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  },
   "engines": {
     "node": ">=18"
   },

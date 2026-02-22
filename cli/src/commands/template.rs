@@ -86,7 +86,7 @@ pub async fn run(
 ) -> Result<()> {
     let mut config = Config::load()?;
     if let Some(url) = api_url {
-        config.api_url = Some(url);
+        config.url = Some(url);
     }
     let client = ApiClient::new(&config)?;
 

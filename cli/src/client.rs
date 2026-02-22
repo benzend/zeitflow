@@ -12,7 +12,7 @@ pub struct ApiClient {
 
 impl ApiClient {
     pub fn new(config: &Config) -> Result<Self> {
-        let token = config.api_token()?;
+        let token = config.token()?;
         let mut headers = HeaderMap::new();
         headers.insert(
             AUTHORIZATION,
@@ -28,7 +28,7 @@ impl ApiClient {
 
         Ok(Self {
             http,
-            base_url: config.api_url().to_string(),
+            base_url: config.url().to_string(),
         })
     }
 

@@ -74,6 +74,6 @@ pub async fn run(cli: Cli) -> Result<()> {
             integration::run(action, cli.output, cli.api_url).await
         }
         Command::Template { action } => template::run(action, cli.output, cli.api_url).await,
-        Command::Auth { action } => auth::run(action, cli.output).await,
+        Command::Auth { action } => auth::run(action, cli.output, cli.api_url).await,
     }
 }

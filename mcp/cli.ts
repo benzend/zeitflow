@@ -6,28 +6,53 @@
  * stdio so that MCP clients that only support the stdio transport (e.g. some
  * older Claude Desktop versions) can still use the remote server.
  *
- * Usage:
- *   ZEITFLOW_API_TOKEN=xxx npx @zeitflow/mcp
- *   ZEITFLOW_API_TOKEN=xxx ZEITFLOW_URL=https://... npx @zeitflow/mcp
+ * Token resolution order:
+ *   1. ZEITFLOW_API_TOKEN env var (highest priority)
+ *   2. ~/.zeitflow/config.json → token field
  *
- * Environment variables:
- *   ZEITFLOW_API_TOKEN  (required) — Your ZeitFlow API token
- *   ZEITFLOW_URL        (optional) — Base URL (default: https://www.zeitflow.io)
+ * URL resolution order:
+ *   1. ZEITFLOW_URL env var
+ *   2. ~/.zeitflow/config.json → url field
+ *   3. https://www.zeitflow.io (default)
+ *
+ * Usage:
+ *   npx @zeitflow/mcp                                    # uses shared config
+ *   ZEITFLOW_API_TOKEN=xxx npx @zeitflow/mcp             # env var override
+ *   ZEITFLOW_API_TOKEN=xxx ZEITFLOW_URL=https://... npx @zeitflow/mcp
  */
 
 import { createInterface } from "readline";
+import { readFileSync } from "fs";
+import { join } from "path";
+import { homedir } from "os";
 
-const API_TOKEN = process.env.ZEITFLOW_API_TOKEN;
+interface ZeitFlowConfig {
+  token?: string;
+  url?: string;
+}
+
+function loadConfigFile(): ZeitFlowConfig {
+  try {
+    const configPath = join(homedir(), ".zeitflow", "config.json");
+    const contents = readFileSync(configPath, "utf-8");
+    return JSON.parse(contents);
+  } catch {
+    return {};
+  }
+}
+
+const fileConfig = loadConfigFile();
+
+const API_TOKEN = process.env.ZEITFLOW_API_TOKEN || fileConfig.token;
 const BASE_URL = (
-  process.env.ZEITFLOW_URL || "https://www.zeitflow.io"
+  process.env.ZEITFLOW_URL || fileConfig.url || "https://www.zeitflow.io"
 ).replace(/\/$/, "");
 
 if (!API_TOKEN) {
   process.stderr.write(
-    "Error: ZEITFLOW_API_TOKEN environment variable is required.\n" +
-      "Get your token at: " +
-      BASE_URL +
-      "/connect\n"
+    "Error: No API token found.\n" +
+      "Run: zeitflow auth login\n" +
+      "Or set ZEITFLOW_API_TOKEN env var.\n"
   );
   process.exit(1);
 }
