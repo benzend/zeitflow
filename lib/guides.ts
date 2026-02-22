@@ -22,103 +22,80 @@ export const guides: Guide[] = [
     content: `
 # Connect AI Agents to ZeitFlow via MCP
 
-ZeitFlow ships with a **Model Context Protocol (MCP)** server that lets AI agents — like Claude Desktop and Claude Code — create, configure, and execute workflows on your behalf.
+ZeitFlow ships with a **Model Context Protocol (MCP)** server that lets AI agents — like Claude Desktop, Claude Code, Cursor, and VS Code — create, configure, and execute workflows on your behalf.
 
 Once connected, you can say things like *"Create a workflow that takes a blog topic, generates an outline with AI, then emails me the result"* and the agent will build it directly in ZeitFlow.
+
+> **Quickest path:** Go to **[/connect](/connect)** in ZeitFlow — it generates ready-to-paste configs with your token pre-filled.
 
 ---
 
 ## Prerequisites
 
-- A **ZeitFlow account** with at least one workflow (so you know the system)
-- **Node.js 18+** and **pnpm** installed
-- The ZeitFlow repository cloned locally
-- Your **database URL** (the same \`DATABASE_URL\` used by the app)
+- A **ZeitFlow account**
+- Your **API token** (get it at [/connect](/connect) or any workflow's Execution tab)
+
+That's it. The remote MCP endpoint requires **no local setup** — no cloning, no dependencies, no database URL.
 
 ---
 
 ## Step 1: Get your API Token
 
-1. Log in to ZeitFlow and open any workflow
-2. Go to the **Execution** tab
-3. Your API token is displayed under **"Your API Token"**
-4. If you don't have one yet, click **"Generate API Token"**
-
-Copy this token — you'll need it in the next step.
+1. Log in to ZeitFlow
+2. Go to **[/connect](/connect)** (or open any workflow's Execution tab)
+3. Copy your API token (generate one if you don't have one yet)
 
 ---
 
-## Step 2: Install dependencies
+## Step 2: Configure your MCP client
 
-If you haven't already, install the project dependencies:
+### Option A: Remote URL (recommended — zero install)
+
+Works with any MCP client that supports Streamable HTTP (Claude Desktop, Claude Code, Cursor, VS Code, Windsurf):
+
+\`\`\`json
+{
+  "mcpServers": {
+    "zeitflow": {
+      "serverUrl": "https://www.zeitflow.io/api/mcp",
+      "headers": {
+        "Authorization": "Bearer your-api-token-here"
+      }
+    }
+  }
+}
+\`\`\`
+
+No local setup, no database URL, no dependencies. Just paste and go.
+
+### Option B: Claude Code CLI one-liner
 
 \`\`\`bash
-pnpm install
+claude mcp add zeitflow --transport http --url "https://www.zeitflow.io/api/mcp" --header "Authorization: Bearer your-api-token-here"
 \`\`\`
 
----
-
-## Step 3: Configure your MCP client
-
-### Claude Desktop
-
-Add the following to your Claude Desktop config file:
-
-- **macOS**: \`~/Library/Application Support/Claude/claude_desktop_config.json\`
-- **Windows**: \`%APPDATA%\\Claude\\claude_desktop_config.json\`
+### Option C: npx (for stdio-only clients)
 
 \`\`\`json
 {
   "mcpServers": {
     "zeitflow": {
-      "command": "pnpm",
-      "args": ["mcp"],
-      "cwd": "/path/to/zeitflow",
+      "command": "npx",
+      "args": ["-y", "@zeitflow/mcp"],
       "env": {
-        "ZEITFLOW_API_TOKEN": "your-api-token-here",
-        "DATABASE_URL": "your-database-url-here"
+        "ZEITFLOW_API_TOKEN": "your-api-token-here"
       }
     }
   }
 }
 \`\`\`
 
-> Replace \`/path/to/zeitflow\` with the absolute path to your cloned ZeitFlow repo.
+### Option D: Local development (direct DB access)
 
-Restart Claude Desktop after saving. You should see "zeitflow" appear in the MCP tools menu (the hammer icon).
-
-### Claude Code
-
-Add a \`.mcp.json\` file in your project root (or \`~/.claude/mcp.json\` for global access):
-
-\`\`\`json
-{
-  "mcpServers": {
-    "zeitflow": {
-      "command": "pnpm",
-      "args": ["mcp"],
-      "cwd": "/path/to/zeitflow",
-      "env": {
-        "ZEITFLOW_API_TOKEN": "your-api-token-here",
-        "DATABASE_URL": "your-database-url-here"
-      }
-    }
-  }
-}
-\`\`\`
-
-### Run directly from terminal
-
-You can also test the MCP server standalone:
+If you're a contributor with access to the ZeitFlow database:
 
 \`\`\`bash
 ZEITFLOW_API_TOKEN=your-token DATABASE_URL=your-db-url pnpm mcp
-\`\`\`
-
-If configured correctly you'll see:
-
-\`\`\`
-ZeitFlow MCP server running (user: you@example.com)
 \`\`\`
 
 ---
@@ -212,29 +189,56 @@ Review the following blog post for grammar and style:
 
 ## Important Notes
 
-- **\`execute_workflow\` requires the Next.js app to be running** — it delegates to the \`/api/workflow/[id]/execute\` HTTP endpoint. All other tools talk directly to the database.
-- The MCP server uses **stdio transport**, which is the standard for CLI and desktop MCP clients.
 - Each MCP session authenticates as **one user** via the API token. The agent can only access that user's workflows.
 - Workflows created via MCP start in **draft** status. Use \`update_workflow\` to publish them when ready.
+- **Remote endpoint** (Option A): Everything goes through \`/api/mcp\` — no local setup needed. This is the recommended approach.
+- **Local stdio** (Option D): \`execute_workflow\` requires the Next.js app to be running (\`pnpm dev\`) since it calls the HTTP execute endpoint. All other tools talk directly to the database.
+
+---
+
+## Testing Locally
+
+To test the remote MCP endpoint against a local dev server:
+
+\`\`\`bash
+# 1. Start ZeitFlow
+pnpm dev
+
+# 2. Test with curl (replace YOUR_TOKEN)
+curl -X POST http://localhost:3000/api/mcp \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer YOUR_TOKEN" \\
+  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}},"id":1}'
+\`\`\`
+
+If you get back a JSON-RPC response with \`serverInfo\`, the endpoint is working. Then configure your MCP client to point to \`http://localhost:3000/api/mcp\`.
+
+For stdio mode, test directly:
+
+\`\`\`bash
+ZEITFLOW_API_TOKEN=your-token DATABASE_URL=your-db-url pnpm mcp
+\`\`\`
+
+You should see: \`ZeitFlow MCP server running (user: you@example.com)\`
 
 ---
 
 ## Troubleshooting
 
+**401 "Missing or invalid Authorization header"**
+Include \`Authorization: Bearer <token>\` in your request headers. For the remote endpoint, this is required.
+
+**401 "Invalid API token — no matching user found"**
+Your token doesn't match any user. Generate a fresh one at [/connect](/connect).
+
 **"DATABASE_URL environment variable is required"**
-You need to pass the \`DATABASE_URL\` env var. Check your \`.env.local\` file for the value.
-
-**"ZEITFLOW_API_TOKEN environment variable is required"**
-Set your API token. Find it in the Execution tab of any workflow in the ZeitFlow UI.
-
-**"Invalid ZEITFLOW_API_TOKEN – no matching user found"**
-Your token doesn't match any user in the database. Generate a fresh one from the UI.
+Only applies to local stdio mode (Option D). The remote endpoint doesn't need this.
 
 **"Failed to reach execution endpoint"**
-The \`execute_workflow\` tool needs the ZeitFlow Next.js server running (\`pnpm dev\`). Other tools work without it.
+The \`execute_workflow\` tool (in local mode) needs the Next.js server running (\`pnpm dev\`).
 
-**Claude Desktop doesn't show zeitflow tools**
-Make sure \`cwd\` points to the correct directory. Restart Claude Desktop after editing the config. Check the MCP logs for errors.
+**Client doesn't show zeitflow tools**
+Restart your MCP client after changing config. For Claude Desktop, check logs at \`~/Library/Logs/Claude/\`. For Cursor, check the MCP panel in settings.
 `,
   },
   {
