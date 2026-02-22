@@ -1,4 +1,4 @@
-import { Result, Ok, Err, Option, Some, None } from 'ts-results';
+import { ok, err, Result } from 'neverthrow';
 
 export type WorkflowRequest = {
   params: Record<string, string>;
@@ -59,11 +59,11 @@ class ConfigureEntriesWorkflowBuilder {
 class EntriesWorkflowBuilder {
   private _config: EntryConfig = {};
   private entryType: EntryType = 'manual';
-  private prevEntry: Option<EntriesWorkflowBuilder> = None;
+  private prevEntry: EntriesWorkflowBuilder | null = null;
 
   constructor(entryType: EntryType, opts?: { prevEntry?: EntriesWorkflowBuilder, config?: EntryConfig }) {
     this.entryType = entryType;
-    if (opts?.prevEntry) this.prevEntry = Some(opts.prevEntry);
+    if (opts?.prevEntry) this.prevEntry = opts.prevEntry;
     if (opts?.config) this._config = opts.config;
   }
 
@@ -73,26 +73,26 @@ class EntriesWorkflowBuilder {
 
   public getHistory(): Array<EntriesWorkflowBuilder> {
     const history: EntriesWorkflowBuilder[] = [];
-    let prev: Option<EntriesWorkflowBuilder> = this.prevEntry;
-    while (prev.some) {
-      history.push(prev.val);
-      prev = prev.val.getPrevEntry();
+    let prev = this.prevEntry;
+    while (prev) {
+      history.push(prev);
+      prev = prev.getPrevEntry();
     }
     return history;
   }
 
   // TODO - this needs to be private, somehow...
-  public getPrevEntry(): Option<EntriesWorkflowBuilder> {
+  public getPrevEntry(): EntriesWorkflowBuilder | null {
     return this.prevEntry;
   }
 
   public cloneWith(
     opts?: {
       entryType?: EntryType;
-      prevEntry?: Option<EntriesWorkflowBuilder>
+      prevEntry?: EntriesWorkflowBuilder | null;
     }): EntriesWorkflowBuilder {
     return new EntriesWorkflowBuilder(opts?.entryType || this.entryType, {
-      prevEntry: opts?.prevEntry?.some ? opts.prevEntry.val : (this.prevEntry.some ? this.prevEntry.val : undefined)
+      prevEntry: opts?.prevEntry !== undefined ? (opts.prevEntry ?? undefined) : (this.prevEntry ?? undefined)
     });
   }
 }
@@ -193,12 +193,12 @@ class SlackIntegration {
       const results = { success: true } as SlackMessageResultsType & { success: boolean; error?: string };
       console.log('SlackIntegration.execute called with:', config, variables);
       if (results.success) {
-        return Ok(results);
+        return ok(results);
       } else {
-        return Err(results.error || 'Failed to send slack message for some unknown reason');
+        return err(results.error || 'Failed to send slack message for some unknown reason');
       }
-    } catch (err) {
-      return Err((err as Error).message);
+    } catch (e) {
+      return err((e as Error).message);
     }
   }
 
@@ -218,9 +218,9 @@ class SlackIntegration {
         ...this.config,
         ...configData,
       };
-      return Ok(this.config);
+      return ok(this.config);
     } catch (e) {
-      return Err((e as Error).message);
+      return err((e as Error).message);
     }
   }
 }

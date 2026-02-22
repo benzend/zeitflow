@@ -1,6 +1,8 @@
 import { NodeData, Connection } from './workflow-types';
 import { generateNodeId } from './workflow-utils';
 import * as yaml from 'js-yaml';
+import { Result, ok, err } from 'neverthrow';
+import { AppError, validationError, internalError } from './errors';
 
 export interface ParsedWorkflow {
   name: string;
@@ -13,6 +15,19 @@ export interface WorkflowParseResult {
   workflow: ParsedWorkflow | null;
   error?: string;
 }
+
+/**
+ * Parse workflow from text, returning a Result type.
+ * On success, returns the ParsedWorkflow.
+ * On failure, returns an AppError with details.
+ */
+export const parseWorkflowSafe = (text: string): Result<ParsedWorkflow, AppError> => {
+  const result = parseWorkflowFromText(text);
+  if (result.workflow) {
+    return ok(result.workflow);
+  }
+  return err(validationError(result.error || 'Failed to parse workflow'));
+};
 
 /**
  * Parses workflow syntax from text and converts to NodeData format

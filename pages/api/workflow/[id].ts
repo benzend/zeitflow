@@ -1,67 +1,14 @@
-import { NextApiRequest, NextApiResponse } from "next";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "../auth/[...nextauth]";
 import { db } from "@/lib/db";
-import { workflowsTable, workflowNodesTable, workflowConnectionsTable, usersTable } from "@/schema";
+import { workflowsTable, workflowNodesTable, workflowConnectionsTable } from "@/schema";
 import { eq, and } from "drizzle-orm";
-import { isRateLimited } from "@/lib/rate-limit";
+import { apiHandler, sendError } from "@/lib/api-handler";
+import { validationError, notFoundError } from "@/lib/errors";
 import { serializeNodeConfigsToJSON } from "@/lib/node-utils";
 import { ALL_CONFIG_KEYS } from "@/lib/node-registry";
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  const session = await getServerSession(req, res, authOptions);
+async function resolveWorkflow(workflowId: number, userId: string) {
+  if (isNaN(workflowId)) return null;
 
-  if (!session?.user?.email) {
-    return res.status(401).json({ 
-      success: false, 
-      message: "You must be signed in to access workflows" 
-    });
-  }
-
-  // Get client IP for rate limiting
-  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown-ip';
-  const clientIp = Array.isArray(ip) ? ip[0] : ip;
-
-  const isLimited = await isRateLimited({
-    key: `workflow:${clientIp}`,
-    windowMs: 60 * 60 * 1000, // 1 hour
-    maxRequests: 200
-  });
-
-  if (isLimited) {
-    return res.status(429).json({ 
-      success: false, 
-      message: "Rate limit exceeded. Please try again later." 
-    });
-  }
-
-  // Get user from database
-  const user = await db.select()
-    .from(usersTable)
-    .where(eq(usersTable.email, session.user.email))
-    .limit(1);
-
-  if (user.length === 0) {
-    return res.status(401).json({ 
-      success: false, 
-      message: "User not found" 
-    });
-  }
-
-  const userId = user[0].id;
-  const workflowId = parseInt(req.query.id as string, 10);
-
-  if (isNaN(workflowId)) {
-    return res.status(400).json({ 
-      success: false, 
-      message: "Invalid workflow ID" 
-    });
-  }
-
-  // Verify workflow exists and belongs to user
   const [workflow] = await db
     .select()
     .from(workflowsTable)
@@ -71,187 +18,142 @@ export default async function handler(
     ))
     .limit(1);
 
-  if (!workflow) {
-    return res.status(404).json({
-      success: false,
-      message: "Workflow not found"
-    });
-  }
+  return workflow ?? null;
+}
 
-  try {
-    if (req.method === "GET") {
-      // Get workflow with nodes and connections
-      const nodes = await db
-        .select()
-        .from(workflowNodesTable)
-        .where(eq(workflowNodesTable.workflowId, workflowId));
+export default apiHandler({
+  rateLimitKey: 'workflow',
+  rateLimitMax: 200,
 
-      const connections = await db
-        .select()
-        .from(workflowConnectionsTable)
-        .where(eq(workflowConnectionsTable.workflowId, workflowId));
+  GET: async (req, res, { userId }) => {
+    const workflowId = parseInt(req.query.id as string, 10);
+    const workflow = await resolveWorkflow(workflowId, userId);
 
-      return res.status(200).json({ 
-        success: true, 
-        workflow,
-        nodes,
-        connections
-      });
+    if (!workflow) {
+      return sendError(res, isNaN(workflowId) ? validationError('Invalid workflow ID') : notFoundError('Workflow'));
+    }
 
-    } else if (req.method === "PUT") {
-      // Update workflow name/description
-      const { name, description, status } = req.body;
+    const nodes = await db
+      .select()
+      .from(workflowNodesTable)
+      .where(eq(workflowNodesTable.workflowId, workflowId));
 
-      const updateData: {
-        name?: string;
-        description?: string | null;
-        status?: string;
-      } = {};
-      if (name) updateData.name = name;
-      if (description !== undefined) updateData.description = description;
-      if (status) updateData.status = status;
+    const connections = await db
+      .select()
+      .from(workflowConnectionsTable)
+      .where(eq(workflowConnectionsTable.workflowId, workflowId));
 
-      if (Object.keys(updateData).length === 0) {
-        return res.status(400).json({ 
-          success: false, 
-          message: "No fields to update" 
-        });
-      }
+    return res.status(200).json({ success: true, workflow, nodes, connections });
+  },
 
-      await db
-        .update(workflowsTable)
-        .set(updateData)
-        .where(eq(workflowsTable.id, workflowId));
+  PUT: async (req, res, { userId }) => {
+    const workflowId = parseInt(req.query.id as string, 10);
+    const workflow = await resolveWorkflow(workflowId, userId);
 
-      return res.status(200).json({ 
-        success: true, 
-        message: "Workflow updated successfully" 
-      });
+    if (!workflow) {
+      return sendError(res, isNaN(workflowId) ? validationError('Invalid workflow ID') : notFoundError('Workflow'));
+    }
 
-    } else if (req.method === "POST") {
-      // Save workflow nodes and connections
-      const { nodes, connections } = req.body;
+    const { name, description, status } = req.body;
 
-      if (!nodes || !Array.isArray(nodes)) {
-        return res.status(400).json({ 
-          success: false, 
-          message: "Invalid nodes data" 
-        });
-      }
+    const updateData: { name?: string; description?: string | null; status?: string } = {};
+    if (name) updateData.name = name;
+    if (description !== undefined) updateData.description = description;
+    if (status) updateData.status = status;
 
-      // Start transaction - delete existing nodes/connections and insert new ones
-      await db.transaction(async (tx) => {
-        // Delete existing connections first (foreign key constraint)
-        await tx.delete(workflowConnectionsTable)
-          .where(eq(workflowConnectionsTable.workflowId, workflowId));
+    if (Object.keys(updateData).length === 0) {
+      return sendError(res, validationError('No fields to update'));
+    }
 
-        // Delete existing nodes
-        await tx.delete(workflowNodesTable)
-          .where(eq(workflowNodesTable.workflowId, workflowId));
+    await db.update(workflowsTable).set(updateData).where(eq(workflowsTable.id, workflowId));
 
-        // Insert new nodes
-        if (nodes.length > 0) {
-          const nodeInserts = nodes.map((node: {
-            id: string;
-            type: string;
-            x: number;
-            y: number;
-            label: string;
-            entryType?: string;
-            [key: string]: unknown; // Allow any config properties
-          }) => {
-            // Build config object with all possible configs automatically
-            const config: Record<string, unknown> = {};
+    return res.status(200).json({ success: true, message: "Workflow updated successfully" });
+  },
 
-            // Add fields for entry nodes
-            if (node.fields) {
-              config.fields = node.fields;
-            }
+  POST: async (req, res, { userId }) => {
+    const workflowId = parseInt(req.query.id as string, 10);
+    const workflow = await resolveWorkflow(workflowId, userId);
 
-            // Add all config types from registry
-            ALL_CONFIG_KEYS.forEach(configKey => {
-              if (node[configKey]) {
-                config[configKey] = node[configKey];
-              }
-            });
+    if (!workflow) {
+      return sendError(res, isNaN(workflowId) ? validationError('Invalid workflow ID') : notFoundError('Workflow'));
+    }
 
-            return {
-              id: node.id,
-              workflowId,
-              type: node.type,
-              positionX: Math.round(node.x),
-              positionY: Math.round(node.y),
-              label: node.label,
-              config: JSON.stringify(config),
-              entryType: node.entryType
-            };
+    const { nodes, connections } = req.body;
+
+    if (!nodes || !Array.isArray(nodes)) {
+      return sendError(res, validationError('Invalid nodes data'));
+    }
+
+    await db.transaction(async (tx) => {
+      await tx.delete(workflowConnectionsTable).where(eq(workflowConnectionsTable.workflowId, workflowId));
+      await tx.delete(workflowNodesTable).where(eq(workflowNodesTable.workflowId, workflowId));
+
+      if (nodes.length > 0) {
+        const nodeInserts = nodes.map((node: {
+          id: string;
+          type: string;
+          x: number;
+          y: number;
+          label: string;
+          entryType?: string;
+          [key: string]: unknown;
+        }) => {
+          const config: Record<string, unknown> = {};
+          if (node.fields) config.fields = node.fields;
+          ALL_CONFIG_KEYS.forEach(configKey => {
+            if (node[configKey]) config[configKey] = node[configKey];
           });
 
-          await tx.insert(workflowNodesTable).values(nodeInserts);
-        }
-
-        // Insert new connections
-        if (connections && Array.isArray(connections) && connections.length > 0) {
-          const connectionInserts = connections.map((conn: {
-            from: string;
-            to: string;
-            sourceHandle?: string;
-            targetHandle?: string;
-          }) => ({
+          return {
+            id: node.id,
             workflowId,
-            fromNodeId: conn.from,
-            toNodeId: conn.to,
-            sourceHandle: conn.sourceHandle || null,
-            targetHandle: conn.targetHandle || null
-          }));
+            type: node.type,
+            positionX: Math.round(node.x),
+            positionY: Math.round(node.y),
+            label: node.label,
+            config: JSON.stringify(config),
+            entryType: node.entryType
+          };
+        });
 
-          await tx.insert(workflowConnectionsTable).values(connectionInserts);
-        }
-      });
+        await tx.insert(workflowNodesTable).values(nodeInserts);
+      }
 
-      return res.status(200).json({ 
-        success: true, 
-        message: "Workflow saved successfully" 
-      });
+      if (connections && Array.isArray(connections) && connections.length > 0) {
+        const connectionInserts = connections.map((conn: {
+          from: string;
+          to: string;
+          sourceHandle?: string;
+          targetHandle?: string;
+        }) => ({
+          workflowId,
+          fromNodeId: conn.from,
+          toNodeId: conn.to,
+          sourceHandle: conn.sourceHandle || null,
+          targetHandle: conn.targetHandle || null
+        }));
 
-    } else if (req.method === "DELETE") {
-      // Delete workflow and all related data
-      await db.transaction(async (tx) => {
-        // Delete connections first
-        await tx.delete(workflowConnectionsTable)
-          .where(eq(workflowConnectionsTable.workflowId, workflowId));
-
-        // Delete nodes
-        await tx.delete(workflowNodesTable)
-          .where(eq(workflowNodesTable.workflowId, workflowId));
-
-        // Delete workflow
-        await tx.delete(workflowsTable)
-          .where(eq(workflowsTable.id, workflowId));
-      });
-
-      return res.status(200).json({
-        success: true,
-        message: "Workflow deleted successfully"
-      });
-
-      return res.status(200).json({
-        success: true,
-        message: "Workflow deleted successfully"
-      });
-
-    } else {
-      res.setHeader("Allow", ["GET", "PUT", "POST", "DELETE"]);
-      return res.status(405).json({ 
-        success: false, 
-        message: `Method ${req.method} not allowed` 
-      });
-    }
-  } catch (error) {
-    console.error("Workflow API error:", error);
-    return res.status(500).json({ 
-      success: false, 
-      message: "Internal server error" 
+        await tx.insert(workflowConnectionsTable).values(connectionInserts);
+      }
     });
-  }
-}
+
+    return res.status(200).json({ success: true, message: "Workflow saved successfully" });
+  },
+
+  DELETE: async (req, res, { userId }) => {
+    const workflowId = parseInt(req.query.id as string, 10);
+    const workflow = await resolveWorkflow(workflowId, userId);
+
+    if (!workflow) {
+      return sendError(res, isNaN(workflowId) ? validationError('Invalid workflow ID') : notFoundError('Workflow'));
+    }
+
+    await db.transaction(async (tx) => {
+      await tx.delete(workflowConnectionsTable).where(eq(workflowConnectionsTable.workflowId, workflowId));
+      await tx.delete(workflowNodesTable).where(eq(workflowNodesTable.workflowId, workflowId));
+      await tx.delete(workflowsTable).where(eq(workflowsTable.id, workflowId));
+    });
+
+    return res.status(200).json({ success: true, message: "Workflow deleted successfully" });
+  },
+});
