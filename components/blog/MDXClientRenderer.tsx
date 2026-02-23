@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { MDXRemote } from 'next-mdx-remote';
 import { serialize } from 'next-mdx-remote/serialize';
 import { MDXRemoteSerializeResult } from 'next-mdx-remote';
+import remarkGfm from 'remark-gfm';
+import rehypePrettyCode from 'rehype-pretty-code';
 import { mdxComponents } from '@/lib/mdx-components';
 
 interface MDXClientRendererProps {
@@ -24,8 +26,10 @@ export function MDXClientRenderer({ content, className = '' }: MDXClientRenderer
         
         const source = await serialize(content, {
           mdxOptions: {
-            remarkPlugins: [],
-            rehypePlugins: [],
+            remarkPlugins: [remarkGfm],
+            rehypePlugins: [
+              [rehypePrettyCode, { theme: 'github-dark', keepBackground: true }],
+            ],
             format: 'mdx',
           },
           parseFrontmatter: false,

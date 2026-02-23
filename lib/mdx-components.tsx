@@ -98,19 +98,28 @@ export const mdxComponents = {
     </blockquote>
   ),
   
-  // Code blocks
-  pre: ({ children }: { children: React.ReactNode }) => (
-    <pre className="bg-surface border border-border rounded-lg p-4 mb-4 overflow-x-auto text-sm">
-      <code>{children}</code>
+  // Code blocks (rehype-pretty-code passes style/data-* props for syntax highlighting)
+  pre: ({ children, style, ...props }: { children: React.ReactNode; style?: React.CSSProperties; [key: string]: unknown }) => (
+    <pre
+      className="rounded-lg p-4 mb-4 overflow-x-auto text-sm border border-border"
+      style={style}
+      {...props}
+    >
+      {children}
     </pre>
   ),
-  
-  // Inline code
-  code: ({ children }: { children: React.ReactNode }) => (
-    <code className="bg-surface border border-border rounded px-1 py-0.5 text-sm font-mono">
-      {children}
-    </code>
-  ),
+
+  // Code: inline code gets our custom styling; syntax-highlighted blocks (with data-language) pass through
+  code: ({ children, 'data-language': dataLanguage, ...props }: { children: React.ReactNode; 'data-language'?: string; [key: string]: unknown }) => {
+    if (dataLanguage) {
+      return <code data-language={dataLanguage} {...props}>{children}</code>;
+    }
+    return (
+      <code className="bg-surface border border-border rounded px-1 py-0.5 text-sm font-mono">
+        {children}
+      </code>
+    );
+  },
   
   // Lists
   ul: ({ children }: { children: React.ReactNode }) => (
@@ -129,6 +138,35 @@ export const mdxComponents = {
     <li className="ml-2">{children}</li>
   ),
   
+  // Tables
+  table: ({ children }: { children: React.ReactNode }) => (
+    <div className="overflow-x-auto mb-4">
+      <table className="w-full border-collapse text-sm">
+        {children}
+      </table>
+    </div>
+  ),
+
+  thead: ({ children }: { children: React.ReactNode }) => (
+    <thead className="border-b-2 border-border">{children}</thead>
+  ),
+
+  tbody: ({ children }: { children: React.ReactNode }) => (
+    <tbody className="divide-y divide-border">{children}</tbody>
+  ),
+
+  tr: ({ children }: { children: React.ReactNode }) => (
+    <tr className="border-b border-border">{children}</tr>
+  ),
+
+  th: ({ children }: { children: React.ReactNode }) => (
+    <th className="px-4 py-2 text-left font-semibold text-foreground">{children}</th>
+  ),
+
+  td: ({ children }: { children: React.ReactNode }) => (
+    <td className="px-4 py-2 text-foreground">{children}</td>
+  ),
+
   // Horizontal rules
   hr: () => (
     <hr className="border-border my-8" />
