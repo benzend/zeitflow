@@ -58,8 +58,6 @@ cd mcp && pnpm build                          # Compile cli.ts → dist/cli.js
 cd mcp && npm publish --access public         # Publish @zeitflow/mcp
 ```
 
-See `mcp/DEVELOPMENT.md` for full testing and publishing instructions.
-
 ## Architecture Overview
 
 This is a Next.js application (Pages Router) that implements **ZeitFlow** — a visual workflow builder and AI automation platform. The application features both a legacy "Chains" system and a modern React Flow-based workflow builder with multiple node types.
@@ -155,10 +153,11 @@ To add a new integration:
 4. Register in `lib/integrations/registry.ts`
 
 #### 6. Blog System
-- **MDX Rendering**: Uses `next-mdx-remote` for blog content with custom components
+- **MDX Rendering**: Uses `next-mdx-remote` with `remark-gfm` (tables) and `rehype-pretty-code` (syntax highlighting)
 - **Image Optimization**: Next.js Image with automatic dimension extraction and blur placeholders
 - **Asset Management**: Centralized media storage via Vercel Blob, metadata in `assets` table
 - **File Structure**: Blog content in `app/blog/` with create/edit/manage/preview routes
+- **Guides**: Static content defined in `lib/guides.ts`, rendered at `app/guides/`
 
 ### Database Schema (Drizzle ORM + PostgreSQL)
 
@@ -232,6 +231,7 @@ To add a new integration:
 - `/assets` — Asset library
 - `/settings` — User settings
 - `app/blog/*` — Blog system (App Router coexistence)
+- `app/guides/*` — Static guides (App Router)
 
 **Key Components**:
 - `components/WorkflowBuilderReactFlow.tsx` — Main workflow editor
@@ -239,8 +239,11 @@ To add a new integration:
 - `components/IntegrationConfigForm.tsx` — Auto-generated config forms for integrations
 - `components/ExecutionLogViewer.tsx` — Structured log display with filtering
 - `components/TypeaheadTextarea.tsx` — Variable reference autocomplete
+- `components/blog/MDXClientRenderer.tsx` — MDX rendering with GFM tables and syntax highlighting
 - `lib/workflow-parser.ts` — Parse YAML workflow syntax from AI
 - `lib/reactflow-types.ts` — Convert between NodeData and React Flow types
+- `lib/mdx-components.tsx` — Custom MDX component mapping (headings, tables, code blocks, etc.)
+- `lib/guides.ts` — Static guide content definitions
 
 ### React Flow Integration
 
@@ -273,7 +276,7 @@ Implemented via `lib/rate-limit.ts` with database storage:
 
 ### Environment Variables
 
-Required in `.env.local`:
+Required in `.env.local` (see `.env.example` for full list):
 - `DATABASE_URL` — Neon PostgreSQL connection string
 - `OPENROUTER_API_KEY` — OpenRouter API key
 - `NEXTAUTH_SECRET` — NextAuth.js secret
@@ -283,21 +286,23 @@ Required in `.env.local`:
 
 Optional integrations:
 - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` — OAuth & Calendar API
-- `RESEND_API_KEY` — Email sending
+- `RESEND_API_KEY`, `RESEND_FROM_EMAIL` — Email sending
 - `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER` — SMS sending
-- `SLACK_CLIENT_ID`, `SLACK_CLIENT_SECRET` — Slack OAuth
+- `SLACK_CLIENT_ID`, `SLACK_CLIENT_SECRET`, `SLACK_SIGNING_SECRET`, `SLACK_STATE_SECRET` — Slack OAuth
 - `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` — Payments
-- `NEXT_PUBLIC_VEMETRIC_ID` — Analytics
+- `NEXT_PUBLIC_APP_URL` — Public app URL for SEO/social sharing
+- `NEXT_PUBLIC_VEMETRIC_TOKEN`, `VEMETRIC_TOKEN` — Vemetric analytics
+- `NEXT_PUBLIC_GOOGLE_ANALYTICS_ID` — Google Analytics
 
 ### Development Notes
 
-- **Dual Router**: Primarily Pages Router, with App Router for `/blog` only
+- **Dual Router**: Primarily Pages Router, with App Router for `/blog` and `/guides`
 - **TypeScript**: Strict mode enabled, paths configured with `@/` alias
 - **Database Connection**: Uses Drizzle ORM with node-postgres driver
 - **Turbopack**: Dev server uses `--turbopack` flag for faster builds
 - **Memory**: Build requires 4GB heap (`NODE_OPTIONS='--max-old-space-size=4096'`)
 - **MDX**: Uses Rust compiler (`experimental.mdxRs: true`)
-- **Testing**: Jest + React Testing Library configured
+- **Testing**: Jest + React Testing Library; `jest.setup.js` mocks `ResizeObserver` for React Flow tests
 
 ### External Services
 
@@ -310,7 +315,7 @@ Optional integrations:
 - **Payments**: Stripe
 - **Calendar**: Google Calendar API
 - **Chat**: Slack Web API
-- **Analytics**: Vemetric
+- **Analytics**: Vemetric, Google Analytics
 
 ### Workflow Execution Flow
 

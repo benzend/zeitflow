@@ -5,6 +5,7 @@ import { MDXRemote } from 'next-mdx-remote';
 import { serialize } from 'next-mdx-remote/serialize';
 import { MDXRemoteSerializeResult } from 'next-mdx-remote';
 import remarkGfm from 'remark-gfm';
+import rehypePrettyCode from 'rehype-pretty-code';
 import { mdxComponents } from '@/lib/mdx-components';
 
 interface MDXClientRendererProps {
@@ -26,7 +27,9 @@ export function MDXClientRenderer({ content, className = '' }: MDXClientRenderer
         const source = await serialize(content, {
           mdxOptions: {
             remarkPlugins: [remarkGfm],
-            rehypePlugins: [],
+            rehypePlugins: [
+              [rehypePrettyCode, { theme: 'github-dark', keepBackground: true }],
+            ],
             format: 'mdx',
           },
           parseFrontmatter: false,
