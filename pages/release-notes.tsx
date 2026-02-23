@@ -11,6 +11,49 @@ type ReleaseNote = {
 
 const releaseNotes: ReleaseNote[] = [
   {
+    version: "1.16.0",
+    date: "2026-02-22",
+    features: [
+      "Added MCP server with 16 tools for AI agent workflow management via Streamable HTTP",
+      "Added /connect page with ready-to-paste configs for 7 MCP clients (Claude Desktop, Claude Code, Cursor, VS Code, Windsurf, npx, Remote URL)",
+      "Published @zeitflow/mcp npm package for stdio-only MCP clients",
+      "Built Rust CLI for managing workflows, executions, templates, and integrations from the terminal",
+      "Added public guides section with MCP setup and CLI reference documentation",
+      "Added shared config at ~/.zeitflow/config.json for CLI and MCP, with browser-based auth login",
+      "Added per-workflow Twilio credentials for SMS nodes (Account SID, Auth Token, Phone Number)",
+      "Added connection section on the homepage",
+    ],
+    improvements: [
+      "Migrated API routes to apiHandler() with Result types and improved error handling",
+      "Replaced Joice branding with ZeitFlow throughout the application",
+      "Added GFM table support for markdown rendering in guides",
+      "Added syntax highlighting for code blocks in guides",
+      "Auto-migrate legacy config from ~/.config/zeitflow/config.json to new location",
+      "Expanded test coverage for MCP HTTP endpoint, server factory, and WorkflowBuilder",
+    ],
+    fixes: [
+      "Fixed admin toolbar visibility for non-authenticated users",
+      "Fixed login issues after dependency updates",
+      "Fixed build errors from AI SDK upgrades",
+      "Fixed WorkflowBuilder tests (fetch mocks, type errors, save assertions)",
+    ],
+  },
+  {
+    version: "1.15.0",
+    date: "2026-02-08",
+    features: [
+      "Added YouTube integration node for fetching video data and posting comments",
+      "Added variable warnings to alert users about unresolved references in workflows",
+      "Added templates section on the homepage",
+      "Added comprehensive legal pages — DMCA, SLA, refund policy, and updated Terms of Service",
+    ],
+    improvements: [
+      "Updated domain references from zeitflow.ai to zeitflow.io",
+      "Reframed value proposition as agent-native, MCP-first platform",
+    ],
+    fixes: [],
+  },
+  {
     version: "1.14.0",
     date: "2026-02-01",
     features: [

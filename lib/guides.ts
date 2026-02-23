@@ -49,6 +49,8 @@ That's it. The remote MCP endpoint requires **no local setup** — no cloning, n
 
 ## Step 2: Configure your MCP client
 
+The [/connect](/connect) page generates ready-to-paste configs for all seven supported clients: **Remote URL**, **Claude Desktop**, **Claude Code**, **Cursor** (with one-click deep-link install), **VS Code**, **Windsurf**, and **npx**. Select your client, copy the config, and paste it into the correct file.
+
 ### Option A: Remote URL (recommended — zero install)
 
 Works with any MCP client that supports Streamable HTTP (Claude Desktop, Claude Code, Cursor, VS Code, Windsurf):
@@ -165,12 +167,12 @@ You can then open the workflow in ZeitFlow's visual builder to inspect, tweak, o
 Each node type has a specific purpose and configuration:
 
 - **entry** — Data entry point. Supports \`api\`, \`form\`, and \`webhook\` modes. Configure input fields (text, number, email, etc.)
-- **ai** — AI processing. Set the model, system prompt, user prompt, and output type (text, JSON, markdown)
+- **ai** — AI processing. Set the model, system prompt, user prompt, output type (text, JSON, markdown), and optional \`outputStructure\` for defining expected JSON schema
 - **email** — Send emails via Resend. Configure to, subject, and message body
 - **slack** — Post to Slack channels. Requires a connected Slack workspace
-- **sms** — Send SMS via Twilio. Configure phone number and message
-- **telegram** — Send Telegram messages. Configure chat ID and message
-- **youtube** — Fetch video data or post comments
+- **sms** — Send SMS via Twilio. Configure phone number and message. Optionally provide per-workflow Twilio credentials (Account SID, Auth Token, Phone Number) to override system defaults
+- **telegram** — Send Telegram messages. Configure chat ID and message. Optionally provide a per-workflow \`botToken\` to override the system default
+- **youtube** — Two modes: \`fetch\` retrieves video metadata (title, description, stats) from a URL; \`comment\` posts a comment on a video. Configure \`videoUrl\` and optionally \`commentText\`
 - **condition** — Branch the workflow based on expressions. Has \`true\` and \`false\` output handles
 - **scheduler** — Schedule actions with Google Calendar
 - **review** — Manual approval step
@@ -184,6 +186,45 @@ Review the following blog post for grammar and style:
 
 {{Entry.draft}}
 \`\`\`
+
+---
+
+## Webhook Entry Type
+
+When you set an entry node to \`webhook\` mode, ZeitFlow generates a unique secret for the workflow. External services can trigger the workflow by sending an HTTP POST to:
+
+\\\`\\\`\\\`
+POST /api/workflow/<id>/execute?secret=<webhookSecret>
+Content-Type: application/json
+
+{ "field1": "value1", "field2": "value2" }
+\\\`\\\`\\\`
+
+Key points:
+
+- The **webhook URL and secret** are displayed in the workflow builder once you select webhook mode
+- Secrets are 32-character hex strings, validated with constant-time comparison
+- **Rotate secrets** anytime via the regenerate button in the UI, or call \`POST /api/workflow/<id>/regenerate-secret\`
+- No user session is required — the secret authenticates the request
+- Input data in the POST body is matched to the entry node's configured fields
+
+This is ideal for connecting external services (GitHub webhooks, Stripe events, Zapier, etc.) to your workflows.
+
+---
+
+## Per-Workflow Integration Credentials
+
+By default, SMS and Telegram nodes use system-wide credentials set via environment variables. However, you can override these on a per-workflow basis:
+
+**SMS nodes** accept optional fields:
+- \`twilioAccountSid\` — Override \`TWILIO_ACCOUNT_SID\`
+- \`twilioAuthToken\` — Override \`TWILIO_AUTH_TOKEN\`
+- \`twilioPhoneNumber\` — Override \`TWILIO_PHONE_NUMBER\`
+
+**Telegram nodes** accept an optional field:
+- \`botToken\` — Override \`TELEGRAM_BOT_TOKEN\`
+
+If left empty, the system defaults are used. This lets you use different credentials for different workflows — for example, sending from a different phone number for billing vs. marketing workflows.
 
 ---
 
@@ -320,7 +361,7 @@ You can also set \`ZEITFLOW_API_URL\` as an environment variable instead of pass
 | \`zeitflow auth logout\` | Remove stored credentials |
 | \`zeitflow auth status\` | Show current auth state and API URL |
 
-Configuration is stored at \`~/.zeitflow/config.json\`.
+Configuration is stored at \`~/.zeitflow/config.json\`. If you previously used the old config location (\`~/.config/zeitflow/config.json\` with \`api_token\`/\`api_url\` field names), it will be auto-migrated on first load — no manual action needed.
 
 ---
 
@@ -383,6 +424,13 @@ zeitflow workflow run 42 --entry-node entry_abc123
 zeitflow workflow stats 42
 \`\`\`
 
+Returns execution metrics for the workflow:
+- **Total executions** — How many times the workflow has been run
+- **Completed / Failed** — Counts for each status
+- **Success rate** — Percentage of successful runs
+- **Average duration** — Mean execution time
+- **Recent executions** — Last 10 runs with status and timestamps
+
 ---
 
 ## Node Management
@@ -406,12 +454,12 @@ The command returns the generated node ID — save it for connecting nodes later
 | Type | Config Key | Key Fields |
 |------|-----------|------------|
 | \`entry\` | — | Use \`--entry-type\`: \`form\`, \`api\`, or \`webhook\` |
-| \`ai\` | \`aiConfig\` | \`model\`, \`systemPrompt\`, \`userPrompt\`, \`outputType\`, \`outputStructure\` |
+| \`ai\` | \`aiConfig\` | \`model\`, \`systemPrompt\`, \`userPrompt\`, \`outputType\`, \`outputStructure\` (define expected JSON shape when outputType is JSON) |
 | \`email\` | \`emailConfig\` | \`to\` (array), \`subject\`, \`message\` |
 | \`slack\` | \`slackConfig\` | \`channel\`, \`message\` |
-| \`sms\` | \`smsConfig\` | \`to\` (array), \`message\` |
-| \`telegram\` | \`telegramConfig\` | \`chatId\`, \`message\` |
-| \`youtube\` | \`youtubeConfig\` | \`mode\` (\`fetch\`/\`comment\`), \`videoUrl\`, \`commentText\` |
+| \`sms\` | \`smsConfig\` | \`to\` (array), \`message\`, optional \`twilioAccountSid\`, \`twilioAuthToken\`, \`twilioPhoneNumber\` overrides |
+| \`telegram\` | \`telegramConfig\` | \`chatId\`, \`message\`, optional \`botToken\` override |
+| \`youtube\` | \`youtubeConfig\` | \`mode\` (\`fetch\` to retrieve video data, \`comment\` to post a comment), \`videoUrl\`, \`commentText\` |
 | \`condition\` | \`conditionConfig\` | \`leftValue\`, \`operator\`, \`rightValue\` |
 | \`scheduler\` | \`schedulerConfig\` | \`people\`, \`minTimeRequirement\`, \`calendar\` |
 | \`review\` | \`reviewConfig\` | \`validationSteps\` |
