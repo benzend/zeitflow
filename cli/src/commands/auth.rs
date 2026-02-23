@@ -61,6 +61,7 @@ pub async fn run(action: AuthCommand, format: OutputFormat, api_url: Option<Stri
             config.token = Some(token);
             config.save()?;
             output::print_success("Authenticated successfully. Token saved to ~/.zeitflow/config.json");
+            eprintln!("\nTip: Run `zeitflow setup mcp` to configure your IDE or AI agent.");
             Ok(())
         }
 

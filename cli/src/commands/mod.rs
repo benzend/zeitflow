@@ -1,6 +1,7 @@
 pub mod auth;
 pub mod execution;
 pub mod integration;
+pub mod setup;
 pub mod template;
 pub mod workflow;
 
@@ -59,6 +60,12 @@ pub enum Command {
         action: template::TemplateCommand,
     },
 
+    /// Setup MCP for IDEs and AI agents
+    Setup {
+        #[command(subcommand)]
+        action: setup::SetupCommand,
+    },
+
     /// Authentication
     Auth {
         #[command(subcommand)]
@@ -74,6 +81,7 @@ pub async fn run(cli: Cli) -> Result<()> {
             integration::run(action, cli.output, cli.api_url).await
         }
         Command::Template { action } => template::run(action, cli.output, cli.api_url).await,
+        Command::Setup { action } => setup::run(action, cli.output, cli.api_url).await,
         Command::Auth { action } => auth::run(action, cli.output, cli.api_url).await,
     }
 }
