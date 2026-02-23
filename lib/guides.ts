@@ -248,7 +248,7 @@ Restart your MCP client after changing config. For Claude Desktop, check logs at
       "Install and use the ZeitFlow Rust CLI to create, manage, and execute workflows from the command line. Designed for both humans and AI agents.",
     icon: "⌨️",
     publishedAt: "2026-02-22",
-    updatedAt: "2026-02-22",
+    updatedAt: "2026-02-23",
     tags: ["CLI", "AI Agents", "Rust", "Automation"],
     content: `
 # ZeitFlow CLI — Build Workflows from the Terminal
@@ -277,23 +277,19 @@ cp cli/target/release/zeitflow /usr/local/bin/
 ### Requirements
 
 - Rust 1.70+ and Cargo
-- A running ZeitFlow instance (local or hosted)
 
 ---
 
 ## Quick Start
 
 \`\`\`bash
-# 1. Point to your ZeitFlow instance
-zeitflow auth set-url https://your-zeitflow.example.com
+# 1. Authenticate (opens browser to /connect)
+zeitflow auth login
 
-# 2. Authenticate (get your token from Settings in the ZeitFlow UI)
-zeitflow auth login --token your-api-token
-
-# 3. Verify
+# 2. Verify
 zeitflow auth status
 
-# 4. List your workflows
+# 3. List your workflows
 zeitflow workflow list
 \`\`\`
 
@@ -319,12 +315,12 @@ You can also set \`ZEITFLOW_API_URL\` as an environment variable instead of pass
 
 | Command | Description |
 |---------|-------------|
-| \`zeitflow auth login --token <TOKEN>\` | Save your API token locally |
+| \`zeitflow auth login\` | Open browser to /connect, paste token to authenticate |
+| \`zeitflow auth login --token <TOKEN>\` | Save token directly (for scripting) |
 | \`zeitflow auth logout\` | Remove stored credentials |
 | \`zeitflow auth status\` | Show current auth state and API URL |
-| \`zeitflow auth set-url <URL>\` | Set the ZeitFlow server URL |
 
-Configuration is stored at \`~/.config/zeitflow/config.json\`.
+Configuration is stored at \`~/.zeitflow/config.json\`.
 
 ---
 
@@ -616,10 +612,10 @@ zeitflow workflow generate "Take support tickets via API, classify them as billi
 ## Troubleshooting
 
 **"Not authenticated. Run zeitflow auth login first."**
-You haven't saved an API token yet. Get one from the Settings page in the ZeitFlow UI.
+You haven't saved an API token yet. Run \`zeitflow auth login\` to open the browser and authenticate.
 
 **"API error (401)"**
-Your token is invalid or expired. Generate a new one from the UI and run \`zeitflow auth login --token <new-token>\`.
+Your token is invalid or expired. Run \`zeitflow auth login\` to re-authenticate with a fresh token.
 
 **"API error (429)"**
 Rate limited. Wait a minute and try again. Workflows API allows 100 requests/hour.
