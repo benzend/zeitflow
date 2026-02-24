@@ -4,6 +4,7 @@ use serde_json::Value;
 
 use crate::client::ApiClient;
 use crate::config::Config;
+use crate::generated;
 use crate::output::{self, OutputFormat};
 
 #[derive(Subcommand)]
@@ -25,63 +26,6 @@ pub enum IntegrationCommand {
     },
 }
 
-/// Known integration metadata (mirrors lib/integrations/definitions)
-fn integration_info(id: &str) -> Option<IntegrationMeta> {
-    match id {
-        "email" => Some(IntegrationMeta {
-            name: "Email",
-            description: "Send emails via Resend",
-            category: "communication",
-            config_fields: &["to", "subject", "message", "from"],
-            env_var: "RESEND_API_KEY",
-        }),
-        "slack" => Some(IntegrationMeta {
-            name: "Slack",
-            description: "Send messages via Slack Web API",
-            category: "communication",
-            config_fields: &["channel", "message", "threadTs"],
-            env_var: "SLACK_CLIENT_ID / SLACK_CLIENT_SECRET (OAuth)",
-        }),
-        "sms" => Some(IntegrationMeta {
-            name: "SMS",
-            description: "Send text messages via Twilio",
-            category: "communication",
-            config_fields: &["phoneNumber", "message"],
-            env_var: "TWILIO_ACCOUNT_SID / TWILIO_AUTH_TOKEN / TWILIO_PHONE_NUMBER",
-        }),
-        "telegram" => Some(IntegrationMeta {
-            name: "Telegram",
-            description: "Send messages via Telegram Bot API",
-            category: "communication",
-            config_fields: &["chatId", "message", "parseMode"],
-            env_var: "TELEGRAM_BOT_TOKEN",
-        }),
-        "youtube" => Some(IntegrationMeta {
-            name: "YouTube",
-            description: "Fetch video data or post comments",
-            category: "data",
-            config_fields: &["action", "videoId", "text"],
-            env_var: "YOUTUBE_API_KEY",
-        }),
-        "condition" => Some(IntegrationMeta {
-            name: "Condition",
-            description: "Conditional branching based on expressions",
-            category: "utility",
-            config_fields: &["operator", "leftValue", "rightValue"],
-            env_var: "(none)",
-        }),
-        _ => None,
-    }
-}
-
-struct IntegrationMeta {
-    name: &'static str,
-    description: &'static str,
-    category: &'static str,
-    config_fields: &'static [&'static str],
-    env_var: &'static str,
-}
-
 pub async fn run(
     action: IntegrationCommand,
     format: OutputFormat,
@@ -89,13 +33,12 @@ pub async fn run(
 ) -> Result<()> {
     match action {
         IntegrationCommand::List => {
-            let ids = ["email", "slack", "sms", "telegram", "youtube", "condition"];
             match format {
                 OutputFormat::Json => {
-                    let list: Vec<Value> = ids
+                    let list: Vec<Value> = generated::INTEGRATION_IDS
                         .iter()
                         .filter_map(|id| {
-                            integration_info(id).map(|meta| {
+                            generated::integration_info(id).map(|meta| {
                                 serde_json::json!({
                                     "id": id,
                                     "name": meta.name,
@@ -108,10 +51,10 @@ pub async fn run(
                     output::print_json(&list, format);
                 }
                 OutputFormat::Text => {
-                    let rows: Vec<Vec<String>> = ids
+                    let rows: Vec<Vec<String>> = generated::INTEGRATION_IDS
                         .iter()
                         .filter_map(|id| {
-                            integration_info(id).map(|meta| {
+                            generated::integration_info(id).map(|meta| {
                                 vec![
                                     id.to_string(),
                                     meta.name.to_string(),
@@ -131,7 +74,7 @@ pub async fn run(
         }
 
         IntegrationCommand::Info { id } => {
-            let meta = integration_info(&id)
+            let meta = generated::integration_info(&id)
                 .ok_or_else(|| anyhow::anyhow!("Unknown integration: {id}"))?;
 
             match format {

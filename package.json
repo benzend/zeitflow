@@ -12,7 +12,8 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "backfill-assets": "tsx scripts/backfill-assets.ts",
-    "mcp": "tsx mcp/server.ts"
+    "mcp": "tsx mcp/server.ts",
+    "codegen": "tsx scripts/codegen.ts"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.1",
