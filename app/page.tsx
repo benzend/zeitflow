@@ -422,50 +422,38 @@ export default function Home() {
 
               {/* Integrations */}
               <section className="space-y-8">
-                <h2 className="text-2xl md:text-3xl font-semibold text-foreground">Integrations</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div>
-                    <h3 className="font-semibold text-foreground mb-4">Built-in today</h3>
-                    <ul className="space-y-3">
-                      <li className="flex items-center gap-3 text-text-muted">
-                        <Plug className="w-4 h-4 text-primary" />
-                        <span>MCP server (agent tool discovery)</span>
-                      </li>
-                      <li className="flex items-center gap-3 text-text-muted">
-                        <Phone className="w-4 h-4 text-primary" />
-                        <span>Twilio (outbound SMS)</span>
-                      </li>
-                      <li className="flex items-center gap-3 text-text-muted">
-                        <Mail className="w-4 h-4 text-primary" />
-                        <span>Resend (outbound email)</span>
-                      </li>
-                      <li className="flex items-center gap-3 text-text-muted">
-                        <Hash className="w-4 h-4 text-primary" />
-                        <span>Slack (workspace messaging)</span>
-                      </li>
-                      <li className="flex items-center gap-3 text-text-muted">
-                        <Globe className="w-4 h-4 text-primary" />
-                        <span>HTTP POST (any endpoint)</span>
-                      </li>
-                    </ul>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground mb-4">Coming soon</h3>
-                    <ul className="space-y-3">
-                      <li className="flex items-center gap-3 text-text-muted">
-                        <Calendar className="w-4 h-4 text-text-muted" />
-                        <span>Google Calendar</span>
-                      </li>
-                      <li className="flex items-center gap-3 text-text-muted">
-                        <Server className="w-4 h-4 text-text-muted" />
-                        <span>Database connectors</span>
-                      </li>
-                      <li className="flex items-center gap-3 text-text-muted">
-                        <Plug className="w-4 h-4 text-text-muted" />
-                        <span>Custom MCP tool imports</span>
-                      </li>
-                    </ul>
-                  </div>
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl md:text-3xl font-semibold text-foreground">12+ Integrations</h2>
+                  <Button href="/integrations" variant="tertiary">
+                    View all <ArrowRight className="w-4 h-4 ml-1 inline" />
+                  </Button>
+                </div>
+                <p className="text-text-muted">All included on every plan. No per-connector fees. Every integration works with AI agents via MCP.</p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                  {[
+                    { icon: Mail, name: 'Email', desc: 'Resend', color: '#000000' },
+                    { icon: Hash, name: 'Slack', desc: 'OAuth', color: '#4A154B' },
+                    { icon: Phone, name: 'SMS', desc: 'Twilio', color: '#F22F46' },
+                    { icon: Send, name: 'Telegram', desc: 'Bot API', color: '#0088CC' },
+                    { icon: MessageSquare, name: 'Discord', desc: 'Webhooks', color: '#5865F2' },
+                    { icon: Globe, name: 'HTTP Request', desc: 'Any API', color: '#6366F1' },
+                    { icon: FileText, name: 'GitHub', desc: 'PAT', color: '#24292E' },
+                    { icon: FileText, name: 'Notion', desc: 'API Token', color: '#000000' },
+                    { icon: Webhook, name: 'Google Sheets', desc: 'OAuth', color: '#0F9D58' },
+                    { icon: Webhook, name: 'Airtable', desc: 'PAT', color: '#18BFFF' },
+                    { icon: Webhook, name: 'YouTube', desc: 'OAuth', color: '#FF0000' },
+                    { icon: Sparkles, name: 'Condition', desc: 'Branching', color: '#F59E0B' },
+                  ].map((item) => (
+                    <div key={item.name} className="flex items-center gap-3 p-3 rounded-lg border border-border bg-surface/50 hover:border-primary/30 transition-colors">
+                      <span className="w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${item.color}15` }}>
+                        <item.icon className="w-4 h-4" style={{ color: item.color }} />
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">{item.name}</p>
+                        <p className="text-xs text-text-muted">{item.desc}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </section>
 
@@ -512,7 +500,7 @@ export default function Home() {
                     { q: 'What AI models are supported?', a: 'ZeitFlow supports multi-model routing. Use GPT-4, Gemini, Claude, Llama, and more — all configurable per node. Pick the best model for each task in your workflow.' },
                     { q: 'Can AI agents trigger workflows autonomously?', a: 'Yes. That\'s the core design. AI agents discover your published workflows via MCP, understand their inputs and outputs, and trigger them without human intervention. You build the workflow once and agents use it as a tool.' },
                     { q: 'Does it support conditional logic?', a: 'Yes. Workflows support conditional branching based on rules or AI decisions. Build complex routing logic that agents can leverage.' },
-                    { q: 'What integrations are included?', a: 'All of them, on every plan. SMS (Twilio), email (Resend), Slack, HTTP POST, webhooks, hosted forms, and MCP. No integration tiers or surcharges.' },
+                    { q: 'What integrations are included?', a: 'All 12+ integrations on every plan: Email (Resend), Slack, SMS (Twilio), Telegram, Discord, HTTP Request, GitHub, Google Sheets, Notion, Airtable, YouTube, and conditional branching. Plus MCP, webhooks, and hosted forms. No integration tiers or surcharges.' },
                     { q: 'How fast are workflow executions?', a: 'Sub-second trigger-to-execution. No cold starts, no queue delays. When an agent or API calls your workflow, it runs immediately.' },
                   ].map((item) => (
                     <details key={item.q} className="group border border-border rounded-lg bg-surface/50 hover:border-primary/50 transition-colors">

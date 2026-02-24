@@ -21,6 +21,12 @@ import { smsIntegration } from './definitions/sms';
 import { telegramIntegration } from './definitions/telegram';
 import { conditionIntegration } from './definitions/condition';
 import { youtubeIntegration } from './definitions/youtube';
+import { discordIntegration } from './definitions/discord';
+import { httpRequestIntegration } from './definitions/http-request';
+import { googleSheetsIntegration } from './definitions/google-sheets';
+import { githubIntegration } from './definitions/github';
+import { notionIntegration } from './definitions/notion';
+import { airtableIntegration } from './definitions/airtable';
 
 /**
  * All registered integrations
@@ -32,6 +38,12 @@ const integrations = {
   telegram: telegramIntegration,
   condition: conditionIntegration,
   youtube: youtubeIntegration,
+  discord: discordIntegration,
+  http_request: httpRequestIntegration,
+  google_sheets: googleSheetsIntegration,
+  github: githubIntegration,
+  notion: notionIntegration,
+  airtable: airtableIntegration,
 } as const;
 
 export type RegisteredIntegrationId = keyof typeof integrations;
