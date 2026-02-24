@@ -184,6 +184,12 @@ export const INTEGRATION_CONFIG_KEYS = {
   telegram: 'telegramConfig',
   condition: 'conditionConfig',
   youtube: 'youtubeConfig',
+  discord: 'discordConfig',
+  http_request: 'httpRequestConfig',
+  google_sheets: 'googleSheetsConfig',
+  github: 'githubConfig',
+  notion: 'notionConfig',
+  airtable: 'airtableConfig',
 } as const;
 
 export type IntegrationId = keyof typeof INTEGRATION_CONFIG_KEYS;

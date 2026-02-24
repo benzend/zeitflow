@@ -46,6 +46,13 @@ export default function Navigation() {
                 Guides
               </Button>
               <Button
+                href="/integrations"
+                variant="tertiary"
+                className="!bg-transparent !p-0 text-text-muted hover:text-primary transition-colors duration-200 animate-slide-up-fade delay-200"
+              >
+                Integrations
+              </Button>
+              <Button
                 href="/pricing"
                 variant="tertiary"
                 className="!bg-transparent !p-0 text-text-muted hover:text-primary transition-colors duration-200 animate-slide-up-fade delay-200"
@@ -134,6 +141,14 @@ export default function Navigation() {
               onClick={() => setMobileMenuOpen(false)}
             >
               Guides
+            </Button>
+            <Button
+              href="/integrations"
+              variant="tertiary"
+              className="!bg-transparent !p-2 text-text-muted hover:text-primary transition-colors duration-200 w-full text-left"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Integrations
             </Button>
             <Button
               href="/pricing"

@@ -78,6 +78,90 @@ describe('Integration Registry - Deep Cloning', () => {
     expect(config).toBeUndefined();
   });
 
+  test('getIntegrationDefaultConfig returns independent copies for discord', () => {
+    const config1 = getIntegrationDefaultConfig('discord') as any;
+    const config2 = getIntegrationDefaultConfig('discord') as any;
+
+    expect(config1).toBeDefined();
+    expect(config2).toBeDefined();
+
+    config1.webhookUrl = 'https://discord.com/modified';
+    config1.message = 'Modified Message';
+
+    expect(config2.webhookUrl).not.toEqual('https://discord.com/modified');
+    expect(config2.message).not.toEqual('Modified Message');
+  });
+
+  test('getIntegrationDefaultConfig returns independent copies for http_request', () => {
+    const config1 = getIntegrationDefaultConfig('http_request') as any;
+    const config2 = getIntegrationDefaultConfig('http_request') as any;
+
+    expect(config1).toBeDefined();
+    expect(config2).toBeDefined();
+
+    config1.url = 'https://modified.com';
+    config1.method = 'PUT';
+
+    expect(config2.url).not.toEqual('https://modified.com');
+    expect(config2.method).not.toEqual('PUT');
+  });
+
+  test('getIntegrationDefaultConfig returns independent copies for google_sheets', () => {
+    const config1 = getIntegrationDefaultConfig('google_sheets') as any;
+    const config2 = getIntegrationDefaultConfig('google_sheets') as any;
+
+    expect(config1).toBeDefined();
+    expect(config2).toBeDefined();
+
+    config1.spreadsheetId = 'modified-sheet';
+    config1.range = 'Sheet2!A1:Z100';
+
+    expect(config2.spreadsheetId).not.toEqual('modified-sheet');
+    expect(config2.range).not.toEqual('Sheet2!A1:Z100');
+  });
+
+  test('getIntegrationDefaultConfig returns independent copies for github', () => {
+    const config1 = getIntegrationDefaultConfig('github') as any;
+    const config2 = getIntegrationDefaultConfig('github') as any;
+
+    expect(config1).toBeDefined();
+    expect(config2).toBeDefined();
+
+    config1.repo = 'modified/repo';
+    config1.action = 'create_comment';
+
+    expect(config2.repo).not.toEqual('modified/repo');
+    expect(config2.action).not.toEqual('create_comment');
+  });
+
+  test('getIntegrationDefaultConfig returns independent copies for notion', () => {
+    const config1 = getIntegrationDefaultConfig('notion') as any;
+    const config2 = getIntegrationDefaultConfig('notion') as any;
+
+    expect(config1).toBeDefined();
+    expect(config2).toBeDefined();
+
+    config1.databaseId = 'modified-db';
+    config1.title = 'Modified Title';
+
+    expect(config2.databaseId).not.toEqual('modified-db');
+    expect(config2.title).not.toEqual('Modified Title');
+  });
+
+  test('getIntegrationDefaultConfig returns independent copies for airtable', () => {
+    const config1 = getIntegrationDefaultConfig('airtable') as any;
+    const config2 = getIntegrationDefaultConfig('airtable') as any;
+
+    expect(config1).toBeDefined();
+    expect(config2).toBeDefined();
+
+    config1.baseId = 'modified-base';
+    config1.tableId = 'modified-table';
+
+    expect(config2.baseId).not.toEqual('modified-base');
+    expect(config2.tableId).not.toEqual('modified-table');
+  });
+
   test('getIntegrationDefaultConfig deep clones nested arrays', () => {
     const config1 = getIntegrationDefaultConfig('email') as any;
     const config2 = getIntegrationDefaultConfig('email') as any;
