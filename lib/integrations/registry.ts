@@ -27,6 +27,10 @@ import { googleSheetsIntegration } from './definitions/google-sheets';
 import { githubIntegration } from './definitions/github';
 import { notionIntegration } from './definitions/notion';
 import { airtableIntegration } from './definitions/airtable';
+import { whatsappIntegration } from './definitions/whatsapp';
+import { jiraIntegration } from './definitions/jira';
+import { hubspotIntegration } from './definitions/hubspot';
+import { webhookIntegration } from './definitions/webhook';
 
 /**
  * All registered integrations
@@ -44,6 +48,10 @@ const integrations = {
   github: githubIntegration,
   notion: notionIntegration,
   airtable: airtableIntegration,
+  whatsapp: whatsappIntegration,
+  jira: jiraIntegration,
+  hubspot: hubspotIntegration,
+  webhook: webhookIntegration,
 } as const;
 
 export type RegisteredIntegrationId = keyof typeof integrations;

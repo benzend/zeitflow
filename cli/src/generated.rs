@@ -136,10 +136,42 @@ pub const INTEGRATIONS: &[IntegrationMeta] = &[
         config_fields: &["action", "baseId", "tableId", "recordId", "fields", "apiKey"],
         env_var: "AIRTABLE_API_KEY",
     },
+    IntegrationMeta {
+        id: "whatsapp",
+        name: "WhatsApp",
+        description: "Send WhatsApp messages via Twilio",
+        category: "communication",
+        config_fields: &["to", "message", "twilioAccountSid", "twilioAuthToken", "twilioPhoneNumber"],
+        env_var: "TWILIO_ACCOUNT_SID",
+    },
+    IntegrationMeta {
+        id: "jira",
+        name: "Jira",
+        description: "Create and manage Jira issues",
+        category: "data",
+        config_fields: &["action", "domain", "email", "apiToken", "projectKey", "issueKey", "summary", "description", "issueType", "priority", "transitionId", "comment", "jql"],
+        env_var: "JIRA_API_TOKEN",
+    },
+    IntegrationMeta {
+        id: "hubspot",
+        name: "HubSpot",
+        description: "Manage contacts and deals in HubSpot CRM",
+        category: "data",
+        config_fields: &["action", "accessToken", "email", "firstName", "lastName", "phone", "company", "contactId", "dealName", "dealStage", "amount", "pipeline", "dealId", "searchQuery"],
+        env_var: "HUBSPOT_ACCESS_TOKEN",
+    },
+    IntegrationMeta {
+        id: "webhook",
+        name: "Webhook",
+        description: "Send data to any URL via outgoing webhook",
+        category: "utility",
+        config_fields: &["url", "method", "headers", "bodyTemplate", "authType", "authValue", "retryOnFailure", "maxRetries"],
+        env_var: "(none)",
+    },
 ];
 
 /// All integration IDs.
-pub const INTEGRATION_IDS: &[&str] = &["email", "slack", "sms", "telegram", "condition", "youtube", "discord", "http_request", "google_sheets", "github", "notion", "airtable"];
+pub const INTEGRATION_IDS: &[&str] = &["email", "slack", "sms", "telegram", "condition", "youtube", "discord", "http_request", "google_sheets", "github", "notion", "airtable", "whatsapp", "jira", "hubspot", "webhook"];
 
 /// Look up integration metadata by ID.
 pub fn integration_info(id: &str) -> Option<&'static IntegrationMeta> {

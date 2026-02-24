@@ -190,6 +190,10 @@ export const INTEGRATION_CONFIG_KEYS = {
   github: 'githubConfig',
   notion: 'notionConfig',
   airtable: 'airtableConfig',
+  whatsapp: 'whatsappConfig',
+  jira: 'jiraConfig',
+  hubspot: 'hubspotConfig',
+  webhook: 'webhookConfig',
 } as const;
 
 export type IntegrationId = keyof typeof INTEGRATION_CONFIG_KEYS;

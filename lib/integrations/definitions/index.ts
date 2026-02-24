@@ -16,5 +16,9 @@ export { googleSheetsIntegration, GoogleSheetsConfigSchema, type GoogleSheetsCon
 export { githubIntegration, GitHubConfigSchema, type GitHubConfig } from './github';
 export { notionIntegration, NotionConfigSchema, type NotionConfig } from './notion';
 export { airtableIntegration, AirtableConfigSchema, type AirtableConfig } from './airtable';
+export { whatsappIntegration, WhatsAppConfigSchema, type WhatsAppConfig } from './whatsapp';
+export { jiraIntegration, JiraConfigSchema, type JiraConfig } from './jira';
+export { hubspotIntegration, HubSpotConfigSchema, type HubSpotConfig } from './hubspot';
+export { webhookIntegration, WebhookConfigSchema, type WebhookConfig } from './webhook';
 
 // Note: Integration definitions use JSX for icons, hence the .tsx extension

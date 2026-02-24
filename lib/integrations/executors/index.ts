@@ -17,6 +17,10 @@ export { executeGoogleSheets } from './google-sheets';
 export { executeGitHub } from './github';
 export { executeNotion } from './notion';
 export { executeAirtable } from './airtable';
+export { executeWhatsApp } from './whatsapp';
+export { executeJira } from './jira';
+export { executeHubSpot } from './hubspot';
+export { executeWebhook } from './webhook';
 
 import { ExecutionContext, IntegrationResult } from '../types';
 import { executeEmail } from './email';
@@ -31,6 +35,10 @@ import { executeGoogleSheets } from './google-sheets';
 import { executeGitHub } from './github';
 import { executeNotion } from './notion';
 import { executeAirtable } from './airtable';
+import { executeWhatsApp } from './whatsapp';
+import { executeJira } from './jira';
+import { executeHubSpot } from './hubspot';
+import { executeWebhook } from './webhook';
 
 /**
  * Map of integration IDs to their executor functions
@@ -51,6 +59,10 @@ export const integrationExecutors: Record<
   github: executeGitHub,
   notion: executeNotion,
   airtable: executeAirtable,
+  whatsapp: executeWhatsApp,
+  jira: executeJira,
+  hubspot: executeHubSpot,
+  webhook: executeWebhook,
 };
 
 /**
