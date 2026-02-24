@@ -40,18 +40,8 @@ function generateNodeId(): string {
   return crypto.randomUUID();
 }
 
-const NODE_TYPE_ENUM = [
-  "entry",
-  "ai",
-  "scheduler",
-  "review",
-  "email",
-  "slack",
-  "sms",
-  "telegram",
-  "condition",
-  "youtube",
-] as const;
+// Derive the enum from the registry so new node types are picked up automatically.
+const NODE_TYPE_ENUM = NODE_TYPES as unknown as readonly [string, ...string[]];
 
 // ---------------------------------------------------------------------------
 // Factory

@@ -1,6 +1,7 @@
 mod client;
 mod commands;
 mod config;
+mod generated;
 mod output;
 
 use anyhow::Result;

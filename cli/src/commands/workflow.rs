@@ -324,14 +324,10 @@ pub async fn run(
             config: node_config,
             entry_type,
         } => {
-            let valid_types = [
-                "entry", "ai", "email", "slack", "sms", "telegram",
-                "youtube", "condition", "scheduler", "review",
-            ];
-            if !valid_types.contains(&node_type.as_str()) {
+            if !crate::generated::VALID_NODE_TYPES.contains(&node_type.as_str()) {
                 anyhow::bail!(
                     "Invalid node type '{node_type}'. Must be one of: {}",
-                    valid_types.join(", ")
+                    crate::generated::VALID_NODE_TYPES.join(", ")
                 );
             }
 
@@ -682,12 +678,7 @@ fn remap_node_for_save(n: &Value) -> Value {
     }
 
     // Copy inline config keys if they already exist (from add-node)
-    let config_keys = [
-        "aiConfig", "emailConfig", "slackConfig", "smsConfig",
-        "telegramConfig", "conditionConfig", "youtubeConfig",
-        "schedulerConfig", "reviewConfig",
-    ];
-    for key in config_keys {
+    for key in crate::generated::ALL_CONFIG_KEYS {
         if let Some(val) = n.get(key) {
             if !val.is_null() {
                 node[key] = val.clone();
