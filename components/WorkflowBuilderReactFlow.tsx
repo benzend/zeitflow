@@ -264,7 +264,13 @@ const NODE_TYPE_OPTIONS: DropdownOption[] = [
   { value: 'slack', label: 'Slack' },
   { value: 'sms', label: 'SMS' },
   { value: 'telegram', label: 'Telegram' },
+  { value: 'discord', label: 'Discord' },
   { value: 'youtube', label: 'YouTube' },
+  { value: 'http_request', label: 'HTTP Request' },
+  { value: 'google_sheets', label: 'Google Sheets' },
+  { value: 'github', label: 'GitHub' },
+  { value: 'notion', label: 'Notion' },
+  { value: 'airtable', label: 'Airtable' },
 ];
 
 // Wrapper component to provide React Flow context
