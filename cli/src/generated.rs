@@ -88,10 +88,58 @@ pub const INTEGRATIONS: &[IntegrationMeta] = &[
         config_fields: &["mode", "videoUrl", "commentText"],
         env_var: "(OAuth - user auth)",
     },
+    IntegrationMeta {
+        id: "discord",
+        name: "Discord",
+        description: "Send messages to Discord channels via webhook",
+        category: "communication",
+        config_fields: &["webhookUrl", "message", "username"],
+        env_var: "(none)",
+    },
+    IntegrationMeta {
+        id: "http_request",
+        name: "HTTP Request",
+        description: "Make HTTP requests to any API endpoint",
+        category: "utility",
+        config_fields: &["url", "method", "headers", "body", "authType", "authValue"],
+        env_var: "(none)",
+    },
+    IntegrationMeta {
+        id: "google_sheets",
+        name: "Google Sheets",
+        description: "Read and write data in Google Sheets",
+        category: "data",
+        config_fields: &["mode", "spreadsheetId", "range", "values"],
+        env_var: "(OAuth - user auth)",
+    },
+    IntegrationMeta {
+        id: "github",
+        name: "GitHub",
+        description: "Create issues, comments, and manage GitHub repositories",
+        category: "data",
+        config_fields: &["action", "repo", "title", "body", "token"],
+        env_var: "GITHUB_TOKEN",
+    },
+    IntegrationMeta {
+        id: "notion",
+        name: "Notion",
+        description: "Create pages, query databases, and manage Notion content",
+        category: "data",
+        config_fields: &["action", "databaseId", "title", "content", "apiKey"],
+        env_var: "NOTION_API_KEY",
+    },
+    IntegrationMeta {
+        id: "airtable",
+        name: "Airtable",
+        description: "Read and write records in Airtable bases",
+        category: "data",
+        config_fields: &["action", "baseId", "tableId", "recordId", "fields", "apiKey"],
+        env_var: "AIRTABLE_API_KEY",
+    },
 ];
 
 /// All integration IDs.
-pub const INTEGRATION_IDS: &[&str] = &["email", "slack", "sms", "telegram", "condition", "youtube"];
+pub const INTEGRATION_IDS: &[&str] = &["email", "slack", "sms", "telegram", "condition", "youtube", "discord", "http_request", "google_sheets", "github", "notion", "airtable"];
 
 /// Look up integration metadata by ID.
 pub fn integration_info(id: &str) -> Option<&'static IntegrationMeta> {
