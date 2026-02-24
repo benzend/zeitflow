@@ -36,7 +36,24 @@ pnpm backfill-assets
 
 # Start MCP server (for AI agent integration)
 ZEITFLOW_API_TOKEN=<token> pnpm mcp
+
+# Regenerate CLI code from TypeScript sources of truth
+pnpm codegen
 ```
+
+### Code Generation (`pnpm codegen`)
+
+The CLI (Rust) and MCP derive node types, integration metadata, config keys, and AI models from the TypeScript sources of truth. When any of these change, run `pnpm codegen` to regenerate `cli/src/generated.rs`.
+
+**You MUST run `pnpm codegen` after modifying any of:**
+- `lib/node-registry.ts` (node types, config keys)
+- `lib/integrations/definitions/` or `lib/integrations/registry.ts` (integration definitions)
+- `lib/integrations/types.ts` (`INTEGRATION_CONFIG_KEYS`)
+- `lib/constants.ts` (`AI_MODELS`)
+
+**After running codegen, rebuild the CLI:** `cd cli && cargo build`
+
+The test suite (`pnpm test -- __tests__/scripts/codegen.test.ts`) will fail if `generated.rs` is out of sync — use this as a CI gate.
 
 ### Rust CLI (`cli/`)
 
@@ -151,6 +168,7 @@ To add a new integration:
 2. Create executor in `lib/integrations/executors/` (export from `index.ts`, add to `integrationExecutors` map)
 3. Add config key to `INTEGRATION_CONFIG_KEYS` in `lib/integrations/types.ts`
 4. Register in `lib/integrations/registry.ts`
+5. Run `pnpm codegen` to regenerate CLI code, then `cd cli && cargo build`
 
 #### 6. Blog System
 - **MDX Rendering**: Uses `next-mdx-remote` with `remark-gfm` (tables) and `rehype-pretty-code` (syntax highlighting)
