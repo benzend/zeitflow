@@ -21,6 +21,10 @@ export { executeWhatsApp } from './whatsapp';
 export { executeJira } from './jira';
 export { executeHubSpot } from './hubspot';
 export { executeWebhook } from './webhook';
+export { executeLinear } from './linear';
+export { executeGoogleDrive } from './google-drive';
+export { executeStripe } from './stripe';
+export { executeShopify } from './shopify';
 
 import { ExecutionContext, IntegrationResult } from '../types';
 import { executeEmail } from './email';
@@ -39,6 +43,10 @@ import { executeWhatsApp } from './whatsapp';
 import { executeJira } from './jira';
 import { executeHubSpot } from './hubspot';
 import { executeWebhook } from './webhook';
+import { executeLinear } from './linear';
+import { executeGoogleDrive } from './google-drive';
+import { executeStripe } from './stripe';
+import { executeShopify } from './shopify';
 
 /**
  * Map of integration IDs to their executor functions
@@ -63,6 +71,10 @@ export const integrationExecutors: Record<
   jira: executeJira,
   hubspot: executeHubSpot,
   webhook: executeWebhook,
+  linear: executeLinear,
+  google_drive: executeGoogleDrive,
+  stripe: executeStripe,
+  shopify: executeShopify,
 };
 
 /**

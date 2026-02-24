@@ -20,5 +20,9 @@ export { whatsappIntegration, WhatsAppConfigSchema, type WhatsAppConfig } from '
 export { jiraIntegration, JiraConfigSchema, type JiraConfig } from './jira';
 export { hubspotIntegration, HubSpotConfigSchema, type HubSpotConfig } from './hubspot';
 export { webhookIntegration, WebhookConfigSchema, type WebhookConfig } from './webhook';
+export { linearIntegration, LinearConfigSchema, type LinearConfig } from './linear';
+export { googleDriveIntegration, GoogleDriveConfigSchema, type GoogleDriveConfig } from './google-drive';
+export { stripeIntegration, StripeConfigSchema, type StripeConfig } from './stripe';
+export { shopifyIntegration, ShopifyConfigSchema, type ShopifyConfig } from './shopify';
 
 // Note: Integration definitions use JSX for icons, hence the .tsx extension

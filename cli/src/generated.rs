@@ -168,10 +168,42 @@ pub const INTEGRATIONS: &[IntegrationMeta] = &[
         config_fields: &["url", "method", "headers", "bodyTemplate", "authType", "authValue", "retryOnFailure", "maxRetries"],
         env_var: "(none)",
     },
+    IntegrationMeta {
+        id: "linear",
+        name: "Linear",
+        description: "Create and manage Linear issues and projects",
+        category: "data",
+        config_fields: &["action", "apiKey", "teamId", "title", "description", "issueId", "status", "priority", "assigneeId", "labelIds", "comment", "filterQuery"],
+        env_var: "LINEAR_API_KEY",
+    },
+    IntegrationMeta {
+        id: "google_drive",
+        name: "Google Drive",
+        description: "Upload, create, and share files in Google Drive",
+        category: "data",
+        config_fields: &["action", "accessToken", "fileName", "fileContent", "mimeType", "folderId", "folderName", "fileId", "shareEmail", "shareRole", "query"],
+        env_var: "GOOGLE_DRIVE_ACCESS_TOKEN",
+    },
+    IntegrationMeta {
+        id: "stripe",
+        name: "Stripe",
+        description: "Create customers, invoices, and payment links via Stripe",
+        category: "data",
+        config_fields: &["action", "secretKey", "email", "name", "description", "customerId", "amount", "currency", "invoiceDescription", "productName", "query", "limit"],
+        env_var: "STRIPE_SECRET_KEY",
+    },
+    IntegrationMeta {
+        id: "shopify",
+        name: "Shopify",
+        description: "Manage orders, products, and customers in Shopify",
+        category: "data",
+        config_fields: &["action", "shopDomain", "accessToken", "orderId", "orderStatus", "productTitle", "productDescription", "productType", "productVendor", "variantPrice", "variantSku", "customerEmail", "customerFirstName", "customerLastName", "limit"],
+        env_var: "SHOPIFY_ACCESS_TOKEN",
+    },
 ];
 
 /// All integration IDs.
-pub const INTEGRATION_IDS: &[&str] = &["email", "slack", "sms", "telegram", "condition", "youtube", "discord", "http_request", "google_sheets", "github", "notion", "airtable", "whatsapp", "jira", "hubspot", "webhook"];
+pub const INTEGRATION_IDS: &[&str] = &["email", "slack", "sms", "telegram", "condition", "youtube", "discord", "http_request", "google_sheets", "github", "notion", "airtable", "whatsapp", "jira", "hubspot", "webhook", "linear", "google_drive", "stripe", "shopify"];
 
 /// Look up integration metadata by ID.
 pub fn integration_info(id: &str) -> Option<&'static IntegrationMeta> {

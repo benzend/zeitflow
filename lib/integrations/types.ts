@@ -194,6 +194,10 @@ export const INTEGRATION_CONFIG_KEYS = {
   jira: 'jiraConfig',
   hubspot: 'hubspotConfig',
   webhook: 'webhookConfig',
+  linear: 'linearConfig',
+  google_drive: 'googleDriveConfig',
+  stripe: 'stripeConfig',
+  shopify: 'shopifyConfig',
 } as const;
 
 export type IntegrationId = keyof typeof INTEGRATION_CONFIG_KEYS;

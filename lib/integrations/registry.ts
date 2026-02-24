@@ -31,6 +31,10 @@ import { whatsappIntegration } from './definitions/whatsapp';
 import { jiraIntegration } from './definitions/jira';
 import { hubspotIntegration } from './definitions/hubspot';
 import { webhookIntegration } from './definitions/webhook';
+import { linearIntegration } from './definitions/linear';
+import { googleDriveIntegration } from './definitions/google-drive';
+import { stripeIntegration } from './definitions/stripe';
+import { shopifyIntegration } from './definitions/shopify';
 
 /**
  * All registered integrations
@@ -52,6 +56,10 @@ const integrations = {
   jira: jiraIntegration,
   hubspot: hubspotIntegration,
   webhook: webhookIntegration,
+  linear: linearIntegration,
+  google_drive: googleDriveIntegration,
+  stripe: stripeIntegration,
+  shopify: shopifyIntegration,
 } as const;
 
 export type RegisteredIntegrationId = keyof typeof integrations;
