@@ -27,6 +27,14 @@ import { googleSheetsIntegration } from './definitions/google-sheets';
 import { githubIntegration } from './definitions/github';
 import { notionIntegration } from './definitions/notion';
 import { airtableIntegration } from './definitions/airtable';
+import { whatsappIntegration } from './definitions/whatsapp';
+import { jiraIntegration } from './definitions/jira';
+import { hubspotIntegration } from './definitions/hubspot';
+import { webhookIntegration } from './definitions/webhook';
+import { linearIntegration } from './definitions/linear';
+import { googleDriveIntegration } from './definitions/google-drive';
+import { stripeIntegration } from './definitions/stripe';
+import { shopifyIntegration } from './definitions/shopify';
 
 /**
  * All registered integrations
@@ -44,6 +52,14 @@ const integrations = {
   github: githubIntegration,
   notion: notionIntegration,
   airtable: airtableIntegration,
+  whatsapp: whatsappIntegration,
+  jira: jiraIntegration,
+  hubspot: hubspotIntegration,
+  webhook: webhookIntegration,
+  linear: linearIntegration,
+  google_drive: googleDriveIntegration,
+  stripe: stripeIntegration,
+  shopify: shopifyIntegration,
 } as const;
 
 export type RegisteredIntegrationId = keyof typeof integrations;
