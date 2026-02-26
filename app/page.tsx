@@ -35,6 +35,13 @@ import {
   Webhook,
   MessageSquare,
   Terminal,
+  MessageCircle,
+  HardDrive,
+  CreditCard,
+  ShoppingCart,
+  Users,
+  Ticket,
+  Layers,
 } from 'lucide-react';
 
 export default function Home() {
@@ -423,25 +430,33 @@ export default function Home() {
               {/* Integrations */}
               <section className="space-y-8">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-2xl md:text-3xl font-semibold text-foreground">12+ Integrations</h2>
+                  <h2 className="text-2xl md:text-3xl font-semibold text-foreground">20+ Integrations</h2>
                   <Button href="/integrations" variant="tertiary">
                     View all <ArrowRight className="w-4 h-4 ml-1 inline" />
                   </Button>
                 </div>
                 <p className="text-text-muted">All included on every plan. No per-connector fees. Every integration works with AI agents via MCP.</p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                   {[
                     { icon: Mail, name: 'Email', desc: 'Resend', color: '#000000' },
                     { icon: Hash, name: 'Slack', desc: 'OAuth', color: '#4A154B' },
                     { icon: Phone, name: 'SMS', desc: 'Twilio', color: '#F22F46' },
                     { icon: Send, name: 'Telegram', desc: 'Bot API', color: '#0088CC' },
                     { icon: MessageSquare, name: 'Discord', desc: 'Webhooks', color: '#5865F2' },
+                    { icon: MessageCircle, name: 'WhatsApp', desc: 'Twilio', color: '#25D366' },
                     { icon: Globe, name: 'HTTP Request', desc: 'Any API', color: '#6366F1' },
                     { icon: FileText, name: 'GitHub', desc: 'PAT', color: '#24292E' },
                     { icon: FileText, name: 'Notion', desc: 'API Token', color: '#000000' },
                     { icon: Webhook, name: 'Google Sheets', desc: 'OAuth', color: '#0F9D58' },
                     { icon: Webhook, name: 'Airtable', desc: 'PAT', color: '#18BFFF' },
                     { icon: Webhook, name: 'YouTube', desc: 'OAuth', color: '#FF0000' },
+                    { icon: HardDrive, name: 'Google Drive', desc: 'OAuth', color: '#4285F4' },
+                    { icon: CreditCard, name: 'Stripe', desc: 'API Key', color: '#635BFF' },
+                    { icon: ShoppingCart, name: 'Shopify', desc: 'Admin API', color: '#96BF48' },
+                    { icon: Users, name: 'HubSpot', desc: 'Private App', color: '#FF7A59' },
+                    { icon: Ticket, name: 'Jira', desc: 'API Token', color: '#0052CC' },
+                    { icon: Layers, name: 'Linear', desc: 'API Key', color: '#5E6AD2' },
+                    { icon: Webhook, name: 'Webhook', desc: 'Outgoing', color: '#8B5CF6' },
                     { icon: Sparkles, name: 'Condition', desc: 'Branching', color: '#F59E0B' },
                   ].map((item) => (
                     <div key={item.name} className="flex items-center gap-3 p-3 rounded-lg border border-border bg-surface/50 hover:border-primary/30 transition-colors">
@@ -500,7 +515,7 @@ export default function Home() {
                     { q: 'What AI models are supported?', a: 'ZeitFlow supports multi-model routing. Use GPT-4, Gemini, Claude, Llama, and more — all configurable per node. Pick the best model for each task in your workflow.' },
                     { q: 'Can AI agents trigger workflows autonomously?', a: 'Yes. That\'s the core design. AI agents discover your published workflows via MCP, understand their inputs and outputs, and trigger them without human intervention. You build the workflow once and agents use it as a tool.' },
                     { q: 'Does it support conditional logic?', a: 'Yes. Workflows support conditional branching based on rules or AI decisions. Build complex routing logic that agents can leverage.' },
-                    { q: 'What integrations are included?', a: 'All 12+ integrations on every plan: Email (Resend), Slack, SMS (Twilio), Telegram, Discord, HTTP Request, GitHub, Google Sheets, Notion, Airtable, YouTube, and conditional branching. Plus MCP, webhooks, and hosted forms. No integration tiers or surcharges.' },
+                    { q: 'What integrations are included?', a: 'All 20+ integrations on every plan: Email (Resend), Slack, SMS (Twilio), Telegram, Discord, WhatsApp, HTTP Request, GitHub, Google Sheets, Notion, Airtable, YouTube, Google Drive, Stripe, Shopify, HubSpot, Jira, Linear, Webhook, and conditional branching. Plus MCP and hosted forms. No integration tiers or surcharges.' },
                     { q: 'How fast are workflow executions?', a: 'Sub-second trigger-to-execution. No cold starts, no queue delays. When an agent or API calls your workflow, it runs immediately.' },
                   ].map((item) => (
                     <details key={item.q} className="group border border-border rounded-lg bg-surface/50 hover:border-primary/50 transition-colors">
