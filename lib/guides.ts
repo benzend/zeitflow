@@ -193,12 +193,12 @@ Review the following blog post for grammar and style:
 
 When you set an entry node to \`webhook\` mode, ZeitFlow generates a unique secret for the workflow. External services can trigger the workflow by sending an HTTP POST to:
 
-\\\`\\\`\\\`
+\`\`\`
 POST /api/workflow/<id>/execute?secret=<webhookSecret>
 Content-Type: application/json
 
 { "field1": "value1", "field2": "value2" }
-\\\`\\\`\\\`
+\`\`\`
 
 Key points:
 
