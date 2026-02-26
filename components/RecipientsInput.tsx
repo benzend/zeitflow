@@ -7,7 +7,7 @@
  * - Invalid entries: red
  * - Variable syntax: blue
  *
- * Supports adding recipients via Enter, comma, or space.
+ * Supports adding recipients via Enter or comma.
  */
 
 import React, { useState, useRef, KeyboardEvent, useEffect } from 'react';
@@ -82,8 +82,10 @@ export default function RecipientsInput({
     // Stop propagation to prevent React Flow from capturing
     e.stopPropagation();
 
-    // Enter, comma, or space adds recipient
-    if (e.key === 'Enter' || e.key === ',' || e.key === ' ') {
+    // Enter or comma adds recipient (space removed as delimiter because
+    // mobile keyboards auto-insert spaces after periods, which would split
+    // email addresses like "user.name@example.com" prematurely)
+    if (e.key === 'Enter' || e.key === ',') {
       e.preventDefault();
       addRecipient();
     }

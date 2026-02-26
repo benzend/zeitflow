@@ -7,6 +7,7 @@ import {
   validatePhoneEntry,
   processPhoneRecipients,
   formatPhoneRecipientsStatus,
+  processEmailRecipients,
 } from '@/lib/phone-utils';
 
 describe('phone-utils', () => {
@@ -208,6 +209,69 @@ describe('phone-utils', () => {
         variables: [],
       });
       expect(result).toBe('No recipients');
+    });
+  });
+
+  describe('processEmailRecipients', () => {
+    test('validates email with periods in local part', () => {
+      const result = processEmailRecipients('user.name@example.com');
+      expect(result.valid).toEqual(['user.name@example.com']);
+      expect(result.invalid).toEqual([]);
+    });
+
+    test('validates email with multiple periods in local part', () => {
+      const result = processEmailRecipients('first.middle.last@example.com');
+      expect(result.valid).toEqual(['first.middle.last@example.com']);
+      expect(result.invalid).toEqual([]);
+    });
+
+    test('validates email with periods in domain', () => {
+      const result = processEmailRecipients('user@mail.example.co.uk');
+      expect(result.valid).toEqual(['user@mail.example.co.uk']);
+      expect(result.invalid).toEqual([]);
+    });
+
+    test('validates simple email', () => {
+      const result = processEmailRecipients('user@example.com');
+      expect(result.valid).toEqual(['user@example.com']);
+      expect(result.invalid).toEqual([]);
+    });
+
+    test('processes multiple comma-separated emails', () => {
+      const result = processEmailRecipients('a.b@example.com, c.d@example.com');
+      expect(result.valid).toEqual(['a.b@example.com', 'c.d@example.com']);
+      expect(result.invalid).toEqual([]);
+    });
+
+    test('detects variables', () => {
+      const result = processEmailRecipients('{{contact.email}}');
+      expect(result.variables).toEqual(['{{contact.email}}']);
+      expect(result.valid).toEqual([]);
+    });
+
+    test('separates valid, invalid, and variables', () => {
+      const result = processEmailRecipients('good.user@example.com, bad-email, {{var}}');
+      expect(result.valid).toEqual(['good.user@example.com']);
+      expect(result.invalid).toEqual(['bad-email']);
+      expect(result.variables).toEqual(['{{var}}']);
+    });
+
+    test('handles empty input', () => {
+      const result = processEmailRecipients('');
+      expect(result.valid).toEqual([]);
+      expect(result.invalid).toEqual([]);
+      expect(result.variables).toEqual([]);
+    });
+
+    test('rejects email without domain', () => {
+      const result = processEmailRecipients('user@');
+      expect(result.invalid).toEqual(['user@']);
+    });
+
+    test('does not split on periods', () => {
+      const result = processEmailRecipients('john.doe@example.com');
+      expect(result.valid).toHaveLength(1);
+      expect(result.valid[0]).toBe('john.doe@example.com');
     });
   });
 });
