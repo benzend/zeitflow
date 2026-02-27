@@ -118,8 +118,9 @@ async fn setup_mcp(
 
     let cli_cmd = if matches!(client, McpClient::ClaudeCode) {
         Some(format!(
-            "claude mcp add zeitflow --transport http \
-             --url \"{}\" \
+            "claude mcp add zeitflow \
+             --transport http \
+             \"{}\" \
              --header \"Authorization: Bearer {}\"",
             mcp_url, token
         ))

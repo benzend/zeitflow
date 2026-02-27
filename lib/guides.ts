@@ -73,7 +73,7 @@ No local setup, no database URL, no dependencies. Just paste and go.
 ### Option B: Claude Code CLI one-liner
 
 \`\`\`bash
-claude mcp add zeitflow --transport http --url "https://www.zeitflow.io/api/mcp" --header "Authorization: Bearer your-api-token-here"
+claude mcp add zeitflow --transport http "https://www.zeitflow.io/api/mcp" --header "Authorization: Bearer your-api-token-here"
 \`\`\`
 
 ### Option C: npx (for stdio-only clients)
