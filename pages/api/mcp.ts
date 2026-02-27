@@ -77,19 +77,6 @@ export default async function handler(
     });
   }
 
-  // ---- Only POST is supported in stateless mode ----------------------
-  if (req.method !== "POST") {
-    res.setHeader("Allow", "POST");
-    return res.status(405).json({
-      jsonrpc: "2.0",
-      error: {
-        code: -32000,
-        message: "Method not allowed. Use POST.",
-      },
-      id: null,
-    });
-  }
-
   // ---- Build MCP server + transport for this request -----------------
   const host =
     process.env.HOST ||
