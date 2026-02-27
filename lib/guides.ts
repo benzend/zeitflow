@@ -20,8 +20,6 @@ export const guides: Guide[] = [
     updatedAt: "2026-02-22",
     tags: ["MCP", "AI Agents", "Integration"],
     content: `
-# Connect AI Agents to ZeitFlow via MCP
-
 ZeitFlow ships with a **Model Context Protocol (MCP)** server that lets AI agents — like Claude Desktop, Claude Code, Cursor, and VS Code — create, configure, and execute workflows on your behalf.
 
 Once connected, you can say things like *"Create a workflow that takes a blog topic, generates an outline with AI, then emails me the result"* and the agent will build it directly in ZeitFlow.
@@ -292,8 +290,6 @@ Restart your MCP client after changing config. For Claude Desktop, check logs at
     updatedAt: "2026-02-23",
     tags: ["CLI", "AI Agents", "Rust", "Automation"],
     content: `
-# ZeitFlow CLI — Build Workflows from the Terminal
-
 The ZeitFlow CLI is a fast, standalone command-line tool written in Rust. It lets you create workflows, add nodes, wire them together, execute runs, and inspect results — all without opening a browser.
 
 It's designed with AI agents in mind: every command supports \`--output json\` for machine-readable responses, uses a consistent \`zeitflow <resource> <action>\` grammar, and is fully discoverable via \`--help\`.
