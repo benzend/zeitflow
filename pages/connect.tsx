@@ -227,7 +227,7 @@ function generateConfig(
 
 function getCliCommand(token: string): string {
   const placeholder = token || "YOUR_API_TOKEN";
-  return `claude mcp add zeitflow --transport http --url "${getAppUrl()}/api/mcp" --header "Authorization: Bearer ${placeholder}"`;
+  return `claude mcp add zeitflow --transport http "${getAppUrl()}/api/mcp" --header "Authorization: Bearer ${placeholder}"`;
 }
 
 // ---------------------------------------------------------------------------

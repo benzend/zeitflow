@@ -121,36 +121,36 @@ describe("/api/mcp", () => {
     expect(body.error.message).toMatch(/Invalid API token/);
   });
 
-  // ---------- Method validation ----------
+  // ---------- Method handling ----------
 
-  it("returns 405 for GET requests", async () => {
+  it("passes GET requests through to the transport", async () => {
     mockLimit.mockResolvedValue([{ id: "user-1", email: "test@test.com" }]);
+    mockHandleRequest.mockResolvedValue(undefined);
 
     const req = createRequest<NextApiRequest>({
       method: "GET",
-      headers: { authorization: "Bearer valid-token" },
+      headers: { authorization: "Bearer valid-token", host: "localhost:3000" },
     });
     const res = createResponse<NextApiResponse>();
 
     await handler(req, res);
 
-    expect(res.statusCode).toBe(405);
-    const body = res._getJSONData();
-    expect(body.error.message).toMatch(/Method not allowed/);
+    expect(mockHandleRequest).toHaveBeenCalledWith(req, res);
   });
 
-  it("returns 405 for DELETE requests", async () => {
+  it("passes DELETE requests through to the transport", async () => {
     mockLimit.mockResolvedValue([{ id: "user-1", email: "test@test.com" }]);
+    mockHandleRequest.mockResolvedValue(undefined);
 
     const req = createRequest<NextApiRequest>({
       method: "DELETE",
-      headers: { authorization: "Bearer valid-token" },
+      headers: { authorization: "Bearer valid-token", host: "localhost:3000" },
     });
     const res = createResponse<NextApiResponse>();
 
     await handler(req, res);
 
-    expect(res.statusCode).toBe(405);
+    expect(mockHandleRequest).toHaveBeenCalledWith(req, res);
   });
 
   // ---------- Happy path ----------
