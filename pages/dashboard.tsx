@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
-import { Plus, Workflow as WorkflowIcon } from 'lucide-react';
+import { Plus } from 'lucide-react';
+import GetStarted from "@/components/GetStarted";
 import { SelectChain, SelectQueuedChainWithStatus, SelectQueuedChainStep } from "@/schema";
 import { Button } from "@/components/Button";
 import { Tabs } from "@/components/Tabs";
@@ -513,17 +514,7 @@ export default function Dashboard() {
                   <WorkflowSkeleton />
                 </>
               ) : workflows.length === 0 ? (
-                <div className="col-span-full text-center py-12">
-                  <WorkflowIcon size={64} className="mx-auto text-foreground-light mb-4" />
-                  <h3 className="text-xl font-medium text-foreground-light mb-2">No workflows yet</h3>
-                  <p className="text-foreground-light mb-6">Create your first automation workflow to get started</p>
-                  <Button
-                    onClick={() => setShowCreateWorkflowModal(true)}
-                    variant="primary"
-                  >
-                    Create Your First Workflow
-                  </Button>
-                </div>
+                <GetStarted onCreateWorkflow={() => setShowCreateWorkflowModal(true)} />
               ) : (
                 workflows.map((workflow) => (
                   <WorkflowCard
