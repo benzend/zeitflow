@@ -282,15 +282,15 @@ Restart your MCP client after changing config. For Claude Desktop, check logs at
   },
   {
     slug: "cli",
-    title: "ZeitFlow CLI — Build Workflows from the Terminal",
+    title: "ZeitFlow CLI — Manage Workflows from the Terminal",
     excerpt:
-      "Install and use the ZeitFlow Rust CLI to create, manage, and execute workflows from the command line. Designed for both humans and AI agents.",
+      "Install and use the ZeitFlow CLI to create, manage, and execute workflows from the command line. Zero dependencies, works everywhere Node.js runs.",
     icon: "⌨️",
     publishedAt: "2026-02-22",
-    updatedAt: "2026-02-23",
-    tags: ["CLI", "AI Agents", "Rust", "Automation"],
+    updatedAt: "2026-03-01",
+    tags: ["CLI", "AI Agents", "npm", "Automation"],
     content: `
-The ZeitFlow CLI is a fast, standalone command-line tool written in Rust. It lets you create workflows, add nodes, wire them together, execute runs, and inspect results — all without opening a browser.
+The ZeitFlow CLI is a lightweight command-line tool that lets you create workflows, execute runs, inspect results, and configure MCP — all without opening a browser.
 
 It's designed with AI agents in mind: every command supports \`--output json\` for machine-readable responses, uses a consistent \`zeitflow <resource> <action>\` grammar, and is fully discoverable via \`--help\`.
 
@@ -298,22 +298,13 @@ It's designed with AI agents in mind: every command supports \`--output json\` f
 
 ## Installation
 
-### Build from source
-
 \`\`\`bash
-cd cli
-cargo build --release
-\`\`\`
-
-The binary is at \`cli/target/release/zeitflow\`. Move it somewhere on your PATH:
-
-\`\`\`bash
-cp cli/target/release/zeitflow /usr/local/bin/
+npm install -g @zeitflow/cli
 \`\`\`
 
 ### Requirements
 
-- Rust 1.70+ and Cargo
+- Node.js 18+
 
 ---
 
@@ -339,12 +330,10 @@ Every command supports these flags:
 | Flag | Description |
 |------|-------------|
 | \`--output json\` | Machine-readable JSON output (default: \`text\`) |
-| \`--output text\` | Human-readable tables and messages |
-| \`--api-url <URL>\` | Override the API URL for a single call |
-| \`-h, --help\` | Help for any command or subcommand |
-| \`-V, --version\` | Print version |
+| \`--help\` | Show help |
+| \`--version\` | Print version |
 
-You can also set \`ZEITFLOW_API_URL\` as an environment variable instead of passing \`--api-url\` on every call.
+You can set \`ZEITFLOW_URL\` as an environment variable to override the default API URL.
 
 ---
 
@@ -357,7 +346,7 @@ You can also set \`ZEITFLOW_API_URL\` as an environment variable instead of pass
 | \`zeitflow auth logout\` | Remove stored credentials |
 | \`zeitflow auth status\` | Show current auth state and API URL |
 
-Configuration is stored at \`~/.zeitflow/config.json\`. If you previously used the old config location (\`~/.config/zeitflow/config.json\` with \`api_token\`/\`api_url\` field names), it will be auto-migrated on first load — no manual action needed.
+Configuration is stored at \`~/.zeitflow/config.json\` — the same file used by \`@zeitflow/mcp\`, so if you've already authenticated with one, the other picks it up automatically.
 
 ---
 
@@ -414,116 +403,6 @@ zeitflow workflow run 42 --input '{"email":"alice@example.com","name":"Alice"}'
 zeitflow workflow run 42 --entry-node entry_abc123
 \`\`\`
 
-### Statistics
-
-\`\`\`bash
-zeitflow workflow stats 42
-\`\`\`
-
-Returns execution metrics for the workflow:
-- **Total executions** — How many times the workflow has been run
-- **Completed / Failed** — Counts for each status
-- **Success rate** — Percentage of successful runs
-- **Average duration** — Mean execution time
-- **Recent executions** — Last 10 runs with status and timestamps
-
----
-
-## Node Management
-
-Nodes are the building blocks of a workflow. Each node has a type, a label, and type-specific configuration.
-
-### Adding a node
-
-\`\`\`bash
-zeitflow workflow add-node \\
-  --workflow 42 \\
-  --node-type <TYPE> \\
-  --label "My Node" \\
-  --config '<JSON>'
-\`\`\`
-
-The command returns the generated node ID — save it for connecting nodes later.
-
-### Node types
-
-| Type | Config Key | Key Fields |
-|------|-----------|------------|
-| \`entry\` | — | Use \`--entry-type\`: \`form\`, \`api\`, or \`webhook\` |
-| \`ai\` | \`aiConfig\` | \`model\`, \`systemPrompt\`, \`userPrompt\`, \`outputType\`, \`outputStructure\` (define expected JSON shape when outputType is JSON) |
-| \`email\` | \`emailConfig\` | \`to\` (array), \`subject\`, \`message\` |
-| \`slack\` | \`slackConfig\` | \`channel\`, \`message\` |
-| \`sms\` | \`smsConfig\` | \`to\` (array), \`message\`, optional \`twilioAccountSid\`, \`twilioAuthToken\`, \`twilioPhoneNumber\` overrides |
-| \`telegram\` | \`telegramConfig\` | \`chatId\`, \`message\`, optional \`botToken\` override |
-| \`youtube\` | \`youtubeConfig\` | \`mode\` (\`fetch\` to retrieve video data, \`comment\` to post a comment), \`videoUrl\`, \`commentText\` |
-| \`condition\` | \`conditionConfig\` | \`leftValue\`, \`operator\`, \`rightValue\` |
-| \`scheduler\` | \`schedulerConfig\` | \`people\`, \`minTimeRequirement\`, \`calendar\` |
-| \`review\` | \`reviewConfig\` | \`validationSteps\` |
-
-**Condition operators:** \`equals\`, \`not_equals\`, \`contains\`, \`not_contains\`, \`greater_than\`, \`less_than\`, \`is_empty\`, \`is_not_empty\`.
-
-### Examples
-
-\`\`\`bash
-# Entry node (API mode)
-zeitflow workflow add-node \\
-  --workflow 42 --node-type entry --label "User Input" --entry-type api
-
-# AI node
-zeitflow workflow add-node \\
-  --workflow 42 --node-type ai --label "Summarize" \\
-  --config '{"model":"google/gemini-2.0-flash-001","systemPrompt":"You are a helpful assistant","userPrompt":"Summarize: {{User Input.text}}","outputType":"text","outputStructure":""}'
-
-# Email node
-zeitflow workflow add-node \\
-  --workflow 42 --node-type email --label "Send Report" \\
-  --config '{"to":["boss@company.com"],"subject":"Daily Summary","message":"{{Summarize.output}}"}'
-\`\`\`
-
-### Listing and removing
-
-\`\`\`bash
-# List all nodes in a workflow
-zeitflow workflow list-nodes 42
-zeitflow workflow nodes 42          # alias
-
-# Remove a node (also removes its connections)
-zeitflow workflow remove-node --workflow 42 --node ai_1700000002
-\`\`\`
-
----
-
-## Connecting Nodes
-
-\`\`\`bash
-# Basic connection
-zeitflow workflow connect --workflow 42 --from entry_1 --to ai_2
-
-# Condition branches use --source-handle
-zeitflow workflow connect --workflow 42 --from condition_3 --to email_4 --source-handle true
-zeitflow workflow connect --workflow 42 --from condition_3 --to sms_5 --source-handle false
-\`\`\`
-
----
-
-## AI Workflow Generation
-
-Describe what you want in plain English and let AI build the entire workflow.
-
-\`\`\`bash
-# Generate from a description
-zeitflow workflow generate "Accept a blog post via API, review it with AI for grammar, then email the feedback"
-
-# Use a specific model
-zeitflow workflow generate "Send weekly Slack digests" --model google/gemini-2.0-flash-001
-
-# Modify an existing workflow
-zeitflow workflow generate "Add an SMS fallback" --workflow 42
-
-# Get the full structure for inspection
-zeitflow workflow generate "Build a support triage system" --output json
-\`\`\`
-
 ---
 
 ## Executions — \`zeitflow execution\`
@@ -540,122 +419,68 @@ Alias: \`exec\`
 
 ---
 
-## Templates — \`zeitflow template\`
+## Setup MCP — \`zeitflow setup mcp\`
 
-Alias: \`tpl\`
+Interactively generate MCP config for your IDE or AI client.
 
-| Command | Description |
-|---------|-------------|
-| \`zeitflow template list\` | Browse available templates |
-| \`zeitflow template list --search "email"\` | Search by keyword |
-| \`zeitflow template list --category "marketing"\` | Filter by category |
-| \`zeitflow template get <ID>\` | View template details |
-| \`zeitflow template use <ID>\` | Create a workflow from a template |
-| \`zeitflow template use <ID> --name "My Copy"\` | ...with a custom name |
-| \`zeitflow template create --workflow 42 --name "Triage" --category support\` | Save a workflow as a template |
-| \`zeitflow template delete <ID>\` | Delete a template |
+\`\`\`bash
+# Interactive — prompts you to pick a client
+zeitflow setup mcp
 
----
+# Specify client directly
+zeitflow setup mcp --client claude-desktop
 
-## Integrations — \`zeitflow integration\`
+# Write config to the client's config file automatically
+zeitflow setup mcp --client cursor --save
 
-Alias: \`int\`
-
-| Command | Description |
-|---------|-------------|
-| \`zeitflow integration list\` | Show all available integrations |
-| \`zeitflow integration info <ID>\` | Config fields and env vars for an integration |
-| \`zeitflow integration test slack\` | Test a Slack connection |
-
-Available integrations: \`email\`, \`slack\`, \`sms\`, \`telegram\`, \`youtube\`, \`condition\`.
-
----
-
-## Variable System
-
-Nodes reference outputs from upstream nodes using the \`{{NodeLabel.field}}\` syntax in any text config field:
-
-\`\`\`
-{{User Input.email}}      # A field from an entry node
-{{Summarize.output}}      # Output from an AI node
-{{Classify.output}}       # Output from another AI node
+# Machine-readable output for scripting
+zeitflow setup mcp --client claude-code --output json
 \`\`\`
 
-Variables are resolved at execution time based on the workflow's connection graph. Any node can reference the output of any node connected upstream of it.
+Supported clients: \`claude-desktop\`, \`claude-code\`, \`cursor\`, \`vscode\`, \`windsurf\`.
+
+For Claude Code, it also shows the one-liner CLI command as an alternative.
 
 ---
 
 ## End-to-End Example
 
-Build a support ticket router — takes a ticket, classifies it with AI, routes billing issues to the billing team and everything else to general support.
+Create a workflow, publish it, run it, and check the results — all from the terminal.
 
 \`\`\`bash
 # 1. Create the workflow
 zeitflow workflow create --name "Support Router"
 # -> Workflow created (id: 42)
 
-# 2. Add an API entry point
-zeitflow workflow add-node \\
-  --workflow 42 --node-type entry --label "Ticket" --entry-type api
+# 2. Open it in the visual builder to add nodes
+#    (or use MCP to have an AI agent build it)
 
-# 3. Add an AI classifier
-zeitflow workflow add-node \\
-  --workflow 42 --node-type ai --label "Classify" \\
-  --config '{"model":"google/gemini-2.0-flash-001","systemPrompt":"Classify support tickets as billing, technical, or general. Reply with one word.","userPrompt":"Classify: {{Ticket.message}}","outputType":"text","outputStructure":""}'
-
-# 4. Add a condition to check for billing
-zeitflow workflow add-node \\
-  --workflow 42 --node-type condition --label "Is Billing?" \\
-  --config '{"leftValue":"{{Classify.output}}","operator":"contains","rightValue":"billing"}'
-
-# 5. Add email nodes for each route
-zeitflow workflow add-node \\
-  --workflow 42 --node-type email --label "Billing Team" \\
-  --config '{"to":["billing@company.com"],"subject":"Billing ticket","message":"{{Ticket.message}}"}'
-
-zeitflow workflow add-node \\
-  --workflow 42 --node-type email --label "General Team" \\
-  --config '{"to":["support@company.com"],"subject":"Support ticket","message":"{{Ticket.message}}"}'
-
-# 6. Wire it together (use the node IDs returned by add-node)
-zeitflow workflow connect --workflow 42 --from entry_... --to ai_...
-zeitflow workflow connect --workflow 42 --from ai_... --to condition_...
-zeitflow workflow connect --workflow 42 --from condition_... --to email_billing --source-handle true
-zeitflow workflow connect --workflow 42 --from condition_... --to email_general --source-handle false
-
-# 7. Publish and run
+# 3. Publish and run
 zeitflow workflow publish 42
 zeitflow workflow run 42 --input '{"message":"I was double-charged on my invoice"}'
 
-# 8. Check the result
+# 4. Check the result
 zeitflow execution get 99
 zeitflow execution logs 99
 \`\`\`
 
-Or, skip all of that and generate it in one shot:
-
-\`\`\`bash
-zeitflow workflow generate "Take support tickets via API, classify them as billing or general using AI, email the billing team for billing issues and general support for everything else"
-\`\`\`
+> **Tip:** For complex workflow construction (adding nodes, wiring connections), use the visual builder at \`/workflow/<id>/edit\` or connect an AI agent via MCP — they have access to the full \`add_node\`, \`connect_nodes\`, and \`create_workflow_from_template\` tools. The CLI focuses on high-level management and execution.
 
 ---
 
 ## Tips for AI Agents
 
 1. **Always use \`--output json\`** — parse structured data, not formatted tables
-2. **Set \`ZEITFLOW_API_URL\` in your environment** to skip \`--api-url\` on every call
+2. **Set \`ZEITFLOW_URL\` in your environment** to point at a custom API endpoint
 3. **Check \`zeitflow auth status --output json\`** before making API calls to confirm authentication
-4. **Capture node IDs from \`add-node\` output** — you need them for \`connect\` calls
-5. **Use \`zeitflow workflow generate\`** when you know what you want in natural language
-6. **Use \`add-node\` + \`connect\`** when you need precise control over the graph
-7. **Run \`--help\` on any command** to discover all available flags
-8. **Aliases save keystrokes**: \`wf\` (workflow), \`exec\` (execution), \`tpl\` (template), \`int\` (integration), \`ls\` (list), \`rm\` (delete)
+4. **Run \`--help\`** to discover all available commands and flags
+5. **Aliases save keystrokes**: \`wf\` (workflow), \`exec\` (execution), \`ls\` (list), \`rm\` (delete)
 
 ---
 
 ## Troubleshooting
 
-**"Not authenticated. Run zeitflow auth login first."**
+**"Not authenticated. Run: zeitflow auth login"**
 You haven't saved an API token yet. Run \`zeitflow auth login\` to open the browser and authenticate.
 
 **"API error (401)"**
@@ -664,7 +489,7 @@ Your token is invalid or expired. Run \`zeitflow auth login\` to re-authenticate
 **"API error (429)"**
 Rate limited. Wait a minute and try again. Workflows API allows 100 requests/hour.
 
-**"Request failed"**
+**"Request failed" or network errors**
 Can't reach the API server. Check that your URL is correct with \`zeitflow auth status\` and that the server is running.
 `,
   },
