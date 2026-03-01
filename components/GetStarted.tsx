@@ -279,13 +279,13 @@ export default function GetStarted({ onCreateWorkflow }: GetStartedProps) {
               </span>
             </div>
             <div className="bg-background-extra-light px-4 py-3">
-              <pre className="text-sm font-mono whitespace-pre-wrap">
+              <pre className="text-sm font-mono">
                 <span className="text-primary">$</span>
-                <span className="text-foreground"> curl -fsSL https://raw.githubusercontent.com/benzend/zeitflow/main/install.sh | sh</span>
+                <span className="text-foreground"> npm install -g @zeitflow/cli</span>
               </pre>
             </div>
             <div className="absolute top-2 right-2">
-              <CopyButton text="curl -fsSL https://raw.githubusercontent.com/benzend/zeitflow/main/install.sh | sh" />
+              <CopyButton text="npm install -g @zeitflow/cli" />
             </div>
           </div>
           {/* Post-install commands */}
@@ -297,17 +297,17 @@ export default function GetStarted({ onCreateWorkflow }: GetStartedProps) {
               <pre className="text-sm font-mono">
                 <span className="text-primary">$</span>
                 <span className="text-foreground"> zeitflow auth login</span>
-                <span className="text-foreground-light">        # browser-based login</span>
+                <span className="text-foreground-light">       # opens browser</span>
               </pre>
               <pre className="text-sm font-mono">
                 <span className="text-primary">$</span>
                 <span className="text-foreground"> zeitflow setup mcp</span>
-                <span className="text-foreground-light">         # configure your IDE</span>
+                <span className="text-foreground-light">        # configure your IDE</span>
               </pre>
               <pre className="text-sm font-mono">
                 <span className="text-primary">$</span>
                 <span className="text-foreground"> zeitflow workflow list</span>
-                <span className="text-foreground-light">     # list workflows</span>
+                <span className="text-foreground-light">    # list workflows</span>
               </pre>
             </div>
           </div>
