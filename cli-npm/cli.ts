@@ -604,6 +604,156 @@ function mergeAndSave(
 }
 
 // ---------------------------------------------------------------------------
+// Commands: doctor
+// ---------------------------------------------------------------------------
+
+interface DoctorCheck {
+  check: string;
+  status: "ok" | "warn" | "fail";
+  detail: string;
+}
+
+async function doctor(): Promise<void> {
+  const checks: DoctorCheck[] = [];
+
+  // 1. Config file
+  if (existsSync(CONFIG_PATH)) {
+    checks.push({ check: "Config file", status: "ok", detail: CONFIG_PATH });
+  } else {
+    checks.push({
+      check: "Config file",
+      status: "warn",
+      detail: `Not found at ${CONFIG_PATH}. Run: zeitflow auth login`,
+    });
+  }
+
+  // 2. Config permissions (unix)
+  if (existsSync(CONFIG_PATH) && process.platform !== "win32") {
+    try {
+      const { statSync } = await import("fs");
+      const stat = statSync(CONFIG_PATH);
+      const mode = stat.mode & 0o777;
+      if (mode === 0o600) {
+        checks.push({
+          check: "Config permissions",
+          status: "ok",
+          detail: "0600 (owner read/write only)",
+        });
+      } else {
+        checks.push({
+          check: "Config permissions",
+          status: "warn",
+          detail: `0${mode.toString(8)} — expected 0600. Run: chmod 600 ~/.zeitflow/config.json`,
+        });
+      }
+    } catch {
+      checks.push({
+        check: "Config permissions",
+        status: "warn",
+        detail: "Could not read file metadata",
+      });
+    }
+  }
+
+  // 3. Auth token
+  const token = getToken();
+  if (token) {
+    checks.push({ check: "Auth token", status: "ok", detail: "Token configured" });
+  } else {
+    checks.push({
+      check: "Auth token",
+      status: "fail",
+      detail: "No token found. Run: zeitflow auth login",
+    });
+  }
+
+  // 4. API reachable
+  const baseUrl = getBaseUrl();
+  try {
+    const resp = await fetch(`${baseUrl}/api/workflows`, {
+      method: "HEAD",
+      signal: AbortSignal.timeout(10_000),
+    });
+    checks.push({
+      check: "API reachable",
+      status: "ok",
+      detail: `${baseUrl} (HTTP ${resp.status})`,
+    });
+  } catch (e) {
+    checks.push({
+      check: "API reachable",
+      status: "fail",
+      detail: `${baseUrl} — ${e instanceof Error ? e.message : "connection failed"}`,
+    });
+  }
+
+  // 5. Token validity (only if token is present)
+  if (token) {
+    try {
+      const resp = await fetch(`${baseUrl}/api/workflows`, {
+        headers: { Authorization: `Bearer ${token}` },
+        signal: AbortSignal.timeout(10_000),
+      });
+      if (resp.status === 401) {
+        checks.push({
+          check: "Token valid",
+          status: "fail",
+          detail: `Token rejected (401). Generate a new one at ${baseUrl}/connect`,
+        });
+      } else if (resp.ok) {
+        checks.push({
+          check: "Token valid",
+          status: "ok",
+          detail: "Authenticated successfully",
+        });
+      } else {
+        checks.push({
+          check: "Token valid",
+          status: "warn",
+          detail: `Unexpected status: ${resp.status}`,
+        });
+      }
+    } catch (e) {
+      checks.push({
+        check: "Token valid",
+        status: "fail",
+        detail: `Request failed: ${e instanceof Error ? e.message : e}`,
+      });
+    }
+  }
+
+  // Output
+  if (outputJson) {
+    printJson({
+      checks,
+      ok: checks.every((c) => c.status === "ok"),
+    });
+    return;
+  }
+
+  print("ZeitFlow Doctor");
+  print("═".repeat(40));
+  print("");
+
+  for (const c of checks) {
+    const icon =
+      c.status === "ok" ? "✓" : c.status === "warn" ? "!" : "✗";
+    print(`${icon} ${c.check}: ${c.detail}`);
+  }
+
+  print("");
+  const fails = checks.filter((c) => c.status === "fail").length;
+  const warns = checks.filter((c) => c.status === "warn").length;
+  if (fails > 0) {
+    print(`${fails} issue(s) found. See above for details.`);
+  } else if (warns > 0) {
+    print(`All checks passed with ${warns} warning(s).`);
+  } else {
+    print("All checks passed.");
+  }
+}
+
+// ---------------------------------------------------------------------------
 // CLI router
 // ---------------------------------------------------------------------------
 
@@ -630,6 +780,8 @@ COMMANDS
   execution logs <id> [--level l]     View execution logs
 
   setup mcp [--client <c>] [--save]  Generate MCP config for your IDE
+
+  doctor                             Check CLI config and connectivity
 
 OPTIONS
   --output json    Output JSON instead of text (works with all commands)
@@ -726,6 +878,9 @@ async function main(): Promise<void> {
       if (sub === "mcp") return setupMcp(rest);
       error(`Unknown setup command: ${sub}\nRun: zeitflow setup mcp`);
       break;
+
+    case "doctor":
+      return doctor();
 
     default:
       error(`Unknown command: ${cmd}\nRun: zeitflow --help`);

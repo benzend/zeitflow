@@ -1,4 +1,5 @@
 pub mod auth;
+pub mod doctor;
 pub mod execution;
 pub mod integration;
 pub mod setup;
@@ -71,6 +72,9 @@ pub enum Command {
         #[command(subcommand)]
         action: auth::AuthCommand,
     },
+
+    /// Check CLI configuration and connectivity
+    Doctor,
 }
 
 pub async fn run(cli: Cli) -> Result<()> {
@@ -83,5 +87,6 @@ pub async fn run(cli: Cli) -> Result<()> {
         Command::Template { action } => template::run(action, cli.output, cli.api_url).await,
         Command::Setup { action } => setup::run(action, cli.output, cli.api_url).await,
         Command::Auth { action } => auth::run(action, cli.output, cli.api_url).await,
+        Command::Doctor => doctor::run(cli.output, cli.api_url).await,
     }
 }
