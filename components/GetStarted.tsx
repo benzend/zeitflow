@@ -260,13 +260,14 @@ export default function GetStarted({ onCreateWorkflow }: GetStartedProps) {
               </span>
             </h3>
             <p className="text-sm text-foreground-light">
-              Manage workflows, run executions, and configure integrations from
-              your terminal.
+              Manage workflows, run executions, and configure MCP from your
+              terminal.
             </p>
           </div>
         </div>
         <div className="ml-10 space-y-3">
-          <div className="rounded-lg overflow-hidden border border-foreground/10">
+          {/* Install command */}
+          <div className="relative rounded-lg overflow-hidden border border-foreground/10">
             <div className="flex items-center gap-2 px-4 py-2 bg-background-extra-light border-b border-foreground/10">
               <div className="flex gap-1.5">
                 <div className="w-2.5 h-2.5 rounded-full bg-[#ff5f57]" />
@@ -278,29 +279,38 @@ export default function GetStarted({ onCreateWorkflow }: GetStartedProps) {
               </span>
             </div>
             <div className="bg-background-extra-light px-4 py-3">
+              <pre className="text-sm font-mono whitespace-pre-wrap">
+                <span className="text-primary">$</span>
+                <span className="text-foreground"> curl -fsSL https://raw.githubusercontent.com/benzend/zeitflow/main/install.sh | sh</span>
+              </pre>
+            </div>
+            <div className="absolute top-2 right-2">
+              <CopyButton text="curl -fsSL https://raw.githubusercontent.com/benzend/zeitflow/main/install.sh | sh" />
+            </div>
+          </div>
+          {/* Post-install commands */}
+          <p className="text-sm text-foreground-light">
+            Then authenticate and start using it:
+          </p>
+          <div className="rounded-lg overflow-hidden border border-foreground/10">
+            <div className="bg-background-extra-light px-4 py-3 space-y-1">
               <pre className="text-sm font-mono">
                 <span className="text-primary">$</span>
-                <span className="text-foreground">
-                  {" "}
-                  npx @zeitflow/mcp
-                </span>
+                <span className="text-foreground"> zeitflow auth login</span>
+                <span className="text-foreground-light">        # browser-based login</span>
+              </pre>
+              <pre className="text-sm font-mono">
+                <span className="text-primary">$</span>
+                <span className="text-foreground"> zeitflow setup mcp</span>
+                <span className="text-foreground-light">         # configure your IDE</span>
+              </pre>
+              <pre className="text-sm font-mono">
+                <span className="text-primary">$</span>
+                <span className="text-foreground"> zeitflow workflow list</span>
+                <span className="text-foreground-light">     # list workflows</span>
               </pre>
             </div>
           </div>
-          <p className="text-sm text-foreground-light">
-            Or use the full Rust CLI for advanced management:{" "}
-            <code className="text-xs bg-background-extra-light px-1.5 py-0.5 rounded">
-              zeitflow auth login
-            </code>
-            ,{" "}
-            <code className="text-xs bg-background-extra-light px-1.5 py-0.5 rounded">
-              zeitflow workflow list
-            </code>
-            ,{" "}
-            <code className="text-xs bg-background-extra-light px-1.5 py-0.5 rounded">
-              zeitflow workflow execute
-            </code>
-          </p>
         </div>
       </section>
 
