@@ -376,6 +376,84 @@ describe('Variable collection (collectAvailableVariables behavior)', () => {
     });
   });
 
+  describe('upstream ancestor traversal', () => {
+    it('should collect variables from all ancestors, not just direct predecessors', () => {
+      // Workflow: Entry → AI → Email
+      // The email node should have access to BOTH entry and AI variables
+      // This documents the fix for the template injection bug where
+      // {{name}} in email templates wasn't resolved because entry node
+      // was not a direct predecessor of the email node
+
+      const connections = [
+        { fromNodeId: 'entry-1', toNodeId: 'ai-1' },
+        { fromNodeId: 'ai-1', toNodeId: 'email-1' },
+      ];
+
+      // BFS from email-1 should find both ai-1 (direct) and entry-1 (indirect)
+      const visited = new Set<string>();
+      const queue: string[] = [];
+
+      const directIncoming = connections.filter(e => e.toNodeId === 'email-1');
+      for (const edge of directIncoming) {
+        visited.add(edge.fromNodeId);
+        queue.push(edge.fromNodeId);
+      }
+
+      while (queue.length > 0) {
+        const currentId = queue.shift()!;
+        const incomingToThis = connections.filter(e => e.toNodeId === currentId);
+        for (const edge of incomingToThis) {
+          if (!visited.has(edge.fromNodeId)) {
+            visited.add(edge.fromNodeId);
+            queue.push(edge.fromNodeId);
+          }
+        }
+      }
+
+      expect(visited.has('ai-1')).toBe(true);
+      expect(visited.has('entry-1')).toBe(true);
+      expect(visited.size).toBe(2);
+    });
+
+    it('should handle diamond-shaped graphs without duplicates', () => {
+      // Entry → AI-1 → Email
+      // Entry → AI-2 → Email
+      const connections = [
+        { fromNodeId: 'entry-1', toNodeId: 'ai-1' },
+        { fromNodeId: 'entry-1', toNodeId: 'ai-2' },
+        { fromNodeId: 'ai-1', toNodeId: 'email-1' },
+        { fromNodeId: 'ai-2', toNodeId: 'email-1' },
+      ];
+
+      const visited = new Set<string>();
+      const queue: string[] = [];
+
+      const directIncoming = connections.filter(e => e.toNodeId === 'email-1');
+      for (const edge of directIncoming) {
+        if (!visited.has(edge.fromNodeId)) {
+          visited.add(edge.fromNodeId);
+          queue.push(edge.fromNodeId);
+        }
+      }
+
+      while (queue.length > 0) {
+        const currentId = queue.shift()!;
+        const incomingToThis = connections.filter(e => e.toNodeId === currentId);
+        for (const edge of incomingToThis) {
+          if (!visited.has(edge.fromNodeId)) {
+            visited.add(edge.fromNodeId);
+            queue.push(edge.fromNodeId);
+          }
+        }
+      }
+
+      expect(visited.has('ai-1')).toBe(true);
+      expect(visited.has('ai-2')).toBe(true);
+      expect(visited.has('entry-1')).toBe(true);
+      expect(visited.size).toBe(3);
+    });
+  });
+
   describe('variable name collision scenarios', () => {
     it('documents collision risk when labels normalize to same name', () => {
       // If two nodes have labels "User-Data" and "User Data", they both become "user_data"
