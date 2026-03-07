@@ -668,12 +668,16 @@ fn remap_node_for_save(n: &Value) -> Value {
         }
     }
 
-    // Parse config JSON string if it exists (from GET response)
+    // Parse config JSON string if it exists (from GET response).
+    // The stored config is e.g. {"aiConfig": {"model": "..."}}, so we spread
+    // its keys directly into the node to match the save format.
     if let Some(config_str) = n.get("config").and_then(|v| v.as_str()) {
         if let Ok(config_val) = serde_json::from_str::<Value>(config_str) {
-            let node_type = n.get("type").and_then(|v| v.as_str()).unwrap_or("");
-            let config_key = format!("{node_type}Config");
-            node[config_key] = config_val;
+            if let Some(obj) = config_val.as_object() {
+                for (k, v) in obj {
+                    node[k] = v.clone();
+                }
+            }
         }
     }
 
