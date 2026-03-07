@@ -212,8 +212,10 @@ function labelToVariableName(label: string): string {
 }
 
 /**
- * Collects available variables from connected nodes that come before current node
- * Now returns nested structure matching autocomplete: {node_name: {field: value}}
+ * Collects available variables from ALL upstream ancestor nodes (not just direct predecessors).
+ * Uses BFS to traverse the full upstream graph so that variables from earlier nodes
+ * (e.g., entry node data) are available in downstream nodes like email/slack.
+ * Returns nested structure matching autocomplete: {node_name: {field: value}}
  */
 function collectAvailableVariables(
   nodeId: string,
@@ -224,12 +226,34 @@ function collectAvailableVariables(
 ): Record<string, unknown> {
   const variables: Record<string, unknown> = {};
 
-  // Find all incoming connections to this node
-  const incomingEdges = connections.filter(edge => edge.toNodeId === nodeId);
+  // BFS to find all upstream ancestor nodes
+  const visited = new Set<string>();
+  const queue: string[] = [];
 
-  // For each incoming edge, get the source node and its variables
-  incomingEdges.forEach(edge => {
-    const sourceNode = nodes.find(n => n.id === edge.fromNodeId);
+  // Start with direct incoming connections
+  const directIncoming = connections.filter(edge => edge.toNodeId === nodeId);
+  for (const edge of directIncoming) {
+    if (!visited.has(edge.fromNodeId)) {
+      visited.add(edge.fromNodeId);
+      queue.push(edge.fromNodeId);
+    }
+  }
+
+  // Traverse upstream
+  while (queue.length > 0) {
+    const currentId = queue.shift()!;
+    const incomingToThis = connections.filter(edge => edge.toNodeId === currentId);
+    for (const edge of incomingToThis) {
+      if (!visited.has(edge.fromNodeId)) {
+        visited.add(edge.fromNodeId);
+        queue.push(edge.fromNodeId);
+      }
+    }
+  }
+
+  // For each upstream ancestor, collect its variables
+  for (const ancestorId of visited) {
+    const sourceNode = nodes.find(n => n.id === ancestorId);
     if (sourceNode) {
       const config = JSON.parse(sourceNode.config || '{}');
       const nodeLabel = sourceNode.label || sourceNode.id;
@@ -334,8 +358,19 @@ function collectAvailableVariables(
           feedback: reviewOutput.feedback || ''
         };
       }
+
+      // Generic fallback: for any integration node type not explicitly handled above,
+      // expose all stored output fields as variables. This covers youtube, discord,
+      // http_request, google_sheets, github, notion, airtable, whatsapp, jira,
+      // hubspot, webhook, linear, google_drive, stripe, shopify, and any future integrations.
+      if (!variables[varName] && nodeOutputs[sourceNode.id]) {
+        const output = nodeOutputs[sourceNode.id];
+        if (output && typeof output === 'object') {
+          variables[varName] = { ...output as Record<string, unknown> };
+        }
+      }
     }
-  });
+  }
 
   return variables;
 }
@@ -583,6 +618,7 @@ async function executeWorkflow(
         switch (node.entryType) {
           case 'api':
           case 'form':
+          case 'webhook':
             // Store the raw input data for variable substitution
             outputData['userInput'] = inputData;
             // Also store individual fields for easier access

@@ -376,6 +376,136 @@ describe('Variable collection (collectAvailableVariables behavior)', () => {
     });
   });
 
+  describe('upstream ancestor traversal', () => {
+    it('should collect variables from all ancestors, not just direct predecessors', () => {
+      // Workflow: Entry → AI → Email
+      // The email node should have access to BOTH entry and AI variables
+      // This documents the fix for the template injection bug where
+      // {{name}} in email templates wasn't resolved because entry node
+      // was not a direct predecessor of the email node
+
+      const connections = [
+        { fromNodeId: 'entry-1', toNodeId: 'ai-1' },
+        { fromNodeId: 'ai-1', toNodeId: 'email-1' },
+      ];
+
+      // BFS from email-1 should find both ai-1 (direct) and entry-1 (indirect)
+      const visited = new Set<string>();
+      const queue: string[] = [];
+
+      const directIncoming = connections.filter(e => e.toNodeId === 'email-1');
+      for (const edge of directIncoming) {
+        visited.add(edge.fromNodeId);
+        queue.push(edge.fromNodeId);
+      }
+
+      while (queue.length > 0) {
+        const currentId = queue.shift()!;
+        const incomingToThis = connections.filter(e => e.toNodeId === currentId);
+        for (const edge of incomingToThis) {
+          if (!visited.has(edge.fromNodeId)) {
+            visited.add(edge.fromNodeId);
+            queue.push(edge.fromNodeId);
+          }
+        }
+      }
+
+      expect(visited.has('ai-1')).toBe(true);
+      expect(visited.has('entry-1')).toBe(true);
+      expect(visited.size).toBe(2);
+    });
+
+    it('should handle diamond-shaped graphs without duplicates', () => {
+      // Entry → AI-1 → Email
+      // Entry → AI-2 → Email
+      const connections = [
+        { fromNodeId: 'entry-1', toNodeId: 'ai-1' },
+        { fromNodeId: 'entry-1', toNodeId: 'ai-2' },
+        { fromNodeId: 'ai-1', toNodeId: 'email-1' },
+        { fromNodeId: 'ai-2', toNodeId: 'email-1' },
+      ];
+
+      const visited = new Set<string>();
+      const queue: string[] = [];
+
+      const directIncoming = connections.filter(e => e.toNodeId === 'email-1');
+      for (const edge of directIncoming) {
+        if (!visited.has(edge.fromNodeId)) {
+          visited.add(edge.fromNodeId);
+          queue.push(edge.fromNodeId);
+        }
+      }
+
+      while (queue.length > 0) {
+        const currentId = queue.shift()!;
+        const incomingToThis = connections.filter(e => e.toNodeId === currentId);
+        for (const edge of incomingToThis) {
+          if (!visited.has(edge.fromNodeId)) {
+            visited.add(edge.fromNodeId);
+            queue.push(edge.fromNodeId);
+          }
+        }
+      }
+
+      expect(visited.has('ai-1')).toBe(true);
+      expect(visited.has('ai-2')).toBe(true);
+      expect(visited.has('entry-1')).toBe(true);
+      expect(visited.size).toBe(3);
+    });
+  });
+
+  describe('generic fallback for unhandled integration types', () => {
+    it('should expose all output fields for integration nodes without explicit handling', () => {
+      // Integration nodes like google_sheets, github, http_request, etc.
+      // store output as { success: true, ...result.data } during execution.
+      // The generic fallback should make these available as variables.
+
+      // Simulate what the execution engine stores for a google_sheets node
+      const nodeOutputs: Record<string, unknown> = {
+        'sheets-1': {
+          success: true,
+          status: 'read',
+          rows: [{ name: 'Alice' }, { name: 'Bob' }],
+          rowCount: 2,
+        },
+      };
+
+      // The generic fallback logic: if no explicit handler matched, spread output
+      const output = nodeOutputs['sheets-1'];
+      const variables: Record<string, unknown> = {};
+
+      if (output && typeof output === 'object') {
+        variables['google_sheets'] = { ...output as Record<string, unknown> };
+      }
+
+      const result = variables['google_sheets'] as Record<string, unknown>;
+      expect(result.status).toBe('read');
+      expect(result.rowCount).toBe(2);
+      expect(result.rows).toEqual([{ name: 'Alice' }, { name: 'Bob' }]);
+    });
+
+    it('should not overwrite explicitly handled node types', () => {
+      // If a node type like 'email' already has explicit handling,
+      // the generic fallback should not overwrite it.
+      // The implementation checks `if (!variables[varName] && ...)`.
+
+      const variables: Record<string, unknown> = {
+        send_email: { messageId: '', status: 'sent' }, // Already set by explicit handler
+      };
+
+      // Generic fallback should skip since varName already exists
+      const varName = 'send_email';
+      const nodeOutput = { success: true, status: 'sent' };
+
+      if (!variables[varName] && nodeOutput) {
+        variables[varName] = { ...nodeOutput };
+      }
+
+      // Should still have the explicit handler's structure
+      expect(variables[varName]).toEqual({ messageId: '', status: 'sent' });
+    });
+  });
+
   describe('variable name collision scenarios', () => {
     it('documents collision risk when labels normalize to same name', () => {
       // If two nodes have labels "User-Data" and "User Data", they both become "user_data"
