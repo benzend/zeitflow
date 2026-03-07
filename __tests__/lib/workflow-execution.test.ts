@@ -454,6 +454,58 @@ describe('Variable collection (collectAvailableVariables behavior)', () => {
     });
   });
 
+  describe('generic fallback for unhandled integration types', () => {
+    it('should expose all output fields for integration nodes without explicit handling', () => {
+      // Integration nodes like google_sheets, github, http_request, etc.
+      // store output as { success: true, ...result.data } during execution.
+      // The generic fallback should make these available as variables.
+
+      // Simulate what the execution engine stores for a google_sheets node
+      const nodeOutputs: Record<string, unknown> = {
+        'sheets-1': {
+          success: true,
+          status: 'read',
+          rows: [{ name: 'Alice' }, { name: 'Bob' }],
+          rowCount: 2,
+        },
+      };
+
+      // The generic fallback logic: if no explicit handler matched, spread output
+      const output = nodeOutputs['sheets-1'];
+      const variables: Record<string, unknown> = {};
+
+      if (output && typeof output === 'object') {
+        variables['google_sheets'] = { ...output as Record<string, unknown> };
+      }
+
+      const result = variables['google_sheets'] as Record<string, unknown>;
+      expect(result.status).toBe('read');
+      expect(result.rowCount).toBe(2);
+      expect(result.rows).toEqual([{ name: 'Alice' }, { name: 'Bob' }]);
+    });
+
+    it('should not overwrite explicitly handled node types', () => {
+      // If a node type like 'email' already has explicit handling,
+      // the generic fallback should not overwrite it.
+      // The implementation checks `if (!variables[varName] && ...)`.
+
+      const variables: Record<string, unknown> = {
+        send_email: { messageId: '', status: 'sent' }, // Already set by explicit handler
+      };
+
+      // Generic fallback should skip since varName already exists
+      const varName = 'send_email';
+      const nodeOutput = { success: true, status: 'sent' };
+
+      if (!variables[varName] && nodeOutput) {
+        variables[varName] = { ...nodeOutput };
+      }
+
+      // Should still have the explicit handler's structure
+      expect(variables[varName]).toEqual({ messageId: '', status: 'sent' });
+    });
+  });
+
   describe('variable name collision scenarios', () => {
     it('documents collision risk when labels normalize to same name', () => {
       // If two nodes have labels "User-Data" and "User Data", they both become "user_data"

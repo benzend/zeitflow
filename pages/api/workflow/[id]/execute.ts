@@ -358,6 +358,17 @@ function collectAvailableVariables(
           feedback: reviewOutput.feedback || ''
         };
       }
+
+      // Generic fallback: for any integration node type not explicitly handled above,
+      // expose all stored output fields as variables. This covers youtube, discord,
+      // http_request, google_sheets, github, notion, airtable, whatsapp, jira,
+      // hubspot, webhook, linear, google_drive, stripe, shopify, and any future integrations.
+      if (!variables[varName] && nodeOutputs[sourceNode.id]) {
+        const output = nodeOutputs[sourceNode.id];
+        if (output && typeof output === 'object') {
+          variables[varName] = { ...output as Record<string, unknown> };
+        }
+      }
     }
   }
 
