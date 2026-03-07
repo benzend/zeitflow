@@ -89,12 +89,34 @@ export function handleResult<T>(
 
 /**
  * Authenticate the request and resolve the user.
+ * Supports both Bearer token auth (CLI/MCP) and NextAuth session cookies (browser).
  * Returns a Result so callers can use neverthrow chaining.
  */
 export async function authenticateRequest(
   req: NextApiRequest,
   res: NextApiResponse
 ): Promise<Result<AuthenticatedContext, AppError>> {
+  // Try Bearer token auth first (for CLI / MCP clients)
+  const authHeader = req.headers.authorization;
+  if (authHeader?.startsWith('Bearer ')) {
+    const token = authHeader.slice(7);
+    const users = await db
+      .select()
+      .from(usersTable)
+      .where(eq(usersTable.apiToken, token))
+      .limit(1);
+
+    if (users.length > 0 && users[0].email) {
+      return ok({
+        session: { user: { email: users[0].email } } as Session,
+        userId: users[0].id,
+        userEmail: users[0].email,
+      });
+    }
+    // Invalid token — fall through to session auth
+  }
+
+  // Fall back to NextAuth session cookies (browser clients)
   const session = await getServerSession(req, res, authOptions);
 
   if (!session?.user?.email) {
