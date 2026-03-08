@@ -102,6 +102,42 @@ pub enum WorkflowCommand {
         entry_type: Option<String>,
     },
 
+    /// Update a node's label, position, config, or entry type
+    #[command(name = "update-node")]
+    UpdateNode {
+        /// Workflow ID
+        #[arg(long)]
+        workflow: i64,
+
+        /// Node ID to update
+        #[arg(long)]
+        node: String,
+
+        /// New label
+        #[arg(long)]
+        label: Option<String>,
+
+        /// New X position
+        #[arg(long)]
+        x: Option<f64>,
+
+        /// New Y position
+        #[arg(long)]
+        y: Option<f64>,
+
+        /// New config as JSON (type-specific, replaces existing config)
+        #[arg(long)]
+        config: Option<String>,
+
+        /// New entry type for entry nodes: api, form, webhook
+        #[arg(long)]
+        entry_type: Option<String>,
+
+        /// Entry fields as JSON array (e.g. '[{"key":"name","name":"Name","type":"text"}]')
+        #[arg(long)]
+        fields: Option<String>,
+    },
+
     /// List nodes in a workflow
     #[command(name = "list-nodes", alias = "nodes")]
     ListNodes {
@@ -421,6 +457,116 @@ pub async fn run(
                 OutputFormat::Text => {
                     output::print_success(&format!(
                         "Node '{label}' added (id: {node_id})"
+                    ));
+                }
+            }
+            Ok(())
+        }
+
+        WorkflowCommand::UpdateNode {
+            workflow,
+            node,
+            label: new_label,
+            x: new_x,
+            y: new_y,
+            config: new_config,
+            entry_type: new_entry_type,
+            fields: new_fields,
+        } => {
+            let existing: Value = client
+                .get(&format!("/api/workflow/{workflow}"))
+                .await?;
+            let nodes: Vec<Value> = existing
+                .get("nodes")
+                .and_then(|n| n.as_array())
+                .cloned()
+                .unwrap_or_default();
+            let connections: Vec<Value> = existing
+                .get("connections")
+                .and_then(|c| c.as_array())
+                .cloned()
+                .unwrap_or_default();
+
+            // Verify node exists
+            let found = nodes.iter().any(|n| {
+                n.get("id").and_then(|v| v.as_str()) == Some(&node)
+            });
+            if !found {
+                anyhow::bail!("Node '{node}' not found in workflow {workflow}");
+            }
+
+            // Remap nodes, applying updates to the target node
+            let save_nodes: Vec<Value> = nodes
+                .iter()
+                .map(|n| {
+                    let mut remapped = remap_node_for_save(n);
+                    let n_id = n.get("id").and_then(|v| v.as_str()).unwrap_or("");
+                    if n_id == node {
+                        if let Some(ref l) = new_label {
+                            remapped["label"] = Value::String(l.clone());
+                        }
+                        if let Some(x) = new_x {
+                            remapped["x"] = serde_json::json!(x);
+                        }
+                        if let Some(y) = new_y {
+                            remapped["y"] = serde_json::json!(y);
+                        }
+                        if let Some(ref et) = new_entry_type {
+                            remapped["entryType"] = Value::String(et.clone());
+                        }
+                        if let Some(ref f) = new_fields {
+                            if let Ok(fields_val) = serde_json::from_str::<Value>(f) {
+                                remapped["fields"] = fields_val;
+                            }
+                        }
+                        if let Some(ref cfg_str) = new_config {
+                            if let Ok(cfg) = serde_json::from_str::<Value>(cfg_str) {
+                                let node_type = n.get("type")
+                                    .and_then(|v| v.as_str())
+                                    .unwrap_or("");
+                                let config_key = format!("{node_type}Config");
+                                remapped[config_key] = cfg;
+                            }
+                        }
+                    }
+                    remapped
+                })
+                .collect();
+
+            let save_connections: Vec<Value> = connections
+                .iter()
+                .map(|c| {
+                    serde_json::json!({
+                        "from": c.get("fromNodeId").or_else(|| c.get("from"))
+                            .and_then(|v| v.as_str()).unwrap_or(""),
+                        "to": c.get("toNodeId").or_else(|| c.get("to"))
+                            .and_then(|v| v.as_str()).unwrap_or(""),
+                        "sourceHandle": c.get("sourceHandle").cloned().unwrap_or(Value::Null),
+                        "targetHandle": c.get("targetHandle").cloned().unwrap_or(Value::Null),
+                    })
+                })
+                .collect();
+
+            let body = serde_json::json!({
+                "nodes": save_nodes,
+                "connections": save_connections,
+            });
+
+            let result: Value = client
+                .post(&format!("/api/workflow/{workflow}"), &body)
+                .await?;
+
+            match format {
+                OutputFormat::Json => {
+                    let out = serde_json::json!({
+                        "success": result.get("success").cloned().unwrap_or(Value::Bool(true)),
+                        "nodeId": node,
+                    });
+                    output::print_json(&out, format);
+                }
+                OutputFormat::Text => {
+                    output::print_success(&format!(
+                        "Node '{node}' updated"
                     ));
                 }
             }
