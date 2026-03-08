@@ -148,8 +148,8 @@ Three entry points, all sharing tool definitions in `mcp/create-server.ts`:
 
 Native command-line client that uses the same shared config and talks to the ZeitFlow HTTP API.
 
-- **Commands**: `workflow` (wf), `execution` (exec), `integration` (int), `template` (tpl), `auth`, `setup`, `doctor`
-- **Workflow subcommands**: `list`, `get`, `create`, `delete`, `run`, `stats`, `publish`, `add-node`, `update-node`, `list-nodes`, `remove-node`, `connect`, `validate`, `generate`
+- **Commands**: `workflow` (wf), `execution` (exec), `integration` (int), `template` (tpl), `auth`, `setup`, `guide`, `doctor`
+- **Workflow subcommands**: `list`, `get`, `create`, `delete`, `run`, `stats`, `publish`, `add-node`, `update-node`, `list-nodes`, `remove-node`, `connect`, `validate`, `generate`, `open`, `visualize`
 - **Config**: `cli/src/config.rs` — loads/saves `~/.zeitflow/config.json`
 - **HTTP Client**: `cli/src/client.rs` — wraps `reqwest` with Bearer token auth
 - **Output**: `--output text` (default) or `--output json` for machine consumption

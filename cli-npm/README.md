@@ -51,6 +51,8 @@ zeitflow workflow publish <id>                # Publish a draft workflow
 zeitflow workflow delete <id>                 # Delete a workflow
 zeitflow workflow validate <id>              # Check for common issues
 zeitflow workflow generate "description..."  # Generate from natural language
+zeitflow workflow open <id>                 # Open workflow in browser
+zeitflow workflow visualize <id>            # ASCII graph of workflow (alias: viz)
 ```
 
 `wf` is an alias for `workflow` — e.g., `zeitflow wf list`.
@@ -109,6 +111,14 @@ zeitflow integration info <id>                # Show integration details
 ```
 
 `int` is an alias for `integration`.
+
+### Guide
+
+```bash
+zeitflow guide                               # Print the full CLI usage guide
+zeitflow guide search "variable"             # Search guide by topic
+zeitflow guide --output json                 # JSON output (for AI agents)
+```
 
 ### Diagnostics
 
