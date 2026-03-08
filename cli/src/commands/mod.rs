@@ -1,6 +1,7 @@
 pub mod auth;
 pub mod doctor;
 pub mod execution;
+pub mod guide;
 pub mod integration;
 pub mod setup;
 pub mod template;
@@ -73,6 +74,12 @@ pub enum Command {
         action: auth::AuthCommand,
     },
 
+    /// Show the CLI usage guide (for humans and AI agents)
+    Guide {
+        #[command(subcommand)]
+        action: Option<guide::GuideCommand>,
+    },
+
     /// Check CLI configuration and connectivity
     Doctor,
 }
@@ -87,6 +94,7 @@ pub async fn run(cli: Cli) -> Result<()> {
         Command::Template { action } => template::run(action, cli.output, cli.api_url).await,
         Command::Setup { action } => setup::run(action, cli.output, cli.api_url).await,
         Command::Auth { action } => auth::run(action, cli.output, cli.api_url).await,
+        Command::Guide { action } => guide::run(action, cli.output, cli.api_url).await,
         Command::Doctor => doctor::run(cli.output, cli.api_url).await,
     }
 }

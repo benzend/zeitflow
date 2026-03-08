@@ -195,6 +195,19 @@ pub enum WorkflowCommand {
         #[arg(long)]
         workflow: Option<i64>,
     },
+
+    /// Open a workflow in the browser
+    Open {
+        /// Workflow ID
+        id: i64,
+    },
+
+    /// Visualize a workflow as an ASCII graph
+    #[command(alias = "viz")]
+    Visualize {
+        /// Workflow ID
+        id: i64,
+    },
 }
 
 pub async fn run(
@@ -795,6 +808,43 @@ pub async fn run(
             Ok(())
         }
 
+        WorkflowCommand::Open { id } => {
+            let url = format!("{}/workflow/{id}/edit", config.url());
+            eprintln!("Opening {} in your browser...", url);
+            open::that(&url).map_err(|e| anyhow::anyhow!("Failed to open browser: {e}"))?;
+            output::print_success(&format!("Opened workflow {id} in browser"));
+            Ok(())
+        }
+
+        WorkflowCommand::Visualize { id } => {
+            let workflow: Value = client.get(&format!("/api/workflow/{id}")).await?;
+            let nodes: Vec<Value> = workflow
+                .get("nodes")
+                .and_then(|n| n.as_array())
+                .cloned()
+                .unwrap_or_default();
+            let connections: Vec<Value> = workflow
+                .get("connections")
+                .and_then(|c| c.as_array())
+                .cloned()
+                .unwrap_or_default();
+
+            match format {
+                OutputFormat::Json => {
+                    let graph = build_viz_json(&nodes, &connections);
+                    output::print_json(&graph, format);
+                }
+                OutputFormat::Text => {
+                    let name = workflow
+                        .get("name")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("Untitled");
+                    print_workflow_graph(name, &nodes, &connections);
+                }
+            }
+            Ok(())
+        }
+
         WorkflowCommand::Generate { description, model, workflow } => {
             let mut body = serde_json::json!({
                 "prompt": description,
@@ -1209,4 +1259,242 @@ fn validate_workflow(nodes: &[Value], connections: &[Value]) -> Vec<ValidationIs
     }
 
     issues
+}
+
+// ---------------------------------------------------------------------------
+// Workflow visualization
+// ---------------------------------------------------------------------------
+
+fn build_viz_json(nodes: &[Value], connections: &[Value]) -> Value {
+    let graph_nodes: Vec<Value> = nodes
+        .iter()
+        .map(|n| {
+            serde_json::json!({
+                "id": n.get("id").and_then(|v| v.as_str()).unwrap_or("?"),
+                "type": n.get("type").and_then(|v| v.as_str()).unwrap_or("?"),
+                "label": n.get("label").and_then(|v| v.as_str()).unwrap_or("(unlabeled)"),
+            })
+        })
+        .collect();
+
+    let graph_edges: Vec<Value> = connections
+        .iter()
+        .map(|c| {
+            let from = c
+                .get("fromNodeId")
+                .or_else(|| c.get("from"))
+                .and_then(|v| v.as_str())
+                .unwrap_or("");
+            let to = c
+                .get("toNodeId")
+                .or_else(|| c.get("to"))
+                .and_then(|v| v.as_str())
+                .unwrap_or("");
+            let handle = c
+                .get("sourceHandle")
+                .and_then(|v| v.as_str())
+                .unwrap_or("");
+            let mut edge = serde_json::json!({ "from": from, "to": to });
+            if !handle.is_empty() {
+                edge["sourceHandle"] = Value::String(handle.to_string());
+            }
+            edge
+        })
+        .collect();
+
+    serde_json::json!({
+        "nodes": graph_nodes,
+        "edges": graph_edges,
+    })
+}
+
+/// Pretty-print a workflow as a layered ASCII graph using topological ordering.
+fn print_workflow_graph(name: &str, nodes: &[Value], connections: &[Value]) {
+    use colored::Colorize;
+
+    if nodes.is_empty() {
+        println!("  (empty workflow)");
+        return;
+    }
+
+    // Build node info map
+    let node_info: std::collections::HashMap<String, (String, String)> = nodes
+        .iter()
+        .filter_map(|n| {
+            let id = n.get("id").and_then(|v| v.as_str())?.to_string();
+            let label = n
+                .get("label")
+                .and_then(|v| v.as_str())
+                .unwrap_or("(unlabeled)")
+                .to_string();
+            let ntype = n
+                .get("type")
+                .and_then(|v| v.as_str())
+                .unwrap_or("?")
+                .to_string();
+            Some((id, (label, ntype)))
+        })
+        .collect();
+
+    // Build adjacency
+    let mut children: std::collections::HashMap<String, Vec<(String, String)>> =
+        std::collections::HashMap::new();
+    let mut in_degree: std::collections::HashMap<String, usize> =
+        std::collections::HashMap::new();
+
+    for n in nodes {
+        if let Some(id) = n.get("id").and_then(|v| v.as_str()) {
+            children.entry(id.to_string()).or_default();
+            in_degree.entry(id.to_string()).or_insert(0);
+        }
+    }
+
+    for c in connections {
+        let from = c
+            .get("fromNodeId")
+            .or_else(|| c.get("from"))
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .to_string();
+        let to = c
+            .get("toNodeId")
+            .or_else(|| c.get("to"))
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .to_string();
+        let handle = c
+            .get("sourceHandle")
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .to_string();
+        if !from.is_empty() && !to.is_empty() {
+            children
+                .entry(from)
+                .or_default()
+                .push((to.clone(), handle));
+            *in_degree.entry(to).or_insert(0) += 1;
+        }
+    }
+
+    // Topological sort into layers (BFS by level)
+    let mut layers: Vec<Vec<String>> = Vec::new();
+    let mut queue: std::collections::VecDeque<String> = in_degree
+        .iter()
+        .filter(|(_, &deg)| deg == 0)
+        .map(|(id, _)| id.clone())
+        .collect();
+
+    let mut visited: std::collections::HashSet<String> = std::collections::HashSet::new();
+    while !queue.is_empty() {
+        let mut layer = Vec::new();
+        let mut next_queue = std::collections::VecDeque::new();
+        while let Some(id) = queue.pop_front() {
+            if !visited.insert(id.clone()) {
+                continue;
+            }
+            layer.push(id.clone());
+            for (child, _) in children.get(&id).unwrap_or(&vec![]) {
+                let deg = in_degree.get_mut(child).unwrap();
+                *deg = deg.saturating_sub(1);
+                if *deg == 0 {
+                    next_queue.push_back(child.clone());
+                }
+            }
+        }
+        if !layer.is_empty() {
+            layers.push(layer);
+        }
+        queue = next_queue;
+    }
+
+    // Print header
+    println!();
+    println!("  {}", name.bold().underline());
+    println!();
+
+    // Type → icon mapping
+    let icon_for = |t: &str| -> &str {
+        match t {
+            "entry" => ">>",
+            "ai" => "AI",
+            "email" => "@@",
+            "slack" => "##",
+            "sms" => "!!",
+            "telegram" => "TG",
+            "condition" => "??",
+            "scheduler" => "CL",
+            "review" => "OK",
+            "youtube" => "YT",
+            _ => "**",
+        }
+    };
+
+    // Format a node box
+    let format_node = |id: &str| -> String {
+        let (label, ntype) = node_info
+            .get(id)
+            .cloned()
+            .unwrap_or_else(|| (id.to_string(), "?".to_string()));
+        let icon = icon_for(&ntype);
+        format!("[{icon} {label}]")
+    };
+
+    // Print layers with connections
+    for (layer_idx, layer) in layers.iter().enumerate() {
+        // Print nodes in this layer
+        let node_strs: Vec<String> = layer.iter().map(|id| format_node(id)).collect();
+        let layer_line = node_strs.join("    ");
+        println!("  {layer_line}");
+
+        // Print connections to next layer
+        if layer_idx < layers.len() - 1 {
+            let mut arrows: Vec<String> = Vec::new();
+            for id in layer {
+                for (child, handle) in children.get(id).unwrap_or(&vec![]) {
+                    let (parent_label, _) = node_info
+                        .get(id)
+                        .cloned()
+                        .unwrap_or_else(|| (id.clone(), "?".to_string()));
+                    let (child_label, _) = node_info
+                        .get(child)
+                        .cloned()
+                        .unwrap_or_else(|| (child.clone(), "?".to_string()));
+                    if handle.is_empty() {
+                        arrows.push(format!(
+                            "  {} → {}",
+                            parent_label.dimmed(),
+                            child_label
+                        ));
+                    } else {
+                        let handle_display = if handle == "true" {
+                            "yes".green().to_string()
+                        } else if handle == "false" {
+                            "no".red().to_string()
+                        } else {
+                            handle.to_string()
+                        };
+                        arrows.push(format!(
+                            "  {} —[{}]→ {}",
+                            parent_label.dimmed(),
+                            handle_display,
+                            child_label
+                        ));
+                    }
+                }
+            }
+            for arrow in &arrows {
+                println!("{arrow}");
+            }
+            println!();
+        }
+    }
+
+    // Summary
+    println!();
+    println!(
+        "  {} nodes, {} connections",
+        nodes.len().to_string().bold(),
+        connections.len().to_string().bold()
+    );
+    println!();
 }
