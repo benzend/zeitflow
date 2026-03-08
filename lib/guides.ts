@@ -287,7 +287,7 @@ Restart your MCP client after changing config. For Claude Desktop, check logs at
       "Install and use the ZeitFlow CLI to create, manage, and execute workflows from the command line. Zero dependencies, works everywhere Node.js runs.",
     icon: "⌨️",
     publishedAt: "2026-02-22",
-    updatedAt: "2026-03-07",
+    updatedAt: "2026-03-08",
     tags: ["CLI", "AI Agents", "npm", "Automation"],
     content: `
 The ZeitFlow CLI is a lightweight command-line tool that lets you create workflows, execute runs, inspect results, and configure MCP — all without opening a browser.
@@ -597,6 +597,74 @@ zeitflow setup mcp --client claude-code --output json
 Supported clients: \`claude-desktop\`, \`claude-code\`, \`cursor\`, \`vscode\`, \`windsurf\`.
 
 For Claude Code, it also shows the one-liner CLI command as an alternative.
+
+---
+
+## Opening Workflows — \`zeitflow workflow open\`
+
+Open a workflow directly in the browser editor.
+
+\`\`\`bash
+zeitflow workflow open 42
+\`\`\`
+
+This launches your default browser to the workflow's visual editor page — useful when you've been building from the CLI and want to see or tweak the result visually.
+
+---
+
+## Visualizing Workflows — \`zeitflow workflow visualize\`
+
+Render an ASCII graph of your workflow's structure in the terminal.
+
+Alias: \`viz\`
+
+\`\`\`bash
+zeitflow workflow visualize 42
+\`\`\`
+
+Example output:
+
+\`\`\`
+  Lead Scoring
+
+  [>> Entry]
+  Entry → Score Lead
+
+  [AI Score Lead]
+  Score Lead → Is Hot
+
+  [?? Is Hot]
+  Is Hot —[yes]→ Notify Sales
+  Is Hot —[no]→ Draft Follow Up
+
+  [## Notify Sales]    [AI Draft Follow Up]
+  Draft Follow Up → Send Follow Up
+
+  [@@ Send Follow Up]
+
+  5 nodes, 5 connections
+\`\`\`
+
+Node type icons: \`>>\` entry, \`AI\` ai, \`@@\` email, \`##\` slack, \`!!\` sms, \`TG\` telegram, \`??\` condition, \`CL\` scheduler, \`OK\` review, \`YT\` youtube.
+
+Condition branches are labeled \`yes\`/\`no\`. Use \`--output json\` for a machine-readable graph structure.
+
+---
+
+## Built-in Guide — \`zeitflow guide\`
+
+The CLI embeds this entire guide so AI agents can access it without a browser.
+
+\`\`\`bash
+# Print the full guide
+zeitflow guide
+
+# Search for a specific topic
+zeitflow guide search "variable"
+
+# JSON output (for AI agents)
+zeitflow guide --output json
+\`\`\`
 
 ---
 
