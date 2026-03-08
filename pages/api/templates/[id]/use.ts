@@ -26,9 +26,33 @@ export default async function handler(
     });
   }
 
-  const session = await getServerSession(req, res, authOptions);
+  let userId: string | null = null;
 
-  if (!session?.user?.email) {
+  // Support both session auth and API token auth (for CLI/MCP)
+  const authHeader = req.headers.authorization;
+  if (authHeader?.startsWith('Bearer ')) {
+    const apiToken = authHeader.substring(7);
+    const tokenUser = await db.select()
+      .from(usersTable)
+      .where(eq(usersTable.apiToken, apiToken))
+      .limit(1);
+    if (tokenUser.length > 0) {
+      userId = tokenUser[0].id;
+    }
+  } else {
+    const session = await getServerSession(req, res, authOptions);
+    if (session?.user?.email) {
+      const sessionUser = await db.select()
+        .from(usersTable)
+        .where(eq(usersTable.email, session.user.email))
+        .limit(1);
+      if (sessionUser.length > 0) {
+        userId = sessionUser[0].id;
+      }
+    }
+  }
+
+  if (!userId) {
     return res.status(401).json({
       success: false,
       message: "You must be signed in to use templates"
@@ -71,21 +95,6 @@ export default async function handler(
   }
 
   try {
-    // Get user
-    const user = await db.select()
-      .from(usersTable)
-      .where(eq(usersTable.email, session.user.email))
-      .limit(1);
-
-    if (user.length === 0) {
-      return res.status(401).json({
-        success: false,
-        message: "User not found"
-      });
-    }
-
-    const userId = user[0].id;
-
     // Get template
     const templates = await db
       .select()

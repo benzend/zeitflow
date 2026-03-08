@@ -7,6 +7,36 @@ import { eq, and } from "drizzle-orm";
 import { isRateLimited } from "@/lib/rate-limit";
 import { validateTemplateData, generateSlug, generateUniqueSlug } from "@/lib/template-utils";
 
+/**
+ * Resolve user from Bearer token or session.
+ * Returns { userId } on success, or null if unauthenticated.
+ */
+async function resolveUser(
+  req: NextApiRequest,
+  res: NextApiResponse
+): Promise<{ userId: string } | null> {
+  const authHeader = req.headers.authorization;
+  if (authHeader?.startsWith('Bearer ')) {
+    const apiToken = authHeader.substring(7);
+    const user = await db.select()
+      .from(usersTable)
+      .where(eq(usersTable.apiToken, apiToken))
+      .limit(1);
+    if (user.length === 0) return null;
+    return { userId: user[0].id };
+  }
+
+  const session = await getServerSession(req, res, authOptions);
+  if (!session?.user?.email) return null;
+
+  const user = await db.select()
+    .from(usersTable)
+    .where(eq(usersTable.email, session.user.email))
+    .limit(1);
+  if (user.length === 0) return null;
+  return { userId: user[0].id };
+}
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -140,29 +170,14 @@ async function handleUpdateTemplate(
   res: NextApiResponse,
   templateId: number
 ) {
-  const session = await getServerSession(req, res, authOptions);
-
-  if (!session?.user?.email) {
+  const resolved = await resolveUser(req, res);
+  if (!resolved) {
     return res.status(401).json({
       success: false,
       message: "You must be signed in to update templates"
     });
   }
-
-  // Get user
-  const user = await db.select()
-    .from(usersTable)
-    .where(eq(usersTable.email, session.user.email))
-    .limit(1);
-
-  if (user.length === 0) {
-    return res.status(401).json({
-      success: false,
-      message: "User not found"
-    });
-  }
-
-  const userId = user[0].id;
+  const { userId } = resolved;
 
   // Get template and verify ownership
   const templates = await db
@@ -300,29 +315,14 @@ async function handleDeleteTemplate(
   res: NextApiResponse,
   templateId: number
 ) {
-  const session = await getServerSession(req, res, authOptions);
-
-  if (!session?.user?.email) {
+  const resolved = await resolveUser(req, res);
+  if (!resolved) {
     return res.status(401).json({
       success: false,
       message: "You must be signed in to delete templates"
     });
   }
-
-  // Get user
-  const user = await db.select()
-    .from(usersTable)
-    .where(eq(usersTable.email, session.user.email))
-    .limit(1);
-
-  if (user.length === 0) {
-    return res.status(401).json({
-      success: false,
-      message: "User not found"
-    });
-  }
-
-  const userId = user[0].id;
+  const { userId } = resolved;
 
   // Get template and verify ownership
   const templates = await db

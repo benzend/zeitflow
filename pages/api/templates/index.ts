@@ -219,30 +219,52 @@ async function handleCreateTemplate(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const session = await getServerSession(req, res, authOptions);
+  let userId: string;
+  let userName: string;
 
-  if (!session?.user?.email) {
-    return res.status(401).json({
-      success: false,
-      message: "You must be signed in to create templates"
-    });
+  // Support both session auth and API token auth (for CLI/MCP)
+  const authHeader = req.headers.authorization;
+  if (authHeader?.startsWith('Bearer ')) {
+    const apiToken = authHeader.substring(7);
+    const user = await db.select()
+      .from(usersTable)
+      .where(eq(usersTable.apiToken, apiToken))
+      .limit(1);
+
+    if (user.length === 0) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid API token"
+      });
+    }
+
+    userId = user[0].id;
+    userName = user[0].name || 'Anonymous';
+  } else {
+    const session = await getServerSession(req, res, authOptions);
+
+    if (!session?.user?.email) {
+      return res.status(401).json({
+        success: false,
+        message: "You must be signed in to create templates"
+      });
+    }
+
+    const user = await db.select()
+      .from(usersTable)
+      .where(eq(usersTable.email, session.user.email))
+      .limit(1);
+
+    if (user.length === 0) {
+      return res.status(401).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
+    userId = user[0].id;
+    userName = user[0].name || session.user.name || 'Anonymous';
   }
-
-  // Get user from database
-  const user = await db.select()
-    .from(usersTable)
-    .where(eq(usersTable.email, session.user.email))
-    .limit(1);
-
-  if (user.length === 0) {
-    return res.status(401).json({
-      success: false,
-      message: "User not found"
-    });
-  }
-
-  const userId = user[0].id;
-  const userName = user[0].name || session.user.name || 'Anonymous';
 
   const {
     name,
