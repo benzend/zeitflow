@@ -176,6 +176,12 @@ pub enum WorkflowCommand {
         source_handle: Option<String>,
     },
 
+    /// Validate a workflow for common issues
+    Validate {
+        /// Workflow ID
+        id: i64,
+    },
+
     /// Generate a workflow from a natural language description
     Generate {
         /// Description of the workflow to create
@@ -737,6 +743,58 @@ pub async fn run(
             Ok(())
         }
 
+        WorkflowCommand::Validate { id } => {
+            let existing: Value = client
+                .get(&format!("/api/workflow/{id}"))
+                .await?;
+            let nodes: Vec<Value> = existing
+                .get("nodes")
+                .and_then(|n| n.as_array())
+                .cloned()
+                .unwrap_or_default();
+            let connections: Vec<Value> = existing
+                .get("connections")
+                .and_then(|c| c.as_array())
+                .cloned()
+                .unwrap_or_default();
+
+            let issues = validate_workflow(&nodes, &connections);
+
+            match format {
+                OutputFormat::Json => {
+                    let out = serde_json::json!({
+                        "valid": issues.is_empty(),
+                        "issueCount": issues.len(),
+                        "issues": issues.iter().map(|i| serde_json::json!({
+                            "level": i.level,
+                            "node": i.node_id,
+                            "message": i.message,
+                        })).collect::<Vec<_>>(),
+                    });
+                    output::print_json(&out, format);
+                }
+                OutputFormat::Text => {
+                    if issues.is_empty() {
+                        output::print_success("Workflow is valid — no issues found");
+                    } else {
+                        let errors = issues.iter().filter(|i| i.level == "error").count();
+                        let warnings = issues.iter().filter(|i| i.level == "warning").count();
+                        eprintln!("Found {} issue(s): {} error(s), {} warning(s)\n",
+                            issues.len(), errors, warnings);
+                        for issue in &issues {
+                            let icon = if issue.level == "error" { "✗" } else { "⚠" };
+                            let node_str = issue.node_id.as_deref().unwrap_or("workflow");
+                            eprintln!("  {icon} [{node_str}] {}", issue.message);
+                        }
+                        if errors > 0 {
+                            std::process::exit(1);
+                        }
+                    }
+                }
+            }
+            Ok(())
+        }
+
         WorkflowCommand::Generate { description, model, workflow } => {
             let mut body = serde_json::json!({
                 "prompt": description,
@@ -837,4 +895,318 @@ fn remap_node_for_save(n: &Value) -> Value {
     }
 
     node
+}
+
+// ---------------------------------------------------------------------------
+// Workflow validation
+// ---------------------------------------------------------------------------
+
+struct ValidationIssue {
+    level: &'static str, // "error" or "warning"
+    node_id: Option<String>,
+    message: String,
+}
+
+/// Convert a node label to the snake_case variable name used in interpolation.
+fn label_to_var_name(label: &str) -> String {
+    let mut result = String::new();
+    for ch in label.chars() {
+        if ch.is_alphanumeric() {
+            result.push(ch.to_ascii_lowercase());
+        } else if !result.is_empty() && !result.ends_with('_') {
+            result.push('_');
+        }
+    }
+    result.trim_end_matches('_').to_string()
+}
+
+/// Extract all `{{...}}` variable references from a string.
+/// Returns vec of (full_ref, root_name) e.g. ("entry.name", "entry").
+fn extract_var_refs(s: &str) -> Vec<(String, String)> {
+    let mut refs = Vec::new();
+    let mut start = 0;
+    while let Some(open) = s[start..].find("{{") {
+        let abs_open = start + open + 2;
+        if let Some(close) = s[abs_open..].find("}}") {
+            let var = s[abs_open..abs_open + close].trim().to_string();
+            let root = var.split('.').next().unwrap_or("").to_string();
+            if !root.is_empty() {
+                refs.push((var, root));
+            }
+            start = abs_open + close + 2;
+        } else {
+            break;
+        }
+    }
+    refs
+}
+
+fn validate_workflow(nodes: &[Value], connections: &[Value]) -> Vec<ValidationIssue> {
+    let mut issues = Vec::new();
+
+    if nodes.is_empty() {
+        issues.push(ValidationIssue {
+            level: "error",
+            node_id: None,
+            message: "Workflow has no nodes".into(),
+        });
+        return issues;
+    }
+
+    // Build lookup structures
+    let node_map: std::collections::HashMap<&str, &Value> = nodes
+        .iter()
+        .filter_map(|n| n.get("id").and_then(|v| v.as_str()).map(|id| (id, n)))
+        .collect();
+
+    // node label -> var name mapping
+    let label_var_map: std::collections::HashMap<&str, String> = nodes
+        .iter()
+        .filter_map(|n| {
+            let id = n.get("id").and_then(|v| v.as_str())?;
+            let label = n.get("label").and_then(|v| v.as_str()).unwrap_or(id);
+            Some((id, label_to_var_name(label)))
+        })
+        .collect();
+
+    // All var names that exist as nodes
+    let all_var_names: std::collections::HashSet<String> =
+        label_var_map.values().cloned().collect();
+
+    // Adjacency: incoming and outgoing per node
+    let mut incoming: std::collections::HashMap<&str, Vec<&Value>> = std::collections::HashMap::new();
+    let mut outgoing: std::collections::HashMap<&str, Vec<&Value>> = std::collections::HashMap::new();
+    for n in nodes {
+        if let Some(id) = n.get("id").and_then(|v| v.as_str()) {
+            incoming.entry(id).or_default();
+            outgoing.entry(id).or_default();
+        }
+    }
+    for c in connections {
+        let from = c.get("fromNodeId").or_else(|| c.get("from")).and_then(|v| v.as_str()).unwrap_or("");
+        let to = c.get("toNodeId").or_else(|| c.get("to")).and_then(|v| v.as_str()).unwrap_or("");
+        if !from.is_empty() && !to.is_empty() {
+            incoming.entry(to).or_default().push(c);
+            outgoing.entry(from).or_default().push(c);
+        }
+    }
+
+    // Find entry/root nodes
+    let entry_nodes: Vec<&str> = nodes
+        .iter()
+        .filter_map(|n| {
+            let id = n.get("id").and_then(|v| v.as_str())?;
+            if incoming.get(id).map_or(true, |v| v.is_empty()) {
+                Some(id)
+            } else {
+                None
+            }
+        })
+        .collect();
+
+    if entry_nodes.is_empty() {
+        issues.push(ValidationIssue {
+            level: "error",
+            node_id: None,
+            message: "No entry points found — all nodes have incoming connections (possible cycle)".into(),
+        });
+        return issues;
+    }
+
+    // BFS to find reachable nodes from entry points
+    let mut reachable: std::collections::HashSet<&str> = std::collections::HashSet::new();
+    let mut queue: std::collections::VecDeque<&str> = entry_nodes.iter().copied().collect();
+    while let Some(id) = queue.pop_front() {
+        if !reachable.insert(id) {
+            continue;
+        }
+        for c in outgoing.get(id).unwrap_or(&vec![]) {
+            let to = c.get("toNodeId").or_else(|| c.get("to")).and_then(|v| v.as_str()).unwrap_or("");
+            if !to.is_empty() && !reachable.contains(to) {
+                queue.push_back(to);
+            }
+        }
+    }
+
+    // BFS upstream ancestors for a given node
+    let ancestors_of = |node_id: &str| -> std::collections::HashSet<String> {
+        let mut visited = std::collections::HashSet::new();
+        let mut q: std::collections::VecDeque<&str> = std::collections::VecDeque::new();
+        for c in incoming.get(node_id).unwrap_or(&vec![]) {
+            let from = c.get("fromNodeId").or_else(|| c.get("from")).and_then(|v| v.as_str()).unwrap_or("");
+            if !from.is_empty() && visited.insert(from.to_string()) {
+                q.push_back(from);
+            }
+        }
+        while let Some(cur) = q.pop_front() {
+            for c in incoming.get(cur).unwrap_or(&vec![]) {
+                let from = c.get("fromNodeId").or_else(|| c.get("from")).and_then(|v| v.as_str()).unwrap_or("");
+                if !from.is_empty() && visited.insert(from.to_string()) {
+                    q.push_back(from);
+                }
+            }
+        }
+        visited
+    };
+
+    // Check each node
+    for n in nodes {
+        let id = match n.get("id").and_then(|v| v.as_str()) {
+            Some(id) => id,
+            None => continue,
+        };
+        let node_type = n.get("type").and_then(|v| v.as_str()).unwrap_or("");
+        let label = n.get("label").and_then(|v| v.as_str()).unwrap_or(id);
+        let config_str = n.get("config").and_then(|v| v.as_str()).unwrap_or("{}");
+        let config: Value = serde_json::from_str(config_str).unwrap_or_default();
+
+        // 1. Unreachable nodes
+        if !reachable.contains(id) {
+            issues.push(ValidationIssue {
+                level: "error",
+                node_id: Some(format!("{label} ({id})")),
+                message: "Node is unreachable from any entry point".into(),
+            });
+            continue; // Skip further checks for unreachable nodes
+        }
+
+        // 2. Entry node: missing fields
+        if node_type == "entry" {
+            let fields = config.get("fields").and_then(|f| f.as_array());
+            if fields.map_or(true, |f| f.is_empty()) {
+                issues.push(ValidationIssue {
+                    level: "error",
+                    node_id: Some(format!("{label} ({id})")),
+                    message: "Entry node has no input fields defined".into(),
+                });
+            }
+        }
+
+        // 3. AI node: missing prompts
+        if node_type == "ai" {
+            let ai_config = config.get("aiConfig").unwrap_or(&Value::Null);
+            let user_prompt = ai_config.get("userPrompt").and_then(|v| v.as_str()).unwrap_or("");
+            if user_prompt.is_empty() {
+                issues.push(ValidationIssue {
+                    level: "error",
+                    node_id: Some(format!("{label} ({id})")),
+                    message: "AI node has no user prompt".into(),
+                });
+            }
+        }
+
+        // 4. Email node: missing recipients
+        if node_type == "email" {
+            let email_config = config.get("emailConfig").unwrap_or(&Value::Null);
+            let to = email_config.get("to").and_then(|v| v.as_array());
+            let has_recipients = to.map_or(false, |arr| {
+                arr.iter().any(|r| !r.as_str().unwrap_or("").is_empty())
+            });
+            if !has_recipients {
+                issues.push(ValidationIssue {
+                    level: "warning",
+                    node_id: Some(format!("{label} ({id})")),
+                    message: "Email node has no recipients — users will need to configure this".into(),
+                });
+            }
+        }
+
+        // 5. Condition node: missing sourceHandle on outgoing connections
+        if node_type == "condition" {
+            let empty_conn_vec: Vec<&Value> = vec![];
+            let out = outgoing.get(id).unwrap_or(&empty_conn_vec);
+            if out.is_empty() {
+                issues.push(ValidationIssue {
+                    level: "error",
+                    node_id: Some(format!("{label} ({id})")),
+                    message: "Condition node has no outgoing connections".into(),
+                });
+            } else {
+                for c in out {
+                    let handle = c.get("sourceHandle").and_then(|v| v.as_str()).unwrap_or("");
+                    if handle.is_empty() {
+                        let to = c.get("toNodeId").or_else(|| c.get("to"))
+                            .and_then(|v| v.as_str()).unwrap_or("?");
+                        issues.push(ValidationIssue {
+                            level: "error",
+                            node_id: Some(format!("{label} ({id})")),
+                            message: format!("Outgoing connection to {to} is missing sourceHandle ('true' or 'false')"),
+                        });
+                    }
+                }
+            }
+        }
+
+        // 6. Disconnected non-entry nodes (no outgoing AND no incoming — shouldn't happen if reachable, but check outgoing)
+        if node_type != "entry" && outgoing.get(id).map_or(true, |v| v.is_empty()) {
+            // Terminal node is fine — this is just informational
+        }
+
+        // 7. Variable reference validation
+        // Collect all string values from this node's config that might contain {{...}}
+        let config_json = serde_json::to_string(&config).unwrap_or_default();
+        let var_refs = extract_var_refs(&config_json);
+        if !var_refs.is_empty() {
+            let ancestors = ancestors_of(id);
+            let ancestor_var_names: std::collections::HashSet<String> = ancestors
+                .iter()
+                .filter_map(|aid| label_var_map.get(aid.as_str()))
+                .cloned()
+                .collect();
+
+            for (full_ref, root) in &var_refs {
+                if !ancestor_var_names.contains(root) {
+                    if all_var_names.contains(root) {
+                        issues.push(ValidationIssue {
+                            level: "error",
+                            node_id: Some(format!("{label} ({id})")),
+                            message: format!("{{{{{full_ref}}}}} references node \"{root}\" which exists but is not an upstream ancestor"),
+                        });
+                    } else {
+                        issues.push(ValidationIssue {
+                            level: "error",
+                            node_id: Some(format!("{label} ({id})")),
+                            message: format!("{{{{{full_ref}}}}} references unknown node \"{root}\" — no node with that label exists"),
+                        });
+                    }
+                }
+            }
+
+            // Check entry field references specifically
+            for (full_ref, root) in &var_refs {
+                if root == "entry" {
+                    let field_name = full_ref.strip_prefix("entry.").unwrap_or("");
+                    if field_name.is_empty() {
+                        continue;
+                    }
+                    // Find ancestor entry nodes and check if the field exists
+                    for aid in &ancestors {
+                        if let Some(ancestor_node) = node_map.get(aid.as_str()) {
+                            let a_type = ancestor_node.get("type").and_then(|v| v.as_str()).unwrap_or("");
+                            if a_type == "entry" {
+                                let a_config_str = ancestor_node.get("config").and_then(|v| v.as_str()).unwrap_or("{}");
+                                let a_config: Value = serde_json::from_str(a_config_str).unwrap_or_default();
+                                let fields = a_config.get("fields").and_then(|f| f.as_array());
+                                let field_keys: Vec<&str> = fields
+                                    .map(|arr| arr.iter().filter_map(|f| f.get("key").and_then(|k| k.as_str())).collect())
+                                    .unwrap_or_default();
+                                if !field_keys.is_empty() && !field_keys.contains(&field_name) {
+                                    issues.push(ValidationIssue {
+                                        level: "error",
+                                        node_id: Some(format!("{label} ({id})")),
+                                        message: format!(
+                                            "{{{{{full_ref}}}}} references field \"{field_name}\" but entry node only has fields: [{}]",
+                                            field_keys.join(", ")
+                                        ),
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    issues
 }
