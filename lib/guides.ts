@@ -287,7 +287,7 @@ Restart your MCP client after changing config. For Claude Desktop, check logs at
       "Install and use the ZeitFlow CLI to create, manage, and execute workflows from the command line. Zero dependencies, works everywhere Node.js runs.",
     icon: "⌨️",
     publishedAt: "2026-02-22",
-    updatedAt: "2026-03-01",
+    updatedAt: "2026-03-07",
     tags: ["CLI", "AI Agents", "npm", "Automation"],
     content: `
 The ZeitFlow CLI is a lightweight command-line tool that lets you create workflows, execute runs, inspect results, and configure MCP — all without opening a browser.
@@ -419,6 +419,163 @@ Alias: \`exec\`
 
 ---
 
+## Node Management — \`zeitflow workflow\`
+
+Build workflows entirely from the CLI by adding nodes, connecting them, and updating their config.
+
+### Adding nodes
+
+\`\`\`bash
+# Add an AI node (config is the INNER config — the CLI wraps it under aiConfig automatically)
+zeitflow workflow add-node --workflow 42 --node-type ai --label "Summarize" \\
+  --config '{"model":"google/gemini-2.0-flash-001","systemPrompt":"You are a summarizer.","userPrompt":"Summarize: {{entry.content}}","outputType":"text"}'
+
+# Add an email node
+zeitflow workflow add-node --workflow 42 --node-type email --label "Send Summary" \\
+  --config '{"to":["{{entry.email}}"],"subject":"Summary: {{entry.title}}","message":"{{summarize.output}}"}'
+
+# Add a condition node
+zeitflow workflow add-node --workflow 42 --node-type condition --label "Is Urgent" \\
+  --config '{"leftValue":"{{classify.output}}","operator":"contains","rightValue":"urgent"}'
+\`\`\`
+
+### Connecting nodes
+
+\`\`\`bash
+# Simple connection
+zeitflow workflow connect --workflow 42 --from entry_abc --to ai_def
+
+# Condition node — specify which branch (true/false)
+zeitflow workflow connect --workflow 42 --from condition_123 --to slack_456 --source-handle true
+zeitflow workflow connect --workflow 42 --from condition_123 --to email_789 --source-handle false
+\`\`\`
+
+### Updating nodes
+
+\`\`\`bash
+# Update a node's label
+zeitflow workflow update-node --workflow 42 --node ai_def --label "Classify Ticket"
+
+# Update config
+zeitflow workflow update-node --workflow 42 --node ai_def \\
+  --config '{"model":"google/gemini-2.0-flash-001","userPrompt":"Classify: {{entry.message}}"}'
+
+# Add entry fields (required for input data to flow through)
+zeitflow workflow update-node --workflow 42 --node entry_abc \\
+  --fields '[{"key":"name","name":"Name","type":"text"},{"key":"email","name":"Email","type":"text"}]'
+\`\`\`
+
+### Other node commands
+
+| Command | Description |
+|---------|-------------|
+| \`zeitflow workflow list-nodes 42\` | List all nodes in a workflow |
+| \`zeitflow workflow remove-node --workflow 42 --node ai_def\` | Remove a node and its connections |
+
+### Variable reference syntax
+
+Nodes reference outputs from upstream nodes using \`{{node_label.field}}\`. Labels are converted to snake_case:
+
+- Entry node labeled "New Ticket" with field key \`subject\` → \`{{new_ticket.subject}}\`
+- AI node labeled "Classify" → \`{{classify.output}}\`
+- Email node labeled "Send Alert" → \`{{send_alert.status}}\`
+
+---
+
+## Validating — \`zeitflow workflow validate\`
+
+Check a workflow for common issues before executing.
+
+\`\`\`bash
+zeitflow workflow validate 42
+\`\`\`
+
+Checks for:
+- **Missing entry fields** — entry node has no input fields defined
+- **Broken variable references** — \`{{foo.bar}}\` but no upstream node named "foo" exists
+- **Unreachable nodes** — nodes that can't be reached from any entry point
+- **Missing AI prompts** — AI nodes with no user prompt
+- **Empty email recipients** — email nodes with no \`to\` addresses
+- **Bad condition wiring** — condition node connections missing \`sourceHandle\`
+- **Entry field mismatches** — \`{{entry.name}}\` but the entry node doesn't have a "name" field
+
+Returns exit code 1 if errors are found, making it usable in CI/scripts.
+
+\`\`\`bash
+# JSON output for automation
+zeitflow workflow validate 42 --output json
+\`\`\`
+
+---
+
+## Diagnostics — \`zeitflow doctor\`
+
+Check your CLI configuration and connectivity.
+
+\`\`\`bash
+zeitflow doctor
+\`\`\`
+
+Checks:
+- Config file exists and is readable
+- API token is present and valid
+- API server is reachable
+- Token has correct permissions
+
+---
+
+## Templates — \`zeitflow template\`
+
+Alias: \`tpl\`
+
+| Command | Description |
+|---------|-------------|
+| \`zeitflow template list\` | List available templates |
+| \`zeitflow template list --visibility public\` | List public templates |
+| \`zeitflow template get <ID>\` | Get template details |
+| \`zeitflow template use <ID>\` | Create a workflow from a template |
+| \`zeitflow template use <ID> --name "My Workflow"\` | Create with a custom name |
+| \`zeitflow template create --workflow 42 --name "My Template" --category "Sales"\` | Create a template from a workflow |
+| \`zeitflow template delete <ID>\` | Delete a template |
+
+### Creating a template from a workflow
+
+\`\`\`bash
+zeitflow template create \\
+  --workflow 42 \\
+  --name "Customer Support Triage" \\
+  --category "Customer Support" \\
+  --description "Classify tickets and route to Slack or email" \\
+  --visibility public \\
+  --tags "ai,slack,email,support"
+\`\`\`
+
+---
+
+## Integrations — \`zeitflow integration\`
+
+Alias: \`int\`
+
+| Command | Description |
+|---------|-------------|
+| \`zeitflow integration list\` | List available integrations |
+| \`zeitflow integration info <ID>\` | Show integration details and config schema |
+
+---
+
+## Generating Workflows — \`zeitflow workflow generate\`
+
+Describe a workflow in natural language and let AI build it.
+
+\`\`\`bash
+zeitflow workflow generate "Take a support ticket, classify it as urgent or normal, send urgent ones to Slack and normal ones via email"
+
+# Use with an existing workflow to modify it
+zeitflow workflow generate "Add an SMS notification node after the email" --workflow 42
+\`\`\`
+
+---
+
 ## Setup MCP — \`zeitflow setup mcp\`
 
 Interactively generate MCP config for your IDE or AI client.
@@ -445,26 +602,41 @@ For Claude Code, it also shows the one-liner CLI command as an alternative.
 
 ## End-to-End Example
 
-Create a workflow, publish it, run it, and check the results — all from the terminal.
+Build a content summarizer entirely from the CLI — create the workflow, add nodes, wire them up, validate, and execute.
 
 \`\`\`bash
-# 1. Create the workflow
-zeitflow workflow create --name "Support Router"
-# -> Workflow created (id: 42)
+# 1. Create the workflow (auto-creates an entry node)
+zeitflow workflow create --name "Content Summarizer"
+# -> Workflow created (id: 42, entry node: entry_abc)
 
-# 2. Open it in the visual builder to add nodes
-#    (or use MCP to have an AI agent build it)
+# 2. Add entry fields so input data flows through
+zeitflow workflow update-node --workflow 42 --node entry_abc \\
+  --fields '[{"key":"title","name":"Title","type":"text"},{"key":"content","name":"Content","type":"text"},{"key":"email","name":"Email","type":"text"}]'
 
-# 3. Publish and run
-zeitflow workflow publish 42
-zeitflow workflow run 42 --input '{"message":"I was double-charged on my invoice"}'
+# 3. Add an AI summarizer node
+zeitflow workflow add-node --workflow 42 --node-type ai --label "Summarize" \\
+  --config '{"model":"google/gemini-2.0-flash-001","systemPrompt":"Summarize content with bullet points. Keep it under 200 words.","userPrompt":"Summarize:\\n\\n{{entry.content}}","outputType":"text"}'
+# -> Node added (id: ai_def)
 
-# 4. Check the result
-zeitflow execution get 99
+# 4. Add an email node
+zeitflow workflow add-node --workflow 42 --node-type email --label "Send Summary" \\
+  --config '{"to":["{{entry.email}}"],"subject":"Summary: {{entry.title}}","message":"{{summarize.output}}"}'
+# -> Node added (id: email_ghi)
+
+# 5. Connect the nodes
+zeitflow workflow connect --workflow 42 --from entry_abc --to ai_def
+zeitflow workflow connect --workflow 42 --from ai_def --to email_ghi
+
+# 6. Validate before running
+zeitflow workflow validate 42
+# -> Workflow is valid — no issues found
+
+# 7. Execute
+zeitflow workflow run 42 --input '{"title":"ZeitFlow","content":"ZeitFlow is a visual workflow builder...","email":"me@example.com"}'
+
+# 8. Check the result
 zeitflow execution logs 99
 \`\`\`
-
-> **Tip:** For complex workflow construction (adding nodes, wiring connections), use the visual builder at \`/workflow/<id>/edit\` or connect an AI agent via MCP — they have access to the full \`add_node\`, \`connect_nodes\`, and \`create_workflow_from_template\` tools. The CLI focuses on high-level management and execution.
 
 ---
 
