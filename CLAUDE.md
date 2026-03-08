@@ -209,28 +209,20 @@ To add a new integration:
 **Integrations**:
 - `slack_bots` — OAuth tokens for Slack workspace connections
 
+### API Authentication Pattern
+
+All workflow/template API endpoints support dual auth:
+1. **Session auth** (browser): NextAuth.js session cookie
+2. **Bearer token auth** (CLI/MCP): `Authorization: Bearer zf_...` header, resolved against `users.apiToken`
+
+When adding new API endpoints, follow the pattern in `pages/api/templates/[id]/index.ts:resolveUser()`.
+
 ### Key API Endpoints
 
-**Chains (Legacy)**:
-- `/api/add-to-queue` — Queue chain for execution
-- `/api/process-queued-chain` — Process queued steps (concurrent)
-- `/api/dashboard` — CRUD for chains
-- `/api/chain-step` — CRUD for chain steps
-- `/api/queued-chain` — Manage queued instances
-- `/api/stop-chain`, `/api/resume-chain` — Control execution
-
-**Workflows**:
-- `/api/workflows` — CRUD for workflows (rate limited: 100 req/hr)
+- `/api/workflows` — Workflow CRUD (rate limited: 100 req/hr)
+- `/api/templates` — Template CRUD + `/api/templates/[id]/use` for instantiation
 - `/api/mcp` — MCP Streamable HTTP endpoint (Bearer token auth)
-
-**Auth & User**:
-- `/api/auth/[...nextauth]` — NextAuth.js handlers
-- `/api/auth/register`, `/api/auth/verify-email` — Email/password registration
-- `/api/delete-account` — Account deletion
-
-**Other**:
 - `/api/upload` — Asset upload with image processing (Sharp)
-- `/api/subscribe` — Newsletter subscriptions
 
 ### AI Integration
 
@@ -264,12 +256,34 @@ To add a new integration:
 - `lib/mdx-components.tsx` — Custom MDX component mapping (headings, tables, code blocks, etc.)
 - `lib/guides.ts` — Static guide content definitions
 
+### Variable Interpolation System
+
+Nodes reference upstream outputs using `{{node_label.field}}` syntax. Labels are converted to snake_case at runtime (e.g., "Support Ticket" → `support_ticket`).
+
+- **Resolution**: `collectAvailableVariables()` in `pages/api/workflow/[id]/execute.ts` does BFS upstream traversal to gather all ancestor outputs
+- **Substitution**: `substituteVariables()` replaces `{{var}}` patterns in prompts, email bodies, etc.
+- **Integration nodes**: Executors in `lib/integrations/executors/` call `context.substituteVariables()` on all config fields automatically
+
+### Workflow Save Format
+
+Two representations of node config exist — understand the difference to avoid bugs:
+
+- **Save/API format** (inline keys): `{ id, type, label, x, y, aiConfig: { model, userPrompt } }`
+- **DB format** (JSON string): `{ id, type, label, positionX, positionY, config: '{"aiConfig": {"model": "...", "userPrompt": "..."}}' }`
+
+The CLI's `remap_node_for_save()` in `cli/src/commands/workflow.rs` converts DB format back to save format by spreading parsed config keys into the node object. The `--config` flag takes the **inner** config (e.g., `{"model":"..."}`) and the CLI auto-wraps it under `{type}Config`.
+
+### Template System
+
+- **API**: `/api/templates` (list/create), `/api/templates/[id]` (get/update/delete), `/api/templates/[id]/use` (instantiate)
+- **Cloning**: `lib/template-utils.ts:cloneWorkflow()` generates fresh node IDs and remaps connections
+- **CLI**: `zeitflow template list|get|use|create|delete`
+
 ### React Flow Integration
 
 - **State Management**: `useNodesState` and `useEdgesState` hooks
 - **Node IDs**: Generated via `lib/workflow-utils.ts:generateNodeId()`
 - **Conversion**: `convertToReactFlow()` / `convertFromReactFlow()` for persistence
-- **Variable System**: Nodes reference previous outputs using `{{nodeName.field}}` syntax. Node labels are converted to snake_case (e.g., "Support Ticket" → `{{support_ticket.subject}}`)
 
 ### Rate Limiting
 
@@ -323,45 +337,10 @@ Optional integrations:
 - **MDX**: Uses Rust compiler (`experimental.mdxRs: true`)
 - **Testing**: Jest + React Testing Library; `jest.setup.js` mocks `ResizeObserver` for React Flow tests
 
-### External Services
-
-- **Database**: Neon (serverless PostgreSQL)
-- **Storage**: Vercel Blob (images/assets)
-- **AI**: OpenRouter (multi-model support)
-- **Auth**: NextAuth.js (credentials + OAuth)
-- **Email**: Resend
-- **SMS**: Twilio
-- **Payments**: Stripe
-- **Calendar**: Google Calendar API
-- **Chat**: Slack Web API
-- **Analytics**: Vemetric, Google Analytics
-
 ### Workflow Execution Flow
 
-1. User creates workflow via visual builder
-2. Workflow saved as nodes + connections in database
-3. Execution triggered → creates `workflow_executions` record
-4. System traverses node graph (BFS with topological ordering):
-   - Entry nodes collect initial data
-   - AI nodes call OpenRouter with previous outputs as context
-   - Integration nodes (email/slack/sms) execute via unified executor
-   - Each node logs to structured `LogEntry[]` with timestamps, levels, data
-5. Logs aggregated and persisted to `workflow_executions.logs`
-6. Status tracked through execution lifecycle (pending → running → completed/failed)
-7. Execution details page displays logs with level filtering (debug hidden by default)
-
-### Chain Processing Flow (Legacy)
-
-1. User creates chain with multiple steps
-2. Chain added to queue via `/api/add-to-queue` with variables
-3. `/api/process-queued-chain` processes up to 5 steps concurrently
-4. Each step calls OpenRouter API
-5. Results stored, recursive processing continues
-6. Chain marked completed when all steps finish
-
-### Subscription System
-
-- Stripe integration for recurring billing
-- Plan features stored in `subscription_plans` table
-- User subscriptions tracked in `subscriptions` table
-- Rate limits can vary by plan (via `queueLimit` field)
+1. Execution triggered → creates `workflow_executions` record
+2. BFS traversal with topological ordering (`pages/api/workflow/[id]/execute.ts`)
+3. Each node: collect upstream variables → substitute → execute → log
+4. Status lifecycle: pending → running → completed/failed
+5. Logs persisted as `LogEntry[]` JSON in `workflow_executions.logs`
