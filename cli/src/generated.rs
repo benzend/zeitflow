@@ -43,9 +43,9 @@ pub const INTEGRATIONS: &[IntegrationMeta] = &[
     IntegrationMeta {
         id: "email",
         name: "Email",
-        description: "Send emails via Resend",
+        description: "Send emails via Resend or any SMTP provider",
         category: "communication",
-        config_fields: &["to", "subject", "message", "from", "resendApiKey"],
+        config_fields: &["provider", "to", "subject", "message", "from", "resendApiKey", "smtpHost", "smtpPort", "smtpUser", "smtpPass"],
         env_var: "RESEND_API_KEY",
     },
     IntegrationMeta {

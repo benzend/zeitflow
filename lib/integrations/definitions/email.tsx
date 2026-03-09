@@ -37,11 +37,16 @@ const EmailIcon = ({ className, color }: { className?: string; color?: string })
  * Zod schema for email configuration
  */
 export const EmailConfigSchema = z.object({
+  provider: z.enum(['resend', 'smtp']).default('resend'),
   to: z.array(z.string()).default([]),
   subject: z.string().optional().default('Workflow Notification'),
   message: z.string().optional().default(''),
   from: z.string().optional(),
   resendApiKey: z.string().optional().default(''),
+  smtpHost: z.string().optional().default(''),
+  smtpPort: z.number().optional().default(587),
+  smtpUser: z.string().optional().default(''),
+  smtpPass: z.string().optional().default(''),
 });
 
 export type EmailConfig = z.infer<typeof EmailConfigSchema>;
@@ -53,7 +58,7 @@ export type EmailConfig = z.infer<typeof EmailConfigSchema>;
 export const emailIntegration: Omit<IntegrationDefinition<typeof EmailConfigSchema>, 'execute'> = {
   id: 'email',
   name: 'Email',
-  description: 'Send emails via Resend',
+  description: 'Send emails via Resend or any SMTP provider',
   category: 'communication',
 
   icon: EmailIcon,
@@ -61,14 +66,27 @@ export const emailIntegration: Omit<IntegrationDefinition<typeof EmailConfigSche
 
   configSchema: EmailConfigSchema,
   defaultConfig: {
+    provider: 'resend',
     to: [],
     subject: 'Workflow Notification',
     message: 'Workflow update: {{previousOutput}}',
     from: undefined,
     resendApiKey: '',
+    smtpHost: '',
+    smtpPort: 587,
+    smtpUser: '',
+    smtpPass: '',
   },
 
   uiConfig: {
+    provider: {
+      hint: 'select',
+      label: 'Provider',
+      options: [
+        { value: 'resend', label: 'Resend' },
+        { value: 'smtp', label: 'SMTP (SendGrid, Mailgun, AWS SES, etc.)' },
+      ],
+    },
     to: {
       hint: 'recipients',
       label: 'To (comma-separated)',
@@ -101,6 +119,34 @@ export const emailIntegration: Omit<IntegrationDefinition<typeof EmailConfigSche
       supportsVariables: false,
       validationHint: 'Your own Resend API key from resend.com/api-keys. Falls back to system default.',
     },
+    smtpHost: {
+      hint: 'text',
+      label: 'SMTP Host',
+      placeholder: 'smtp.sendgrid.net',
+      supportsVariables: false,
+      validationHint: 'e.g. smtp.sendgrid.net, smtp.mailgun.org, email-smtp.us-east-1.amazonaws.com',
+    },
+    smtpPort: {
+      hint: 'text',
+      label: 'SMTP Port',
+      placeholder: '587',
+      supportsVariables: false,
+      validationHint: 'Usually 587 (STARTTLS) or 465 (SSL)',
+    },
+    smtpUser: {
+      hint: 'text',
+      label: 'SMTP Username',
+      placeholder: 'apikey',
+      supportsVariables: false,
+      validationHint: 'For SendGrid use "apikey". For AWS SES use your SMTP IAM credentials.',
+    },
+    smtpPass: {
+      hint: 'text',
+      label: 'SMTP Password',
+      placeholder: 'Your SMTP password or API key',
+      supportsVariables: false,
+      validationHint: 'For SendGrid, paste your API key here. For Mailgun, use your SMTP password.',
+    },
   },
 
   auth: {
@@ -111,5 +157,6 @@ export const emailIntegration: Omit<IntegrationDefinition<typeof EmailConfigSche
   outputVariables: [
     { name: 'status', type: 'string', description: 'Send status (sent/failed)' },
     { name: 'error', type: 'string', description: 'Error message if failed' },
+    { name: 'provider', type: 'string', description: 'Provider used (resend/smtp)' },
   ],
 };
