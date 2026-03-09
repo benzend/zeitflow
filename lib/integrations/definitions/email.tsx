@@ -41,6 +41,7 @@ export const EmailConfigSchema = z.object({
   subject: z.string().optional().default('Workflow Notification'),
   message: z.string().optional().default(''),
   from: z.string().optional(),
+  resendApiKey: z.string().optional().default(''),
 });
 
 export type EmailConfig = z.infer<typeof EmailConfigSchema>;
@@ -64,6 +65,7 @@ export const emailIntegration: Omit<IntegrationDefinition<typeof EmailConfigSche
     subject: 'Workflow Notification',
     message: 'Workflow update: {{previousOutput}}',
     from: undefined,
+    resendApiKey: '',
   },
 
   uiConfig: {
@@ -91,6 +93,13 @@ export const emailIntegration: Omit<IntegrationDefinition<typeof EmailConfigSche
       label: 'From (optional)',
       placeholder: 'noreply@yourdomain.com',
       supportsVariables: false,
+    },
+    resendApiKey: {
+      hint: 'text',
+      label: 'Resend API Key (optional)',
+      placeholder: 'Leave empty to use system default',
+      supportsVariables: false,
+      validationHint: 'Your own Resend API key from resend.com/api-keys. Falls back to system default.',
     },
   },
 

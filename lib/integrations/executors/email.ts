@@ -22,11 +22,25 @@ export async function executeEmail(
     recipientCount: config.to.length,
     hasSubject: !!config.subject,
     hasMessage: !!config.message,
+    hasCustomApiKey: !!config.resendApiKey,
   });
+
+  // Determine API key: user-provided (BYOK) or system default
+  const apiKey = config.resendApiKey || process.env.RESEND_API_KEY;
+
+  if (!apiKey) {
+    logger.error('Resend API key not configured');
+    endTimer();
+    return {
+      success: false,
+      error: 'Resend API key not configured. Set RESEND_API_KEY env var or provide your own key in the node config.',
+      data: { status: 'failed', error: 'Missing API key' },
+    };
+  }
 
   // Dynamically import to avoid bundling issues
   const { Resend } = await import('resend');
-  const resend = new Resend(process.env.RESEND_API_KEY);
+  const resend = new Resend(apiKey);
 
   // Substitute variables in all fields
   const to = config.to.map(recipient => context.substituteVariables(recipient));
