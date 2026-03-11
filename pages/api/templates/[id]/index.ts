@@ -6,6 +6,7 @@ import { workflowTemplatesTable, usersTable } from "@/schema";
 import { eq, and } from "drizzle-orm";
 import { isRateLimited } from "@/lib/rate-limit";
 import { validateTemplateData, generateSlug, generateUniqueSlug } from "@/lib/template-utils";
+import { hashValue } from "@/lib/encryption";
 
 /**
  * Resolve user from Bearer token or session.
@@ -20,7 +21,7 @@ async function resolveUser(
     const apiToken = authHeader.substring(7);
     const user = await db.select()
       .from(usersTable)
-      .where(eq(usersTable.apiToken, apiToken))
+      .where(eq(usersTable.apiTokenHash, hashValue(apiToken)))
       .limit(1);
     if (user.length === 0) return null;
     return { userId: user[0].id };

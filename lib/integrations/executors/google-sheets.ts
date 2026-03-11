@@ -10,6 +10,7 @@ import { GoogleSheetsConfig } from '../definitions/google-sheets';
 import { db } from '@/lib/db';
 import { accountsTable } from '@/schema';
 import { eq, and } from 'drizzle-orm';
+import { decrypt } from '../../encryption';
 
 /**
  * Execute the Google Sheets integration
@@ -112,8 +113,8 @@ export async function executeGoogleSheets(
       process.env.GOOGLE_CLIENT_SECRET
     );
     auth.setCredentials({
-      access_token: account.access_token,
-      refresh_token: account.refresh_token,
+      access_token: decrypt(account.access_token),
+      refresh_token: decrypt(account.refresh_token),
     });
 
     const sheets = google.sheets({ version: 'v4', auth });

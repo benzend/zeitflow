@@ -4,6 +4,7 @@ import { authOptions } from '../auth/[...nextauth]';
 import { db } from '@/lib/db';
 import { usersTable } from '@/schema';
 import { eq } from 'drizzle-orm';
+import { encrypt, decrypt, hashValue } from '@/lib/encryption';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET' && req.method !== 'POST') {
@@ -29,20 +30,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const currentUser = user[0];
 
     if (req.method === 'GET') {
-      // Get current API token
+      // Get current API token (decrypt for display)
       return res.status(200).json({
         success: true,
-        apiToken: currentUser.apiToken,
+        apiToken: decrypt(currentUser.apiToken),
         hasApiToken: !!currentUser.apiToken
       });
 
     } else if (req.method === 'POST') {
-      // Generate new API token
+      // Generate new API token (encrypt before storage)
       const newApiToken = crypto.randomUUID();
-      
+
       await db
         .update(usersTable)
-        .set({ apiToken: newApiToken })
+        .set({
+          apiToken: encrypt(newApiToken),
+          apiTokenHash: hashValue(newApiToken),
+        })
         .where(eq(usersTable.id, currentUser.id));
 
       return res.status(200).json({
