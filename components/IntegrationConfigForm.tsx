@@ -17,6 +17,20 @@ import { ConditionConfig } from '@/lib/integrations/definitions/condition';
 import { processPhoneRecipients, processEmailRecipients, containsVariableSyntax } from '@/lib/phone-utils';
 import { Button } from './Button';
 
+/**
+ * Maps integration fields to the provider value that must be selected for them to show.
+ * Fields not listed here are always visible.
+ */
+const PROVIDER_FIELD_VISIBILITY: Record<string, Record<string, string>> = {
+  email: {
+    resendApiKey: 'resend',
+    smtpHost: 'smtp',
+    smtpPort: 'smtp',
+    smtpUser: 'smtp',
+    smtpPass: 'smtp',
+  },
+};
+
 interface IntegrationConfigFormProps {
   /** Integration ID (e.g., 'email', 'slack', 'sms') */
   integrationId: string;
@@ -369,21 +383,32 @@ export default function IntegrationConfigForm({
         <ConditionConfigPreview config={config as Partial<ConditionConfig>} />
       )}
 
-      {fields.map(([fieldKey, fieldConfig]) => (
-        <FieldRenderer
-          key={fieldKey}
-          fieldKey={fieldKey}
-          fieldConfig={fieldConfig}
-          value={config[fieldKey]}
-          onChange={value => handleFieldChange(fieldKey, value)}
-          variableSuggestions={variableSuggestions}
-          serverData={
-            fieldConfig.requiresServerData
-              ? (serverData[fieldConfig.requiresServerData] as unknown[])
-              : undefined
+      {fields.map(([fieldKey, fieldConfig]) => {
+        // Check provider-based field visibility
+        const visibilityMap = PROVIDER_FIELD_VISIBILITY[integrationId];
+        if (visibilityMap && fieldKey in visibilityMap) {
+          const requiredProvider = visibilityMap[fieldKey];
+          if (config.provider !== requiredProvider) {
+            return null;
           }
-        />
-      ))}
+        }
+
+        return (
+          <FieldRenderer
+            key={fieldKey}
+            fieldKey={fieldKey}
+            fieldConfig={fieldConfig}
+            value={config[fieldKey]}
+            onChange={value => handleFieldChange(fieldKey, value)}
+            variableSuggestions={variableSuggestions}
+            serverData={
+              fieldConfig.requiresServerData
+                ? (serverData[fieldConfig.requiresServerData] as unknown[])
+                : undefined
+            }
+          />
+        );
+      })}
 
       {/* Special test panel for condition nodes */}
       {integrationId === 'condition' && (
