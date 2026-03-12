@@ -10,7 +10,6 @@ import {
   Shield,
   Bot,
   Plug,
-  Eye,
   Workflow,
   FileText,
   Sparkles,
@@ -47,7 +46,7 @@ export default function Home() {
         <link rel="canonical" href={process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'} />
       </Head>
       <Providers>
-        <div className="min-h-screen bg-gradient-to-b from-surface to-surface-hover text-foreground flex flex-col relative">
+        <div className="min-h-screen bg-surface text-foreground flex flex-col relative">
           <AnimatedBackground />
           <Navigation />
 
@@ -100,27 +99,87 @@ export default function Home() {
                 </div>
               </section>
 
-              {/* How it works - simplified, no glow animation */}
-              <section className="space-y-6">
-                <h2 className="text-2xl md:text-3xl font-semibold text-foreground text-center">How it works</h2>
-                <div className="flex flex-col md:flex-row items-stretch gap-3">
-                  {[
-                    { icon: Workflow, label: 'Build', desc: 'Design visually' },
-                    { icon: Plug, label: 'Publish', desc: 'Auto-exposed via MCP' },
-                    { icon: Bot, label: 'Discover', desc: 'Agents find it' },
-                    { icon: Zap, label: 'Execute', desc: 'Runs instantly' },
-                    { icon: Eye, label: 'Observe', desc: 'Full audit trail' },
-                  ].map((step, i) => (
-                    <div key={step.label} className="flex md:flex-col items-center gap-3 p-4 rounded-lg border border-border bg-surface-hover/20 flex-1 text-center">
-                      <step.icon className="w-5 h-5 text-primary flex-shrink-0" />
-                      <div className="md:text-center">
-                        <p className="font-medium text-foreground text-sm">{step.label}</p>
-                        <p className="text-xs text-text-muted">{step.desc}</p>
-                      </div>
-                      {i < 4 && <span className="hidden md:block absolute" />}
-                    </div>
-                  ))}
+              {/* How it works - CLI-forward explainer */}
+              <section className="space-y-8">
+                <div className="text-center space-y-2">
+                  <h2 className="text-2xl md:text-3xl font-semibold text-foreground">How it works</h2>
+                  <p className="text-text-muted text-sm max-w-lg mx-auto">
+                    Install the CLI, describe what you want, and you have a live workflow in under a minute.
+                  </p>
                 </div>
+
+                <div className="space-y-6">
+                  {/* Step 1: Install & auth */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-bold">1</span>
+                      <span className="text-sm font-medium text-foreground">Install and log in</span>
+                    </div>
+                    <div className="rounded-lg border border-border overflow-hidden">
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 border-b border-border bg-surface-hover/30">
+                        <div className="w-2 h-2 rounded-full bg-[#555]" />
+                        <div className="w-2 h-2 rounded-full bg-[#555]" />
+                        <div className="w-2 h-2 rounded-full bg-[#555]" />
+                      </div>
+                      <div className="bg-[#111] px-4 py-3 space-y-1">
+                        <pre className="text-xs font-mono"><span className="text-[#666]">$</span><span className="text-[#d4d4d4]"> npx @zeitflow/cli auth login</span></pre>
+                        <pre className="text-xs font-mono text-[#666]">  Opened browser — paste your token: ********</pre>
+                        <pre className="text-xs font-mono text-[#4ade80]">  Authenticated. Config saved to ~/.zeitflow/config.json</pre>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Step 2: Generate a workflow */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-bold">2</span>
+                      <span className="text-sm font-medium text-foreground">Describe your workflow in plain English</span>
+                    </div>
+                    <div className="rounded-lg border border-border overflow-hidden">
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 border-b border-border bg-surface-hover/30">
+                        <div className="w-2 h-2 rounded-full bg-[#555]" />
+                        <div className="w-2 h-2 rounded-full bg-[#555]" />
+                        <div className="w-2 h-2 rounded-full bg-[#555]" />
+                      </div>
+                      <div className="bg-[#111] px-4 py-3 space-y-1">
+                        <pre className="text-xs font-mono"><span className="text-[#666]">$</span><span className="text-[#d4d4d4]"> npx @zeitflow/cli workflow generate \</span></pre>
+                        <pre className="text-xs font-mono"><span className="text-[#d4d4d4]">    &quot;When a support ticket comes in, classify its priority</span></pre>
+                        <pre className="text-xs font-mono"><span className="text-[#d4d4d4]">     with AI and send urgent ones to Slack&quot;</span></pre>
+                        <pre className="text-xs font-mono text-[#666]">{`
+  Proposed workflow: 4 nodes, 3 connections
+  Use --output json to see the full structure.`}</pre>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Step 3: Publish & run */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-bold">3</span>
+                      <span className="text-sm font-medium text-foreground">Publish and it&apos;s live</span>
+                    </div>
+                    <div className="rounded-lg border border-border overflow-hidden">
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 border-b border-border bg-surface-hover/30">
+                        <div className="w-2 h-2 rounded-full bg-[#555]" />
+                        <div className="w-2 h-2 rounded-full bg-[#555]" />
+                        <div className="w-2 h-2 rounded-full bg-[#555]" />
+                      </div>
+                      <div className="bg-[#111] px-4 py-3 space-y-1">
+                        <pre className="text-xs font-mono"><span className="text-[#666]">$</span><span className="text-[#d4d4d4]"> npx @zeitflow/cli workflow publish support-ticket-router</span></pre>
+                        <pre className="text-xs font-mono text-[#4ade80]">  Published. Now discoverable via MCP.</pre>
+                        <pre className="text-xs font-mono text-[#666]"> </pre>
+                        <pre className="text-xs font-mono"><span className="text-[#666]">$</span><span className="text-[#d4d4d4]"> npx @zeitflow/cli workflow run support-ticket-router</span></pre>
+                        <pre className="text-xs font-mono text-[#666]">  Execution #42 — completed in 1.2s</pre>
+                        <pre className="text-xs font-mono text-[#666]">  → Classified as: urgent</pre>
+                        <pre className="text-xs font-mono text-[#666]">  → Slack message sent to #support-escalations</pre>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-xs text-text-muted text-center">
+                  Or build visually in the <Button href="/workflows" variant="tertiary" className="inline text-xs">workflow editor <ArrowRight className="w-3 h-3 ml-0.5 inline" /></Button>
+                </p>
               </section>
 
               {/* Connect - terminal blocks kept but simplified styling */}
