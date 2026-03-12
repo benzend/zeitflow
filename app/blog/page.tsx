@@ -9,7 +9,7 @@ import { GODMODE_EMAILS } from '@/lib/constants';
 import type { Metadata } from "next";
 
 interface BlogPageProps {
-  searchParams: { page?: string };
+  searchParams: Promise<{ page?: string }>;
 }
 
 export const metadata: Metadata = {
@@ -101,7 +101,8 @@ async function getBlogPosts(page: number = 1) {
 }
 
 export default async function Blog({ searchParams }: BlogPageProps) {
-  const page = parseInt(searchParams.page || '1');
+  const resolvedSearchParams = await searchParams;
+  const page = parseInt(resolvedSearchParams.page || '1');
   const { posts, currentPage, totalPages, hasNext, hasPrevious } = await getBlogPosts(page);
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.zeitflow.io';
@@ -191,6 +192,8 @@ export default async function Blog({ searchParams }: BlogPageProps) {
                   totalPages={totalPages}
                   hasPrevious={hasPrevious}
                   hasNext={hasNext}
+                  previousHref={currentPage === 2 ? '/blog' : `/blog?page=${currentPage - 1}`}
+                  nextHref={`/blog?page=${currentPage + 1}`}
                 />
               )}
             </>
