@@ -1,5 +1,6 @@
 
 import { Button } from '../components/Button';
+import AnimatedBackground from '@/app/components/AnimatedBackground';
 import Logo from '@/app/components/Logo';
 import Navigation from '@/components/Navigation';
 import Providers from './providers';
@@ -46,16 +47,19 @@ export default function Home() {
         <link rel="canonical" href={process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'} />
       </Head>
       <Providers>
-        <div className="min-h-screen bg-surface text-foreground flex flex-col">
+        <div className="min-h-screen bg-gradient-to-b from-surface to-surface-hover text-foreground flex flex-col relative">
+          <AnimatedBackground />
           <Navigation />
 
-          <main className="flex flex-col items-center px-6 pt-24 pb-16 md:px-8 font-sans">
-            <div className="w-full max-w-3xl space-y-20">
+          <main className="flex flex-col items-center px-6 pt-32 pb-16 md:px-8 font-sans">
+            <div className="w-full max-w-3xl space-y-28">
 
               {/* Hero */}
               <section className="text-center space-y-6">
-                <div className="flex justify-center mb-4">
-                  <Logo size={48} className="text-primary" />
+                <div className="flex justify-center mb-6">
+                  <div className="animate-float animate-scale-in">
+                    <Logo size={64} className="text-primary animate-spin-slow animate-pulse-glow" />
+                  </div>
                 </div>
 
                 <h1 className="text-3xl md:text-5xl font-bold text-foreground leading-tight">
