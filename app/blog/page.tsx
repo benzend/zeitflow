@@ -106,9 +106,7 @@ export default async function Blog({ searchParams }: BlogPageProps) {
   const { posts, currentPage, totalPages, hasNext, hasPrevious } = await getBlogPosts(page);
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.zeitflow.io';
-  const canonicalUrl = page > 1 
-    ? `${baseUrl}/blog?page=${page}`
-    : `${baseUrl}/blog`;
+  const canonicalUrl = `${baseUrl}/blog`;
   const defaultImage = `${baseUrl}/logo.svg`;
 
   const structuredData = {
@@ -145,6 +143,9 @@ export default async function Blog({ searchParams }: BlogPageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
       <link rel="canonical" href={canonicalUrl} />
+      {page > 1 && (
+        <meta name="robots" content="noindex, follow" />
+      )}
       {hasPrevious && page > 1 && (
         <link rel="prev" href={`${baseUrl}/blog?page=${page - 1}`} />
       )}
