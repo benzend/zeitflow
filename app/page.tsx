@@ -69,7 +69,19 @@ export default function Home() {
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
                   <Button href="/auth/register" variant="primary" size="lg">Start building for free</Button>
-                  <Button href="https://cap.so/s/qegqpre7vpq3jrf" variant="secondary" size="lg">See it in action</Button>
+                  <Button href="#demo" variant="secondary" size="lg">See it in action</Button>
+                </div>
+              </section>
+
+              {/* Demo Video */}
+              <section id="demo" className="w-full max-w-3xl mx-auto">
+                <div className="relative w-full rounded-xl overflow-hidden border border-border" style={{ paddingBottom: '56.25%', height: 0 }}>
+                  <iframe
+                    src="https://cap.so/embed/cmpdbz2nf5q9npx"
+                    frameBorder="0"
+                    allowFullScreen
+                    className="absolute top-0 left-0 w-full h-full"
+                  />
                 </div>
               </section>
 

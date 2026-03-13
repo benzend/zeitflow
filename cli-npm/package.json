@@ -1,6 +1,6 @@
 {
   "name": "@zeitflow/cli",
-  "version": "0.2.1",
+  "version": "0.2.3",
   "description": "CLI for ZeitFlow — manage workflows, executions, and MCP setup from your terminal",
   "license": "MIT",
   "bin": {
