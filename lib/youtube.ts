@@ -2,6 +2,7 @@ import { google } from 'googleapis';
 import { db } from './db';
 import { accountsTable } from '../schema';
 import { eq } from 'drizzle-orm';
+import { encrypt, decrypt } from './encryption';
 
 /**
  * Extract a YouTube video ID from a URL or bare ID.
@@ -55,24 +56,24 @@ export class YouTubeService {
     );
 
     oauth2Client.setCredentials({
-      access_token: account[0].access_token,
-      refresh_token: account[0].refresh_token,
+      access_token: decrypt(account[0].access_token),
+      refresh_token: decrypt(account[0].refresh_token),
     });
 
-    // Handle token refresh
+    // Handle token refresh — encrypt before persisting
     oauth2Client.on('tokens', async (tokens) => {
       if (tokens.refresh_token) {
         await db.update(accountsTable)
           .set({
-            refresh_token: tokens.refresh_token,
-            access_token: tokens.access_token,
+            refresh_token: encrypt(tokens.refresh_token),
+            access_token: encrypt(tokens.access_token ?? null),
             expires_at: tokens.expiry_date ? Math.floor(tokens.expiry_date / 1000) : undefined,
           })
           .where(eq(accountsTable.userId, userId));
       } else {
         await db.update(accountsTable)
           .set({
-            access_token: tokens.access_token,
+            access_token: encrypt(tokens.access_token ?? null),
             expires_at: tokens.expiry_date ? Math.floor(tokens.expiry_date / 1000) : undefined,
           })
           .where(eq(accountsTable.userId, userId));

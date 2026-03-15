@@ -3,6 +3,7 @@ import { WebClient } from '@slack/web-api';
 import { db } from '@/lib/db';
 import { slackBotsTable, usersTable } from '@/schema';
 import { eq } from 'drizzle-orm';
+import { encrypt } from '@/lib/encryption';
 
 interface SlackOAuthResponse {
   bot_token: string;
@@ -63,7 +64,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await db.insert(slackBotsTable).values({
       userId: decodedState.userId,
       name: 'ZeitFlow Bot',
-      botToken: slackResponse.bot_token,
+      botToken: encrypt(slackResponse.bot_token)!,
       teamId: slackResponse.team.id,
       teamName: slackResponse.team.name,
       botUserId: slackResponse.bot_user_id,

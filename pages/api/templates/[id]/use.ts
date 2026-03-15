@@ -14,6 +14,7 @@ import { isRateLimited } from "@/lib/rate-limit";
 import { cloneWorkflow } from "@/lib/template-utils";
 import { NodeData, Connection } from "@/lib/workflow-types";
 import { generateWebhookSecret } from "@/lib/webhook-utils";
+import { encrypt, hashValue, encryptConfigSecrets } from "@/lib/encryption";
 
 export default async function handler(
   req: NextApiRequest,
@@ -34,7 +35,7 @@ export default async function handler(
     const apiToken = authHeader.substring(7);
     const tokenUser = await db.select()
       .from(usersTable)
-      .where(eq(usersTable.apiToken, apiToken))
+      .where(eq(usersTable.apiTokenHash, hashValue(apiToken)))
       .limit(1);
     if (tokenUser.length > 0) {
       userId = tokenUser[0].id;
@@ -141,7 +142,7 @@ export default async function handler(
         name: finalWorkflowName,
         description: template.description,
         status: 'draft',
-        webhookSecret: generateWebhookSecret(),
+        webhookSecret: encrypt(generateWebhookSecret()),
       })
       .returning();
 
@@ -157,7 +158,7 @@ export default async function handler(
         positionY: y,
         label: label,
         entryType: entryType || null,
-        config: Object.keys(config).length > 0 ? JSON.stringify(config) : null,
+        config: Object.keys(config).length > 0 ? JSON.stringify(encryptConfigSecrets(config)) : null,
       });
     });
 

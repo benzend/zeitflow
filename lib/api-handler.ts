@@ -18,6 +18,7 @@ import { usersTable } from '@/schema';
 import { eq } from 'drizzle-orm';
 import { isRateLimited } from '@/lib/rate-limit';
 import { Result, ok, err } from 'neverthrow';
+import { hashValue } from '@/lib/encryption';
 import {
   AppError,
   authenticationError,
@@ -100,10 +101,11 @@ export async function authenticateRequest(
   const authHeader = req.headers.authorization;
   if (authHeader?.startsWith('Bearer ')) {
     const token = authHeader.slice(7);
+    const tokenHash = hashValue(token);
     const users = await db
       .select()
       .from(usersTable)
-      .where(eq(usersTable.apiToken, token))
+      .where(eq(usersTable.apiTokenHash, tokenHash))
       .limit(1);
 
     if (users.length > 0 && users[0].email) {

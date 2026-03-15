@@ -7,6 +7,7 @@
 
 import { ExecutionContext, IntegrationResult } from '../types';
 import { SlackConfig } from '../definitions/slack';
+import { decrypt } from '../../encryption';
 
 /**
  * Execute the Slack integration
@@ -70,7 +71,7 @@ export async function executeSlack(
           data: { status: 'failed', error: 'Bot not found' },
         };
       }
-      botToken = specificBot.botToken;
+      botToken = decrypt(specificBot.botToken) ?? undefined;
       logger.debug('Using specific bot', { botName: specificBot.name });
     } else if (db) {
       logger.debug('Looking up user default bot');
@@ -89,7 +90,7 @@ export async function executeSlack(
           data: { status: 'failed', error: 'No bot configured' },
         };
       }
-      botToken = userBot.botToken;
+      botToken = decrypt(userBot.botToken) ?? undefined;
       logger.debug('Using user default bot', { botName: userBot.name });
     }
 

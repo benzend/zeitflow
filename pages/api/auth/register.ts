@@ -4,6 +4,7 @@ import { db } from '@/lib/db'
 import { usersTable } from '@/schema'
 import { eq } from 'drizzle-orm'
 import { vemetric } from '@/lib/vemetric-client'
+import { encrypt, hashValue } from '@/lib/encryption'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -31,13 +32,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12)
 
-    // Create user
+    // Create user with encrypted API token
+    const rawApiToken = crypto.randomUUID();
     const [newUser] = await db.insert(usersTable).values({
       email,
       password: hashedPassword,
       name: name || null,
       emailVerified: null, // User needs to verify email
-      apiToken: crypto.randomUUID(), // Generate API token
+      apiToken: encrypt(rawApiToken),
+      apiTokenHash: hashValue(rawApiToken),
     }).returning()
 
     vemetric.trackEvent('UserInitialized', {

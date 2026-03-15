@@ -22,6 +22,7 @@ import { db } from "@/lib/db";
 import { usersTable } from "@/schema";
 import { eq } from "drizzle-orm";
 import { createMcpServer } from "@/mcp/create-server";
+import { hashValue } from "@/lib/encryption";
 
 // Disable Next.js body parsing — the MCP transport reads the raw stream.
 export const config = {
@@ -39,7 +40,7 @@ async function resolveUserFromToken(
   const [user] = await db
     .select({ id: usersTable.id, email: usersTable.email })
     .from(usersTable)
-    .where(eq(usersTable.apiToken, token))
+    .where(eq(usersTable.apiTokenHash, hashValue(token)))
     .limit(1);
 
   return user ?? null;

@@ -31,6 +31,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { eq } from "drizzle-orm";
 import { usersTable } from "../schema";
 import { createMcpServer } from "./create-server";
+import { hashValue } from "../lib/encryption";
 
 // ---------------------------------------------------------------------------
 // Database & Auth
@@ -55,7 +56,7 @@ async function resolveUser(): Promise<{ id: string; email: string }> {
   const [user] = await db
     .select({ id: usersTable.id, email: usersTable.email })
     .from(usersTable)
-    .where(eq(usersTable.apiToken, API_TOKEN!))
+    .where(eq(usersTable.apiTokenHash, hashValue(API_TOKEN!)))
     .limit(1);
 
   if (!user) {

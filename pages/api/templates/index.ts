@@ -11,6 +11,7 @@ import {
 } from "@/schema";
 import { eq, or, and, like, desc, sql } from "drizzle-orm";
 import { isRateLimited } from "@/lib/rate-limit";
+import { hashValue } from "@/lib/encryption";
 import {
   sanitizeNodes,
   generateSlug,
@@ -228,7 +229,7 @@ async function handleCreateTemplate(
     const apiToken = authHeader.substring(7);
     const user = await db.select()
       .from(usersTable)
-      .where(eq(usersTable.apiToken, apiToken))
+      .where(eq(usersTable.apiTokenHash, hashValue(apiToken)))
       .limit(1);
 
     if (user.length === 0) {

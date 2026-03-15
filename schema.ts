@@ -64,7 +64,8 @@ export const usersTable = pgTable("users", {
   emailVerified: timestamp("emailVerified", { mode: "date" }),
   image: text("image"),
   password: text("password"), // For email/password authentication
-  apiToken: text("api_token").unique(), // UUID for API access
+  apiToken: text("api_token").unique(), // UUID for API access (encrypted at rest)
+  apiTokenHash: text("api_token_hash").unique(), // SHA-256 hash for indexed lookups
 });
 
 export const accountsTable = pgTable(

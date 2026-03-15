@@ -8,14 +8,33 @@ import { usersTable, accountsTable, sessionsTable, verificationTokensTable } fro
 import { eq } from 'drizzle-orm'
 import bcrypt from 'bcryptjs'
 import { sendMagicLinkEmail } from '@/lib/email'
+import { encrypt } from '@/lib/encryption'
 
-export const authOptions: NextAuthOptions = {
-  adapter: DrizzleAdapter(db, {
+// Wrap the DrizzleAdapter to encrypt OAuth tokens before they are stored
+function createEncryptedAdapter() {
+  const baseAdapter = DrizzleAdapter(db, {
     usersTable,
     accountsTable,
     sessionsTable,
     verificationTokensTable,
-  }),
+  });
+
+  const originalLinkAccount = baseAdapter.linkAccount;
+
+  return {
+    ...baseAdapter,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    linkAccount: async (account: any) => {
+      if (account.access_token) account.access_token = encrypt(account.access_token);
+      if (account.refresh_token) account.refresh_token = encrypt(account.refresh_token);
+      if (account.id_token) account.id_token = encrypt(account.id_token);
+      return originalLinkAccount!(account);
+    },
+  };
+}
+
+export const authOptions: NextAuthOptions = {
+  adapter: createEncryptedAdapter() as NextAuthOptions['adapter'],
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
