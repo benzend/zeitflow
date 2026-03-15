@@ -9,4 +9,9 @@ const __dirname = path.dirname(__filename);
 
 export default defineConfig([{
     extends: [...nextCoreWebVitals, ...nextTypescript],
+    settings: {
+        react: {
+            version: "19",
+        },
+    },
 }]);
