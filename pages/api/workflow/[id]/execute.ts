@@ -637,7 +637,7 @@ async function executeWorkflow(
          allLogs.push(...nodeLogger.getEntries());
          break;
       case 'ai':
-        const aiConfig = config.aiConfig || {};
+        const aiConfig = (config.aiConfig || {}) as Record<string, unknown>;
         nodeLogger.info(`Processing AI node`, { label: node.label, model: aiConfig.model || 'default' });
 
         // Collect available variables from connected nodes
