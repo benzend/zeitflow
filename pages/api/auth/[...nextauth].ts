@@ -3,7 +3,6 @@ import GoogleProvider from 'next-auth/providers/google'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import EmailProvider from 'next-auth/providers/email'
 import { DrizzleAdapter } from '@auth/drizzle-adapter'
-import type { Adapter, AdapterAccount } from 'next-auth/adapters'
 import { db } from '@/lib/db'
 import { usersTable, accountsTable, sessionsTable, verificationTokensTable } from '@/schema'
 import { eq } from 'drizzle-orm'
@@ -12,30 +11,30 @@ import { sendMagicLinkEmail } from '@/lib/email'
 import { encrypt } from '@/lib/encryption'
 
 // Wrap the DrizzleAdapter to encrypt OAuth tokens before they are stored
-function createEncryptedAdapter(): Adapter {
+function createEncryptedAdapter() {
   const baseAdapter = DrizzleAdapter(db, {
     usersTable,
     accountsTable,
     sessionsTable,
     verificationTokensTable,
-  }) as Adapter;
+  });
+
+  const originalLinkAccount = baseAdapter.linkAccount;
 
   return {
     ...baseAdapter,
-    linkAccount: async (account: AdapterAccount) => {
-      const encryptedAccount = {
-        ...account,
-        access_token: account.access_token ? encrypt(account.access_token) : account.access_token,
-        refresh_token: account.refresh_token ? encrypt(account.refresh_token) : account.refresh_token,
-        id_token: account.id_token ? encrypt(account.id_token) : account.id_token,
-      };
-      return baseAdapter.linkAccount!(encryptedAccount);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    linkAccount: async (account: any) => {
+      if (account.access_token) account.access_token = encrypt(account.access_token);
+      if (account.refresh_token) account.refresh_token = encrypt(account.refresh_token);
+      if (account.id_token) account.id_token = encrypt(account.id_token);
+      return originalLinkAccount!(account);
     },
   };
 }
 
 export const authOptions: NextAuthOptions = {
-  adapter: createEncryptedAdapter(),
+  adapter: createEncryptedAdapter() as NextAuthOptions['adapter'],
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
