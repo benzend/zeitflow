@@ -1821,7 +1821,7 @@ async function guide(args: string[]): Promise<void> {
 
 async function workflowOpen(id: string): Promise<void> {
   const baseUrl = getBaseUrl();
-  const url = `${baseUrl}/workflow/${id}/edit`;
+  const url = `${baseUrl}/workflow/${id}`;
   console.error(`Opening ${url} in your browser...`);
 
   try {
@@ -2047,7 +2047,8 @@ async function main(): Promise<void> {
     return;
   }
   if (args.includes("--version") || args.includes("-v")) {
-    print(`zeitflow ${CLI_VERSION}`);
+    const pkg = JSON.parse(readFileSync(join(__dirname, "..", "package.json"), "utf-8"));
+    print(`zeitflow ${pkg.version}`);
     return;
   }
 

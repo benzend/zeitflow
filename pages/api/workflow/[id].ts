@@ -5,6 +5,7 @@ import { apiHandler, sendError } from "@/lib/api-handler";
 import { validationError, notFoundError } from "@/lib/errors";
 import { serializeNodeConfigsToJSON } from "@/lib/node-utils";
 import { ALL_CONFIG_KEYS } from "@/lib/node-registry";
+import { encrypt, decrypt, encryptConfigSecrets, decryptConfigSecrets } from "@/lib/encryption";
 
 async function resolveWorkflow(workflowId: number, userId: string) {
   if (isNaN(workflowId)) return null;
@@ -33,17 +34,34 @@ export default apiHandler({
       return sendError(res, isNaN(workflowId) ? validationError('Invalid workflow ID') : notFoundError('Workflow'));
     }
 
-    const nodes = await db
+    const rawNodes = await db
       .select()
       .from(workflowNodesTable)
       .where(eq(workflowNodesTable.workflowId, workflowId));
+
+    // Decrypt any encrypted secrets in node configs before sending to the frontend
+    const nodes = rawNodes.map(node => {
+      if (!node.config) return node;
+      try {
+        const parsed = JSON.parse(node.config);
+        return { ...node, config: JSON.stringify(decryptConfigSecrets(parsed)) };
+      } catch {
+        return node;
+      }
+    });
 
     const connections = await db
       .select()
       .from(workflowConnectionsTable)
       .where(eq(workflowConnectionsTable.workflowId, workflowId));
 
-    return res.status(200).json({ success: true, workflow, nodes, connections });
+    // Decrypt webhook secret for display
+    const decryptedWorkflow = {
+      ...workflow,
+      webhookSecret: decrypt(workflow.webhookSecret),
+    };
+
+    return res.status(200).json({ success: true, workflow: decryptedWorkflow, nodes, connections });
   },
 
   PUT: async (req, res, { userId }) => {
@@ -104,6 +122,9 @@ export default apiHandler({
             if (node[configKey]) config[configKey] = node[configKey];
           });
 
+          // Encrypt any sensitive keys in the config before storing
+          const encryptedConfig = encryptConfigSecrets(config);
+
           return {
             id: node.id,
             workflowId,
@@ -111,7 +132,7 @@ export default apiHandler({
             positionX: Math.round(node.x),
             positionY: Math.round(node.y),
             label: node.label,
-            config: JSON.stringify(config),
+            config: JSON.stringify(encryptedConfig),
             entryType: node.entryType
           };
         });

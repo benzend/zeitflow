@@ -5,6 +5,8 @@ interface BlogNavigationProps {
   totalPages?: number;
   hasPrevious?: boolean;
   hasNext?: boolean;
+  previousHref?: string;
+  nextHref?: string;
   onPrevious?: () => void;
   onNext?: () => void;
 }
@@ -14,15 +16,18 @@ export const BlogNavigation = ({
   totalPages = 1,
   hasPrevious = false,
   hasNext = false,
+  previousHref,
+  nextHref,
   onPrevious,
   onNext
 }: BlogNavigationProps) => {
   return (
     <nav className="flex items-center justify-between mt-12 mb-8 animate-slide-up-fade">
       <div className="flex-1 flex justify-start">
-        {hasPrevious && onPrevious && (
+        {hasPrevious && (onPrevious || previousHref) && (
           <Button
             onClick={onPrevious}
+            href={previousHref}
             variant="outline"
             className="flex items-center space-x-2"
           >
@@ -33,17 +38,18 @@ export const BlogNavigation = ({
           </Button>
         )}
       </div>
-      
+
       {totalPages > 1 && (
         <div className="flex items-center space-x-2 text-sm text-text-muted">
           <span>Page {currentPage} of {totalPages}</span>
         </div>
       )}
-      
+
       <div className="flex-1 flex justify-end">
-        {hasNext && onNext && (
+        {hasNext && (onNext || nextHref) && (
           <Button
             onClick={onNext}
+            href={nextHref}
             variant="outline"
             className="flex items-center space-x-2"
           >

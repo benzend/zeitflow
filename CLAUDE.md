@@ -36,36 +36,13 @@ pnpm backfill-assets
 
 # Start MCP server (for AI agent integration)
 ZEITFLOW_API_TOKEN=<token> pnpm mcp
-
-# Regenerate CLI code from TypeScript sources of truth
-pnpm codegen
 ```
 
-### Code Generation (`pnpm codegen`)
-
-The CLI (Rust) and MCP derive node types, integration metadata, config keys, and AI models from the TypeScript sources of truth. When any of these change, run `pnpm codegen` to regenerate `cli/src/generated.rs`.
-
-**You MUST run `pnpm codegen` after modifying any of:**
-- `lib/node-registry.ts` (node types, config keys)
-- `lib/integrations/definitions/` or `lib/integrations/registry.ts` (integration definitions)
-- `lib/integrations/types.ts` (`INTEGRATION_CONFIG_KEYS`)
-- `lib/constants.ts` (`AI_MODELS`)
-
-**After running codegen, rebuild the CLI:** `cd cli && cargo build`
-
-The test suite (`pnpm test -- __tests__/scripts/codegen.test.ts`) will fail if `generated.rs` is out of sync — use this as a CI gate.
-
-### Rust CLI (`cli/`)
+### CLI npm package (`cli-npm/`)
 
 ```bash
-cd cli && cargo build                         # Dev build
-cd cli && cargo build --release               # Release build
-cd cli && cargo test                          # Run tests
-
-# Usage
-./cli/target/debug/zeitflow auth login        # Browser-based login, saves to ~/.zeitflow/config.json
-./cli/target/debug/zeitflow workflow list      # List workflows
-./cli/target/debug/zeitflow --api-url http://localhost:3000 workflow list  # Local dev
+cd cli-npm && pnpm build                      # Compile cli.ts → dist/cli.js
+cd cli-npm && npm publish --access public     # Publish @zeitflow/cli
 ```
 
 ### MCP npm package (`mcp/`)
@@ -81,7 +58,7 @@ This is a Next.js application (Pages Router) that implements **ZeitFlow** — a 
 
 ### Shared Config (`~/.zeitflow/config.json`)
 
-Both the Rust CLI and the `@zeitflow/mcp` npm package read from the same config file:
+Both the CLI (`@zeitflow/cli`) and the `@zeitflow/mcp` npm package read from the same config file:
 
 ```json
 { "token": "zf_abc123...", "url": "https://www.zeitflow.io" }
@@ -92,13 +69,11 @@ Both the Rust CLI and the `@zeitflow/mcp` npm package read from the same config 
 2. `~/.zeitflow/config.json` → `token` field
 
 **URL resolution:**
-1. `ZEITFLOW_URL` env var (or `--api-url` flag for CLI)
+1. `ZEITFLOW_URL` env var
 2. `~/.zeitflow/config.json` → `url` field
 3. `https://www.zeitflow.io` (default)
 
-The CLI's `zeitflow auth login` command opens the browser to `/connect`, prompts the user to paste a token, validates it, and saves to this file with `0600` permissions.
-
-Legacy config at `~/.config/zeitflow/config.json` (old field names `api_token`/`api_url`) is auto-migrated on first load.
+The CLI's `zeitflow auth login` command opens the browser to `/connect`, prompts the user to paste a token, validates it, and saves to this file.
 
 ### Core Systems
 
@@ -144,16 +119,12 @@ Three entry points, all sharing tool definitions in `mcp/create-server.ts`:
   - `execute_workflow` / `get_execution` / `list_executions` — Execution
   - `create_workflow_from_template` — Bulk creation of a complete workflow with nodes and connections in one call
 
-#### 4. Rust CLI (`cli/`)
+#### 4. CLI (`cli-npm/`)
 
-Native command-line client that uses the same shared config and talks to the ZeitFlow HTTP API.
+TypeScript CLI published as `@zeitflow/cli` on npm. Thin HTTP client over the ZeitFlow API.
 
-- **Commands**: `workflow` (wf), `execution` (exec), `integration` (int), `template` (tpl), `auth`, `setup`, `guide`, `doctor`
-- **Workflow subcommands**: `list`, `get`, `create`, `delete`, `run`, `stats`, `publish`, `add-node`, `update-node`, `list-nodes`, `remove-node`, `connect`, `validate`, `generate`, `open`, `visualize`
-- **Config**: `cli/src/config.rs` — loads/saves `~/.zeitflow/config.json`
-- **HTTP Client**: `cli/src/client.rs` — wraps `reqwest` with Bearer token auth
-- **Output**: `--output text` (default) or `--output json` for machine consumption
-- **API URL override**: `--api-url` flag or `ZEITFLOW_API_URL` env var (for local dev)
+- **Commands**: `workflow`, `execution`, `template`, `auth`, `setup`, `guide`, `doctor`
+- **Config**: Uses same shared config as MCP (`~/.zeitflow/config.json`)
 
 #### 5. Integration System (`lib/integrations/`)
 
@@ -169,7 +140,6 @@ To add a new integration:
 2. Create executor in `lib/integrations/executors/` (export from `index.ts`, add to `integrationExecutors` map)
 3. Add config key to `INTEGRATION_CONFIG_KEYS` in `lib/integrations/types.ts`
 4. Register in `lib/integrations/registry.ts`
-5. Run `pnpm codegen` to regenerate CLI code, then `cd cli && cargo build`
 
 #### 6. Blog System
 - **MDX Rendering**: Uses `next-mdx-remote` with `remark-gfm` (tables) and `rehype-pretty-code` (syntax highlighting)
@@ -236,8 +206,9 @@ When adding new API endpoints, follow the pattern in `pages/api/templates/[id]/i
 **Pages Router Structure**:
 - `/dashboard` — Main chains management interface
 - `/workflows` — Workflow list/management
-- `/workflow/[id]/edit` — Visual workflow builder (React Flow)
+- `/workflow/[id]` — Visual workflow builder (React Flow)
 - `/workflow/[id]/execution` — Execution view
+- `/workflow/[id]/history` — Execution history
 - `/chain/[id]` — Chain editor
 - `/assets` — Asset library
 - `/settings` — User settings
@@ -270,8 +241,6 @@ Two representations of node config exist — understand the difference to avoid 
 
 - **Save/API format** (inline keys): `{ id, type, label, x, y, aiConfig: { model, userPrompt } }`
 - **DB format** (JSON string): `{ id, type, label, positionX, positionY, config: '{"aiConfig": {"model": "...", "userPrompt": "..."}}' }`
-
-The CLI's `remap_node_for_save()` in `cli/src/commands/workflow.rs` converts DB format back to save format by spreading parsed config keys into the node object. The `--config` flag takes the **inner** config (e.g., `{"model":"..."}`) and the CLI auto-wraps it under `{type}Config`.
 
 ### Template System
 

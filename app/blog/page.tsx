@@ -9,7 +9,7 @@ import { GODMODE_EMAILS } from '@/lib/constants';
 import type { Metadata } from "next";
 
 interface BlogPageProps {
-  searchParams: { page?: string };
+  searchParams: Promise<{ page?: string }>;
 }
 
 export const metadata: Metadata = {
@@ -101,13 +101,12 @@ async function getBlogPosts(page: number = 1) {
 }
 
 export default async function Blog({ searchParams }: BlogPageProps) {
-  const page = parseInt(searchParams.page || '1');
+  const resolvedSearchParams = await searchParams;
+  const page = parseInt(resolvedSearchParams.page || '1');
   const { posts, currentPage, totalPages, hasNext, hasPrevious } = await getBlogPosts(page);
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.zeitflow.io';
-  const canonicalUrl = page > 1 
-    ? `${baseUrl}/blog?page=${page}`
-    : `${baseUrl}/blog`;
+  const canonicalUrl = `${baseUrl}/blog`;
   const defaultImage = `${baseUrl}/logo.svg`;
 
   const structuredData = {
@@ -144,6 +143,9 @@ export default async function Blog({ searchParams }: BlogPageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
       <link rel="canonical" href={canonicalUrl} />
+      {page > 1 && (
+        <meta name="robots" content="noindex, follow" />
+      )}
       {hasPrevious && page > 1 && (
         <link rel="prev" href={`${baseUrl}/blog?page=${page - 1}`} />
       )}
@@ -191,6 +193,8 @@ export default async function Blog({ searchParams }: BlogPageProps) {
                   totalPages={totalPages}
                   hasPrevious={hasPrevious}
                   hasNext={hasNext}
+                  previousHref={currentPage === 2 ? '/blog' : `/blog?page=${currentPage - 1}`}
+                  nextHref={`/blog?page=${currentPage + 1}`}
                 />
               )}
             </>

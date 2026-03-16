@@ -19,6 +19,8 @@ import { createIntegrationLogger } from "@/lib/integrations/logger";
 import type { LogEntry, IntegrationLogger } from "@/lib/integrations/types";
 // Webhook utilities
 import { validateWebhookSecret } from "@/lib/webhook-utils";
+// Encryption
+import { decrypt, hashValue, decryptConfigSecrets } from "@/lib/encryption";
 
 export default async function handler(
   req: NextApiRequest,
@@ -74,7 +76,7 @@ export default async function handler(
 
   if (isWebhookAuth) {
     // Validate webhook secret
-    if (!validateWebhookSecret(webhookSecret, workflow.webhookSecret)) {
+    if (!validateWebhookSecret(webhookSecret, decrypt(workflow.webhookSecret))) {
       return res.status(401).json({ error: 'Invalid webhook secret' });
     }
     // Use the workflow owner's userId for webhook executions
@@ -102,7 +104,7 @@ export default async function handler(
 
       const user = await db.select()
         .from(usersTable)
-        .where(eq(usersTable.apiToken, apiToken))
+        .where(eq(usersTable.apiTokenHash, hashValue(apiToken)))
         .limit(1);
 
       if (user.length === 0) {
@@ -605,8 +607,8 @@ async function executeWorkflow(
 
     executed.add(currentNodeId);
 
-    // Parse config
-    const config = JSON.parse(node.config || '{}');
+    // Parse config and decrypt any encrypted secrets
+    const config = decryptConfigSecrets(JSON.parse(node.config || '{}'));
 
     // Create logger for this node
     const nodeLogger = createNodeLogger(node.type, node.id);
@@ -635,7 +637,7 @@ async function executeWorkflow(
          allLogs.push(...nodeLogger.getEntries());
          break;
       case 'ai':
-        const aiConfig = config.aiConfig || {};
+        const aiConfig = (config.aiConfig || {}) as Record<string, string>;
         nodeLogger.info(`Processing AI node`, { label: node.label, model: aiConfig.model || 'default' });
 
         // Collect available variables from connected nodes

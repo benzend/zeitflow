@@ -12,8 +12,7 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "backfill-assets": "tsx scripts/backfill-assets.ts",
-    "mcp": "tsx mcp/server.ts",
-    "codegen": "tsx scripts/codegen.ts"
+    "mcp": "tsx mcp/server.ts"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.1",
@@ -78,6 +77,7 @@
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^25.2.3",
     "@types/node-telegram-bot-api": "^0.64.13",
+    "@types/nodemailer": "^7.0.11",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "drizzle-kit": "^0.31.9",

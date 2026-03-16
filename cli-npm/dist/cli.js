@@ -1658,7 +1658,7 @@ async function guide(args) {
 // ---------------------------------------------------------------------------
 async function workflowOpen(id) {
     const baseUrl = getBaseUrl();
-    const url = `${baseUrl}/workflow/${id}/edit`;
+    const url = `${baseUrl}/workflow/${id}`;
     console.error(`Opening ${url} in your browser...`);
     try {
         const { exec } = await import("child_process");
@@ -1868,7 +1868,8 @@ async function main() {
         return;
     }
     if (args.includes("--version") || args.includes("-v")) {
-        print(`zeitflow ${CLI_VERSION}`);
+        const pkg = JSON.parse((0, fs_1.readFileSync)((0, path_1.join)(__dirname, "..", "package.json"), "utf-8"));
+        print(`zeitflow ${pkg.version}`);
         return;
     }
     const [cmd, sub, ...rest] = args.filter((a, i) => a !== "--output" &&

@@ -21,12 +21,10 @@ export default function Navigation() {
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center space-x-6">
             <Button href="/" variant="tertiary" className="flex items-center space-x-2 group !bg-transparent !p-0 !h-auto">
-              <div className="relative w-8 h-8 animate-scale-in">
-                <Logo
-                  className="text-primary animate-spin-slow animate-pulse-glow"
-                />
+              <div className="relative w-8 h-8">
+                <Logo className="text-primary" />
               </div>
-              <span className="text-xl font-bold text-accent animate-slide-up-fade delay-100">
+              <span className="text-xl font-bold text-accent">
                 ZeitFlow
               </span>
             </Button>
@@ -34,41 +32,41 @@ export default function Navigation() {
               <Button
                 href="/blog"
                 variant="tertiary"
-                className="!bg-transparent !p-0 text-text-muted hover:text-primary transition-colors duration-200 animate-slide-up-fade delay-200"
+                className="!bg-transparent !p-0 text-text-muted hover:text-primary transition-colors duration-200"
               >
                 Blog
               </Button>
               <Button
                 href="/guides"
                 variant="tertiary"
-                className="!bg-transparent !p-0 text-text-muted hover:text-primary transition-colors duration-200 animate-slide-up-fade delay-200"
+                className="!bg-transparent !p-0 text-text-muted hover:text-primary transition-colors duration-200"
               >
                 Guides
               </Button>
               <Button
                 href="/integrations"
                 variant="tertiary"
-                className="!bg-transparent !p-0 text-text-muted hover:text-primary transition-colors duration-200 animate-slide-up-fade delay-200"
+                className="!bg-transparent !p-0 text-text-muted hover:text-primary transition-colors duration-200"
               >
                 Integrations
               </Button>
               <Button
                 href="/pricing"
                 variant="tertiary"
-                className="!bg-transparent !p-0 text-text-muted hover:text-primary transition-colors duration-200 animate-slide-up-fade delay-200"
+                className="!bg-transparent !p-0 text-text-muted hover:text-primary transition-colors duration-200"
               >
                 Pricing
               </Button>
             </div>
           </div>
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center space-x-4">
+          <div className={`hidden lg:flex items-center space-x-4 transition-opacity duration-300 ${status === 'loading' ? 'opacity-0' : 'opacity-100'}`}>
             <ThemeToggle />
             {status === 'authenticated' && (
               <Button
                 href="/dashboard"
                 variant="tertiary"
-                className="!bg-transparent !p-0 text-text-muted hover:text-primary transition-colors duration-200 animate-slide-up-fade delay-200"
+                className="!bg-transparent !p-0 text-text-muted hover:text-primary transition-colors duration-200"
               >
                 Dashboard
               </Button>
@@ -77,21 +75,19 @@ export default function Navigation() {
               <Button
                 href="/blog/manage"
                 variant="tertiary"
-                className="!bg-transparent !p-0 text-text-muted hover:text-primary transition-colors duration-200 animate-slide-up-fade delay-200"
+                className="!bg-transparent !p-0 text-text-muted hover:text-primary transition-colors duration-200"
               >
                 Manage
               </Button>
             )}
-            {status === 'loading' ? (
-              <div className="w-8 h-8 rounded-full bg-surface animate-pulse"></div>
-            ) : status === 'authenticated' ? (
+            {status === 'authenticated' ? (
               <ProfileDropdown />
-            ) : (
+            ) : status === 'unauthenticated' ? (
               <>
                 <Button
                   href="/auth/signin"
                   variant="tertiary"
-                  className="!bg-transparent !p-0 text-text-muted hover:text-primary transition-colors duration-200 animate-slide-up-fade delay-200"
+                  className="!bg-transparent !p-0 text-text-muted hover:text-primary transition-colors duration-200"
                 >
                   Sign In
                 </Button>
@@ -102,7 +98,7 @@ export default function Navigation() {
                   Register
                 </Button>
               </>
-            )}
+            ) : null}
           </div>
 
           {/* Hamburger Button - Tablet & Mobile */}
@@ -178,32 +174,32 @@ export default function Navigation() {
                 Manage
               </Button>
             )}
-            {status === 'loading' ? (
-              <div className="w-full h-10 rounded-md bg-surface animate-pulse"></div>
-            ) : status === 'authenticated' ? (
-              <div className="px-2">
-                <ProfileDropdown />
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <Button
-                  href="/auth/signin"
-                  variant="tertiary"
-                  className="!bg-transparent !p-2 text-text-muted hover:text-primary transition-colors duration-200 w-full text-left"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Sign In
-                </Button>
-                <Button
-                  variant="primary"
-                  href="/auth/register"
-                  className="w-full"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Register
-                </Button>
-              </div>
-            )}
+            <div className={`transition-opacity duration-300 ${status === 'loading' ? 'opacity-0' : 'opacity-100'}`}>
+              {status === 'authenticated' ? (
+                <div className="px-2">
+                  <ProfileDropdown />
+                </div>
+              ) : status === 'unauthenticated' ? (
+                <div className="space-y-2">
+                  <Button
+                    href="/auth/signin"
+                    variant="tertiary"
+                    className="!bg-transparent !p-2 text-text-muted hover:text-primary transition-colors duration-200 w-full text-left"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Sign In
+                  </Button>
+                  <Button
+                    variant="primary"
+                    href="/auth/register"
+                    className="w-full"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Register
+                  </Button>
+                </div>
+              ) : null}
+            </div>
           </div>
         )}
       </div>

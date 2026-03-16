@@ -4,6 +4,7 @@ import { eq, sql } from "drizzle-orm";
 import { apiHandler, sendError } from "@/lib/api-handler";
 import { validationError } from "@/lib/errors";
 import { generateWebhookSecret } from "@/lib/webhook-utils";
+import { encrypt } from "@/lib/encryption";
 
 export default apiHandler({
   rateLimitKey: 'workflows',
@@ -42,7 +43,7 @@ export default apiHandler({
         name: name.trim(),
         description: description?.trim() || null,
         status: 'draft',
-        webhookSecret: generateWebhookSecret()
+        webhookSecret: encrypt(generateWebhookSecret())
       })
       .returning();
 

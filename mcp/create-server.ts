@@ -17,6 +17,7 @@ import {
 } from "../schema";
 import { NODE_CONFIGS, NODE_TYPES } from "../lib/node-registry";
 import { AI_MODELS } from "../lib/constants";
+import { encryptConfigSecrets } from "../lib/encryption";
 import crypto from "crypto";
 
 // ---------------------------------------------------------------------------
@@ -476,7 +477,7 @@ export function createMcpServer(
         positionY: positionY ?? 200,
         label,
         entryType: type === "entry" ? (entryType ?? "api") : null,
-        config: JSON.stringify(nodeConfig),
+        config: JSON.stringify(encryptConfigSecrets(nodeConfig)),
         updatedAt: new Date(),
       });
 
@@ -546,7 +547,7 @@ export function createMcpServer(
       if (label !== undefined) updates.label = label;
       if (positionX !== undefined) updates.positionX = positionX;
       if (positionY !== undefined) updates.positionY = positionY;
-      if (config !== undefined) updates.config = JSON.stringify(config);
+      if (config !== undefined) updates.config = JSON.stringify(encryptConfigSecrets(config as Record<string, unknown>));
       if (entryType !== undefined) updates.entryType = entryType;
 
       await db
@@ -1101,7 +1102,7 @@ The server maps these to real UUIDs.`,
             nodeDef.type === "entry"
               ? (nodeDef.entryType ?? "api")
               : null,
-          config: JSON.stringify(nodeConfig),
+          config: JSON.stringify(encryptConfigSecrets(nodeConfig)),
           updatedAt: new Date(),
         });
 

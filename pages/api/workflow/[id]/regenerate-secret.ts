@@ -4,6 +4,7 @@ import { eq, and } from "drizzle-orm";
 import { generateWebhookSecret } from "@/lib/webhook-utils";
 import { apiHandler, sendError } from "@/lib/api-handler";
 import { validationError, notFoundError } from "@/lib/errors";
+import { encrypt } from "@/lib/encryption";
 
 export default apiHandler({
   POST: async (req, res, { userId }) => {
@@ -30,7 +31,7 @@ export default apiHandler({
 
     await db
       .update(workflowsTable)
-      .set({ webhookSecret: newSecret })
+      .set({ webhookSecret: encrypt(newSecret) })
       .where(eq(workflowsTable.id, workflowId));
 
     return res.status(200).json({
