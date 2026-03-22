@@ -16,7 +16,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
-import { Plus, Trash2, AlertTriangle } from 'lucide-react';
+import { Plus, Trash2, AlertTriangle, Brain, Bot } from 'lucide-react';
 import { Button } from './Button';
 import { EmailIcon } from './icons/Email';
 import { SlackIcon } from './icons/Slack';
@@ -26,7 +26,7 @@ import { Connection as ReactFlowConnection } from '@xyflow/react';
 import { generateNodeId } from '@/lib/workflow-utils';
 import { convertToReactFlow, convertFromReactFlow, ReactFlowNodeData } from '@/lib/reactflow-types';
 import { AI_MODELS } from '@/lib/constants';
-import { getDefaultConfig, NODE_CONFIGS, NodeType, NodeConfigKey } from '@/lib/node-registry';
+import { getDefaultConfig, getNodeLabel, NODE_CONFIGS, NodeType, NodeConfigKey } from '@/lib/node-registry';
 import { serializeNode } from '@/lib/node-utils';
 import TypeaheadTextarea from './TypeaheadTextarea';
 import { ToastContainer, toast } from 'react-toastify';
@@ -43,6 +43,7 @@ import ConditionNode from './reactflow-nodes/ConditionNode';
 import AgentNode from './reactflow-nodes/AgentNode';
 import Dropdown, { DropdownOption } from './Dropdown';
 import AgentToolPicker from './AgentToolPicker';
+import NodeSelector from './NodeSelector';
 import IntegrationConfigForm from './IntegrationConfigForm';
 import { isIntegration, getIntegrationConfigKey } from '@/lib/integrations/registry';
 import { createIntegrationNodeTypes } from './reactflow-nodes/IntegrationNode';
@@ -259,23 +260,6 @@ const ENTRY_TYPE_OPTIONS: DropdownOption[] = [
   { value: 'webhook', label: 'Webhook' },
 ];
 
-const NODE_TYPE_OPTIONS: DropdownOption[] = [
-  { value: 'entry', label: 'Entry' },
-  { value: 'ai', label: 'AI Model' },
-  { value: 'agent', label: 'Agent' },
-  { value: 'condition', label: 'Condition' },
-  { value: 'email', label: 'Email' },
-  { value: 'slack', label: 'Slack' },
-  { value: 'sms', label: 'SMS' },
-  { value: 'telegram', label: 'Telegram' },
-  { value: 'discord', label: 'Discord' },
-  { value: 'youtube', label: 'YouTube' },
-  { value: 'http_request', label: 'HTTP Request' },
-  { value: 'google_sheets', label: 'Google Sheets' },
-  { value: 'github', label: 'GitHub' },
-  { value: 'notion', label: 'Notion' },
-  { value: 'airtable', label: 'Airtable' },
-];
 
 // Wrapper component to provide React Flow context
 const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps>(({
@@ -403,21 +387,6 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
       y: connectionDropdownPosition.y
     });
 
-    // Get label for node type
-    const labelMap: Record<NodeType, string> = {
-      entry: 'Entry',
-      ai: 'AI Model',
-      agent: 'Agent',
-      scheduler: 'Scheduler',
-      review: 'Review',
-      email: 'Email',
-      slack: 'Slack',
-      sms: 'SMS',
-      telegram: 'Telegram',
-      condition: 'Condition',
-      youtube: 'YouTube',
-    };
-
     // Generate ONE ID for both React Flow node and node data
     const nodeId = generateNodeId();
 
@@ -425,7 +394,7 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
     const nodeData: Record<string, unknown> = {
       id: nodeId,
       type,
-      label: labelMap[type],
+      label: getNodeLabel(type),
     };
 
     // Add entry-specific fields
@@ -501,21 +470,6 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
       y: window.innerHeight / 2
     });
 
-    // Get label for node type
-    const labelMap: Record<NodeType, string> = {
-      entry: 'Entry',
-      ai: 'AI Model',
-      agent: 'Agent',
-      scheduler: 'Scheduler',
-      review: 'Review',
-      email: 'Email',
-      slack: 'Slack',
-      sms: 'SMS',
-      telegram: 'Telegram',
-      condition: 'Condition',
-      youtube: 'YouTube',
-    };
-
     // Generate ONE ID for both React Flow node and node data
     const nodeId = generateNodeId();
 
@@ -523,7 +477,7 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
     const nodeData: Record<string, unknown> = {
       id: nodeId,
       type,
-      label: labelMap[type],
+      label: getNodeLabel(type),
     };
 
     // Add entry-specific fields
@@ -898,21 +852,13 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
             <Plus className="text-foreground" size={20} />
           </Button>
           {showAddDropdown && (
-            <div className="absolute left-full top-0 ml-2 bg-surface border border-border rounded shadow-lg z-100 min-w-[120px]">
-              {NODE_TYPE_OPTIONS.map((option) => (
-                <Button
-                  key={option.value}
-                  onClick={() => {
-                    addNode(option.value as NodeType);
-                    setShowAddDropdown(false);
-                  }}
-                  variant="tertiary"
-                  className="!bg-transparent w-full !p-2 text-foreground hover:!bg-surface-hover text-sm transition-colors text-left rounded-none"
-                >
-                  {option.label}
-                </Button>
-              ))}
-            </div>
+            <NodeSelector
+              onSelect={(type) => {
+                addNode(type);
+                setShowAddDropdown(false);
+              }}
+              onClose={() => setShowAddDropdown(false)}
+            />
           )}
         </div>
         <div className="flex-1" />
@@ -954,31 +900,13 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
 
         {/* Connection drop-to-add-node dropdown */}
         {showConnectionDropdown && connectionDropdownPosition && (
-          <div
-            className="fixed bg-surface border border-border rounded shadow-lg z-50 min-w-[120px]"
-            style={{
-              left: connectionDropdownPosition.x,
-              top: connectionDropdownPosition.y,
+          <NodeSelector
+            onSelect={(type) => {
+              addNodeFromConnection(type);
             }}
-            onClick={(e) => e.stopPropagation()}
-            onMouseDown={(e) => e.stopPropagation()}
-          >
-            <div className="p-2 border-b border-border">
-              <p className="text-text-muted text-xs">Add node</p>
-            </div>
-            {NODE_TYPE_OPTIONS.filter(opt => opt.value !== 'entry').map((option) => (
-              <button
-                key={option.value}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  addNodeFromConnection(option.value as NodeType);
-                }}
-                className="bg-transparent w-full p-2 text-foreground hover:bg-surface-hover text-sm transition-colors text-left"
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
+            onClose={() => setShowConnectionDropdown(false)}
+            excludeTypes={['entry']}
+          />
         )}
       </div>
 
@@ -1009,37 +937,14 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
                   </>
                 ) : selectedNodeData?.type === 'ai' ? (
                   <>
-                    <div className="relative">
-                      <p className="font-['Inter:Regular',_sans-serif] font-normal h-[16px] leading-[normal] not-italic text-[15px] text-foreground w-[16.667px]">
-                        AI
-                      </p>
-                      <div className="absolute h-0 left-[14px] top-[3.56px] w-[6.667px]">
-                        <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 7 1">
-                          <line stroke="var(--foreground)" strokeWidth="0.5" x2="6.66671" y1="0.75" y2="0.75" />
-                        </svg>
-                      </div>
-                      <div className="absolute h-[7px] left-[17.67px] top-0 w-[7px]">
-                        <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 7 1" style={{ transform: 'rotate(90deg)', transformOrigin: '0 0', position: 'relative', left: '0', top: '7px' }}>
-                          <line stroke="var(--foreground)" strokeWidth="0.5" x2="7" y1="0.75" y2="0.75" />
-                        </svg>
-                      </div>
-                      <div className="absolute h-0 left-[17.67px] top-0 w-[7px]">
-                        <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 7 1" style={{ transform: 'rotate(90deg)', transformOrigin: '0 0', position: 'relative', left: '0', top: '7px' }}>
-                          <line stroke="var(--foreground)" strokeWidth="0.5" x2="7" y1="0.75" y2="0.75" />
-                        </svg>
-                      </div>
-                    </div>
-                    <p className="font-['Inter:Regular',_sans-serif] font-normal leading-[normal] ml-[15px] not-italic text-[20px] text-nowrap text-foreground whitespace-pre">
+                    <Brain className="w-5 h-5 text-foreground" />
+                    <p className="font-['Inter:Regular',_sans-serif] font-normal leading-[normal] ml-[4px] not-italic text-[20px] text-nowrap text-foreground whitespace-pre">
                       {selectedNodeData?.label}
                     </p>
                   </>
                 ) : selectedNodeData?.type === 'agent' ? (
                   <>
-                    <div className="relative">
-                      <p className="font-['Inter:Regular',_sans-serif] font-normal h-[16px] leading-[normal] not-italic text-[15px] text-accent w-auto">
-                        Agent
-                      </p>
-                    </div>
+                    <Bot className="w-5 h-5 text-foreground" />
                     <p className="font-['Inter:Regular',_sans-serif] font-normal leading-[normal] ml-[4px] not-italic text-[20px] text-nowrap text-foreground whitespace-pre">
                       {selectedNodeData?.label}
                     </p>

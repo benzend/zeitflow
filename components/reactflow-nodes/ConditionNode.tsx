@@ -21,8 +21,8 @@ interface ConditionNodeProps extends NodeProps {
  *   - "false" handle on bottom-right
  */
 const ConditionNode = memo(({ data, selected }: ConditionNodeProps) => {
-  const color = selected ? 'var(--success)' : 'var(--foreground)';
-  const borderColor = selected ? 'var(--success)' : 'var(--border)';
+  const color = selected ? 'var(--accent)' : 'var(--foreground)';
+  const borderColor = selected ? 'var(--accent)' : 'var(--border)';
   const invalidVariables = data.invalidVariables as string[] | undefined;
   const hasInvalidVars = invalidVariables && invalidVariables.length > 0;
 

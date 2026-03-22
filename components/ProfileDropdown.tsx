@@ -67,7 +67,7 @@ export default function ProfileDropdown() {
       >
         <ProfileIcon size={32} />
         <span className="text-foreground text-sm font-medium">
-          {session?.user?.name || session?.user?.email || "User"}
+          {session?.user?.name || "User"}
         </span>
         <svg
           className={`w-4 h-4 text-foreground transition-transform duration-200 ${
@@ -95,9 +95,6 @@ export default function ProfileDropdown() {
               <div>
                 <p className="text-foreground font-semibold">
                   {session?.user?.name || "User"}
-                </p>
-                <p className="text-gray-400 text-sm">
-                  {session?.user?.email}
                 </p>
               </div>
             </div>

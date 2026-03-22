@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import { ReactFlowNodeData } from '@/lib/reactflow-types';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Brain } from 'lucide-react';
 import { Tooltip } from 'react-tippy';
 
 interface AINodeProps {
@@ -10,23 +10,18 @@ interface AINodeProps {
 }
 
 const AINode = memo(({ data, selected }: AINodeProps) => {
-  const color = selected ? 'var(--success)' : 'var(--foreground)';
+  const color = selected ? 'var(--accent)' : 'var(--foreground)';
   const invalidVariables = data.invalidVariables as string[] | undefined;
   const hasInvalidVars = invalidVariables && invalidVariables.length > 0;
 
   return (
-    <div className={`px-3 py-2 bg-background-light border rounded-lg ${selected ? 'border-success' : 'border-border'} min-w-[89px] ${hasInvalidVars ? 'border-yellow-500/50' : ''}`}>
+    <div className={`px-3 py-2 bg-background-light border rounded-lg ${selected ? 'border-accent' : 'border-border'} min-w-[89px] ${hasInvalidVars ? 'border-yellow-500/50' : ''}`}>
       <Handle type="target" position={Position.Left} />
       <Handle type="source" position={Position.Right} />
 
       <div className="flex items-center justify-center">
         <div className="absolute left-3 top-2">
-          <p className="text-xs" style={{ color }}>AI</p>
-          <div className="h-0 mt-0.5 w-1">
-            <svg className="block w-full h-full" fill="none" viewBox="0 0 4 1">
-              <line stroke={color} strokeWidth="0.5" x2="4" y1="0.75" y2="0.75" />
-            </svg>
-          </div>
+          <Brain className="w-3.5 h-3.5" style={{ color }} />
         </div>
         <span className="text-xs text-foreground ml-5 whitespace-nowrap">{data.label}</span>
         {hasInvalidVars && (
