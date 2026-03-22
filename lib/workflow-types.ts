@@ -63,6 +63,33 @@ export interface ConditionConfig {
   rightValue: string;
 }
 
+export interface AgentToolConfig {
+  id: string;
+  type: 'integration' | 'custom_api';
+  // For integration tools:
+  integrationId?: string;
+  integrationConfig?: Record<string, unknown>;
+  // For custom API tools:
+  name?: string;
+  description?: string;
+  parameterSchema?: string;
+  endpoint?: string;
+  method?: string;
+  headers?: string;
+}
+
+export interface AgentNodeConfig {
+  model: string;
+  systemPrompt: string;
+  userPrompt: string;
+  temperature: number;
+  maxSteps: number;
+  maxTokens?: number;
+  tools: AgentToolConfig[];
+  outputType: 'text' | 'structured';
+  outputStructure?: string;
+}
+
 export interface YouTubeConfig {
   mode: 'fetch' | 'comment';
   videoUrl?: string;
@@ -71,13 +98,14 @@ export interface YouTubeConfig {
 
 export interface NodeData {
   id: string;
-  type: 'entry' | 'ai' | 'scheduler' | 'review' | 'slack' | 'email' | 'sms' | 'telegram' | 'condition' | 'youtube';
+  type: 'entry' | 'ai' | 'agent' | 'scheduler' | 'review' | 'slack' | 'email' | 'sms' | 'telegram' | 'condition' | 'youtube';
   x: number;
   y: number;
   label: string;
   fields?: Field[];
   entryType?: string;
   aiConfig?: AINodeConfig;
+  agentConfig?: AgentNodeConfig;
   schedulerConfig?: SchedulerConfig;
   reviewConfig?: ReviewConfig;
   emailConfig?: EmailConfig;

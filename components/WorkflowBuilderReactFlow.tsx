@@ -21,7 +21,7 @@ import { Button } from './Button';
 import { EmailIcon } from './icons/Email';
 import { SlackIcon } from './icons/Slack';
 import { SMSIcon } from './icons/SMS';
-import { NodeData, Connection as WorkflowConnection, Field, EmailConfig, SlackConfig, SMSConfig, TelegramConfig, ConditionConfig, SchedulerConfig, AINodeConfig, ReviewConfig } from '@/lib/workflow-types';
+import { NodeData, Connection as WorkflowConnection, Field, EmailConfig, SlackConfig, SMSConfig, TelegramConfig, ConditionConfig, SchedulerConfig, AINodeConfig, AgentNodeConfig, AgentToolConfig, ReviewConfig } from '@/lib/workflow-types';
 import { Connection as ReactFlowConnection } from '@xyflow/react';
 import { generateNodeId } from '@/lib/workflow-utils';
 import { convertToReactFlow, convertFromReactFlow, ReactFlowNodeData } from '@/lib/reactflow-types';
@@ -40,7 +40,9 @@ import SlackNode from './reactflow-nodes/SlackNode';
 import SMSNode from './reactflow-nodes/SMSNode';
 import TelegramNode from './reactflow-nodes/TelegramNode';
 import ConditionNode from './reactflow-nodes/ConditionNode';
+import AgentNode from './reactflow-nodes/AgentNode';
 import Dropdown, { DropdownOption } from './Dropdown';
+import AgentToolPicker from './AgentToolPicker';
 import IntegrationConfigForm from './IntegrationConfigForm';
 import { isIntegration, getIntegrationConfigKey } from '@/lib/integrations/registry';
 import { createIntegrationNodeTypes } from './reactflow-nodes/IntegrationNode';
@@ -65,6 +67,7 @@ export interface WorkflowBuilderRef {
 const nodeTypes: NodeTypes = {
   entry: EntryNode,
   ai: AINode,
+  agent: AgentNode,
   scheduler: SchedulerNode,
   review: ReviewNode,
   email: EmailNode,
@@ -259,6 +262,7 @@ const ENTRY_TYPE_OPTIONS: DropdownOption[] = [
 const NODE_TYPE_OPTIONS: DropdownOption[] = [
   { value: 'entry', label: 'Entry' },
   { value: 'ai', label: 'AI Model' },
+  { value: 'agent', label: 'Agent' },
   { value: 'condition', label: 'Condition' },
   { value: 'email', label: 'Email' },
   { value: 'slack', label: 'Slack' },
@@ -403,6 +407,7 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
     const labelMap: Record<NodeType, string> = {
       entry: 'Entry',
       ai: 'AI Model',
+      agent: 'Agent',
       scheduler: 'Scheduler',
       review: 'Review',
       email: 'Email',
@@ -500,6 +505,7 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
     const labelMap: Record<NodeType, string> = {
       entry: 'Entry',
       ai: 'AI Model',
+      agent: 'Agent',
       scheduler: 'Scheduler',
       review: 'Review',
       email: 'Email',
@@ -699,10 +705,20 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
     }
   }, [selectedNode, nodes, updateNodeData]);
 
-  const updateSchedulerConfig = useCallback((updates: { 
-    people?: string[]; 
-    minTimeRequirement?: string; 
-    calendar?: string 
+  const updateAgentConfig = useCallback((updates: Partial<AgentNodeConfig>) => {
+    if (!selectedNode) return;
+    const currentNode = nodes.find(n => n.id === selectedNode);
+    if (currentNode?.data.agentConfig) {
+      updateNodeData(selectedNode, {
+        agentConfig: { ...currentNode.data.agentConfig, ...updates }
+      });
+    }
+  }, [selectedNode, nodes, updateNodeData]);
+
+  const updateSchedulerConfig = useCallback((updates: {
+    people?: string[];
+    minTimeRequirement?: string;
+    calendar?: string
   }) => {
     if (!selectedNode) return;
     const currentNode = nodes.find(n => n.id === selectedNode);
@@ -1017,6 +1033,17 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
                       {selectedNodeData?.label}
                     </p>
                   </>
+                ) : selectedNodeData?.type === 'agent' ? (
+                  <>
+                    <div className="relative">
+                      <p className="font-['Inter:Regular',_sans-serif] font-normal h-[16px] leading-[normal] not-italic text-[15px] text-accent w-auto">
+                        Agent
+                      </p>
+                    </div>
+                    <p className="font-['Inter:Regular',_sans-serif] font-normal leading-[normal] ml-[4px] not-italic text-[20px] text-nowrap text-foreground whitespace-pre">
+                      {selectedNodeData?.label}
+                    </p>
+                  </>
                 ) : selectedNodeData?.type === 'scheduler' ? (
                   <>
                     <div className="h-[20px] relative w-[20px]">
@@ -1078,6 +1105,12 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
                   <div className="bg-success py-[3px] overflow-clip rounded-[10px] w-[49px]">
                     <p className="font-['Inter:Regular',_sans-serif] font-normal leading-[normal] not-italic text-[6px] text-foreground text-nowrap top-px whitespace-pre text-center">
                       Transformer
+                    </p>
+                  </div>
+                ) : selectedNodeData?.type === 'agent' ? (
+                  <div className="bg-accent py-[3px] overflow-clip rounded-[10px] w-[49px]">
+                    <p className="font-['Inter:Regular',_sans-serif] font-normal leading-[normal] not-italic text-[6px] text-foreground text-nowrap top-px whitespace-pre text-center">
+                      Autonomous
                     </p>
                   </div>
                 ) : selectedNodeData?.type === 'scheduler' ? (
@@ -1386,6 +1419,124 @@ const WorkflowBuilderInner = forwardRef<WorkflowBuilderRef, WorkflowBuilderProps
                    />
                  </div>
                </div>
+            </div>
+          ) : selectedNodeData?.type === 'agent' && selectedNodeData.agentConfig ? (
+            <div className="mt-[20px] px-[20px] pb-[20px]">
+              <div className="mb-[20px]">
+                <h2 className="text-foreground text-lg font-bold mb-[4px]">
+                  Agent Configuration
+                </h2>
+                <p className="text-text-muted text-sm leading-relaxed">
+                  Configure an autonomous agent with tools and prompts
+                </p>
+              </div>
+
+              <div className="mb-[16px]">
+                <label className="block text-foreground-light font-medium mb-[8px]">
+                  Node Label
+                </label>
+                <div className="bg-background-extra-light border-border border-[0.5px] h-[32px] rounded-[8px] overflow-hidden">
+                  <input
+                    type="text"
+                    value={selectedNodeData.label || ''}
+                    onChange={(e) => updateNodeData(selectedNode!, { label: e.target.value })}
+                    placeholder="Enter node label"
+                    className="bg-transparent h-full w-full px-[12px] text-[12px] text-foreground placeholder-text-placeholder outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="mb-[16px]">
+                <label className="block text-foreground-light font-medium mb-[8px]">
+                  AI Model
+                </label>
+                <Dropdown
+                  value={(selectedNodeData.agentConfig as AgentNodeConfig).model}
+                  onChange={(value) => updateAgentConfig({ model: value })}
+                  options={AI_MODELS}
+                  className="h-[32px]"
+                />
+              </div>
+
+              <div className="mb-[16px]">
+                <label className="block text-foreground-light font-medium mb-[8px]">
+                  Temperature: {(selectedNodeData.agentConfig as AgentNodeConfig).temperature ?? 0.7}
+                </label>
+                <input
+                  type="range"
+                  min="0"
+                  max="2"
+                  step="0.1"
+                  value={(selectedNodeData.agentConfig as AgentNodeConfig).temperature ?? 0.7}
+                  onChange={(e) => updateAgentConfig({ temperature: parseFloat(e.target.value) })}
+                  className="w-full accent-accent"
+                />
+                <div className="flex justify-between text-[10px] text-text-muted mt-1">
+                  <span>Precise (0)</span>
+                  <span>Creative (2)</span>
+                </div>
+              </div>
+
+              <div className="mb-[16px]">
+                <label className="block text-foreground-light font-medium mb-[8px]">
+                  Max Steps: {(selectedNodeData.agentConfig as AgentNodeConfig).maxSteps || 5}
+                </label>
+                <input
+                  type="range"
+                  min="1"
+                  max="20"
+                  step="1"
+                  value={(selectedNodeData.agentConfig as AgentNodeConfig).maxSteps || 5}
+                  onChange={(e) => updateAgentConfig({ maxSteps: parseInt(e.target.value) })}
+                  className="w-full accent-accent"
+                />
+                <div className="flex justify-between text-[10px] text-text-muted mt-1">
+                  <span>1</span>
+                  <span>20</span>
+                </div>
+              </div>
+
+              <div className="mb-[16px]">
+                <label className="block text-foreground-light font-medium mb-[8px]">
+                  System Prompt
+                </label>
+                <div className="bg-background-extra-light mt-[4px] rounded">
+                  <TypeaheadTextarea
+                    value={(selectedNodeData.agentConfig as AgentNodeConfig).systemPrompt || ''}
+                    onChange={(value) => updateAgentConfig({ systemPrompt: value })}
+                    suggestions={getFieldSuggestions(selectedNode!)}
+                    className="bg-transparent font-['Inter:Regular',_sans-serif] font-normal h-[119px] leading-[normal] not-italic outline-none p-4 resize-none text-sm text-foreground w-full"
+                    placeholder="Enter system prompt... Type {{ for variables"
+                    hintNoSuggestionsMessage={"No variables found"}
+                  />
+                </div>
+              </div>
+
+              <div className="mb-[16px]">
+                <label className="block text-foreground-light font-medium mb-[8px]">
+                  User Prompt
+                </label>
+                <div className="bg-background-extra-light mt-[4px] rounded">
+                  <TypeaheadTextarea
+                    value={(selectedNodeData.agentConfig as AgentNodeConfig).userPrompt || ''}
+                    onChange={(value) => updateAgentConfig({ userPrompt: value })}
+                    suggestions={getFieldSuggestions(selectedNode!)}
+                    className="bg-transparent font-['Inter:Regular',_sans-serif] font-normal h-[119px] leading-[normal] not-italic outline-none p-4 resize-none text-sm text-foreground w-full"
+                    placeholder="Enter user prompt... Type {{ for variables"
+                    hintNoSuggestionsMessage={"No variables found"}
+                  />
+                </div>
+              </div>
+
+              <div className="mb-[16px]">
+                <label className="block text-foreground-light font-medium mb-[8px]">
+                  Tools
+                </label>
+                <AgentToolPicker
+                  tools={(selectedNodeData.agentConfig as AgentNodeConfig).tools || []}
+                  onChange={(tools) => updateAgentConfig({ tools })}
+                />
+              </div>
             </div>
           ) : selectedNodeData?.type === 'scheduler' && selectedNodeData.schedulerConfig ? (
             <div className="mt-[20px] px-[20px] pb-[20px]">

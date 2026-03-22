@@ -51,6 +51,28 @@ export function getNodeOutputs(node: NodeData): OutputField[] {
       });
       break;
 
+    case 'agent':
+      // Agent nodes output the final response and tool call data
+      outputs.push({
+        key: `${varName}.output`,
+        label: 'Agent Output',
+        description: `${node.label} - Final text response from agent`,
+        nodeId: node.id,
+      });
+      outputs.push({
+        key: `${varName}.tool_calls`,
+        label: 'Tool Calls',
+        description: `${node.label} - JSON array of all tool calls and results`,
+        nodeId: node.id,
+      });
+      outputs.push({
+        key: `${varName}.last_tool_result`,
+        label: 'Last Tool Result',
+        description: `${node.label} - Result of the last tool call`,
+        nodeId: node.id,
+      });
+      break;
+
     case 'scheduler':
       // Scheduler nodes output event details
       outputs.push({

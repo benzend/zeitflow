@@ -186,7 +186,7 @@ function convertYamlNodeToNodeData(yamlNode: Record<string, unknown>, allNodes: 
   }
 
   const type = yamlNode.type;
-  const VALID_NODE_TYPES = ['entry', 'form', 'ai', 'scheduler', 'review', 'slack', 'email'];
+  const VALID_NODE_TYPES = ['entry', 'form', 'ai', 'agent', 'scheduler', 'review', 'slack', 'email'];
   
   if (typeof type !== 'string' || !VALID_NODE_TYPES.includes(type)) {
     return null;

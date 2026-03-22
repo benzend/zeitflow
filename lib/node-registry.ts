@@ -5,7 +5,7 @@
  * Adding a new node type? Just add it here and most serialization/comparison happens automatically!
  */
 
-import { AINodeConfig, SchedulerConfig, ReviewConfig, EmailConfig, SlackConfig, SMSConfig, TelegramConfig, ConditionConfig, YouTubeConfig } from './workflow-types';
+import { AINodeConfig, AgentNodeConfig, SchedulerConfig, ReviewConfig, EmailConfig, SlackConfig, SMSConfig, TelegramConfig, ConditionConfig, YouTubeConfig } from './workflow-types';
 
 /**
  * Node configuration registry
@@ -29,6 +29,19 @@ export const NODE_CONFIGS = {
       hasTemplate: false,
       templateText: ''
     } as AINodeConfig,
+  },
+  agent: {
+    configKey: 'agentConfig' as const,
+    defaultConfig: {
+      model: 'google/gemini-2.0-flash-001',
+      systemPrompt: '',
+      userPrompt: '',
+      temperature: 0.7,
+      maxSteps: 5,
+      tools: [],
+      outputType: 'text',
+      outputStructure: '',
+    } as AgentNodeConfig,
   },
   scheduler: {
     configKey: 'schedulerConfig' as const,
