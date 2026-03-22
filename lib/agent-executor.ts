@@ -107,10 +107,10 @@ export async function executeAgent(
           for (const tc of step.toolCalls) {
             toolCalls.push({
               toolName: tc.toolName,
-              args: tc.args,
+              args: tc.input,
               result: step.toolResults?.find(
                 (tr: { toolCallId: string }) => tr.toolCallId === tc.toolCallId
-              )?.result,
+              )?.output,
               durationMs: 0,
             });
           }
