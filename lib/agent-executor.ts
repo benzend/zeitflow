@@ -95,7 +95,7 @@ export async function executeAgent(
       tools: toolCount > 0 ? tools : undefined,
       stopWhen: stepCountIs(maxSteps),
       temperature: config.temperature ?? 0.7,
-      maxTokens: config.maxTokens,
+      maxOutputTokens: config.maxTokens,
     });
 
     endTimer();
