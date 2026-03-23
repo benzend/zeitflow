@@ -10,7 +10,8 @@ interface NodeSelectorProps {
 }
 
 function getIcon(iconName: string) {
-  const Icon = (LucideIcons as Record<string, React.ComponentType<{ className?: string }>>)[iconName];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const Icon = (LucideIcons as any)[iconName];
   return Icon || LucideIcons.Circle;
 }
 
