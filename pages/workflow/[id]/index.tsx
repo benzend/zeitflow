@@ -37,10 +37,33 @@ export default function WorkflowBuilderPage() {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showSaveAsTemplateModal, setShowSaveAsTemplateModal] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  const [nameValue, setNameValue] = useState("");
   const originalNodes = useRef<NodeData[]>([]);
   const originalConnections = useRef<Connection[]>([]);
   const currentNodes = useRef<NodeData[]>([]);
   const currentConnections = useRef<Connection[]>([]);
+
+  const saveWorkflowName = useCallback(async () => {
+    const trimmed = nameValue.trim();
+    if (!trimmed || trimmed === workflow?.name || !workflow?.id) {
+      setEditingName(false);
+      return;
+    }
+    try {
+      const res = await fetch(`/api/workflow/${workflow.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: trimmed }),
+      });
+      if (res.ok) {
+        setWorkflow((prev) => prev ? { ...prev, name: trimmed } : prev);
+      }
+    } catch {
+      // ignore
+    }
+    setEditingName(false);
+  }, [nameValue, workflow]);
 
   const fetchWorkflow = async (workflowId: number) => {
     try {
@@ -325,7 +348,29 @@ export default function WorkflowBuilderPage() {
             <ArrowLeft className="text-foreground p-1" />
           </button>
           <div className="flex items-center gap-4">
-            <h1 className="text-foreground font-semibold">{workflow?.name}</h1>
+            {editingName ? (
+              <input
+                type="text"
+                value={nameValue}
+                onChange={(e) => setNameValue(e.target.value)}
+                onBlur={saveWorkflowName}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') saveWorkflowName();
+                  if (e.key === 'Escape') { setEditingName(false); setNameValue(workflow?.name || ''); }
+                }}
+                maxLength={100}
+                autoFocus
+                className="text-foreground font-semibold bg-transparent border-b border-primary outline-none"
+              />
+            ) : (
+              <h1
+                className="text-foreground font-semibold cursor-pointer hover:text-primary transition-colors"
+                onClick={() => { setNameValue(workflow?.name || ''); setEditingName(true); }}
+                title="Click to rename"
+              >
+                {workflow?.name}
+              </h1>
+            )}
             {workflow?.description && (
               <p className="text-sm text-text-muted">{workflow.description}</p>
             )}

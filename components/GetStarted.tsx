@@ -31,13 +31,9 @@ const CLIENTS: ClientMeta[] = [
   { id: "npm", name: "npx (local)" },
 ];
 
-function getAppUrl(): string {
-  if (typeof window !== "undefined") return window.location.origin;
-  return "https://www.zeitflow.io";
-}
+const DEFAULT_APP_URL = "https://www.zeitflow.io";
 
-function generateConfig(client: Client, token: string): string {
-  const url = getAppUrl();
+function generateConfig(client: Client, token: string, url: string): string {
   const placeholder = token || "YOUR_API_TOKEN";
 
   if (client === "npm") {
@@ -75,9 +71,9 @@ function generateConfig(client: Client, token: string): string {
   );
 }
 
-function getCliCommand(token: string): string {
+function getCliCommand(token: string, url: string): string {
   const placeholder = token || "YOUR_API_TOKEN";
-  return `claude mcp add zeitflow --transport http "${getAppUrl()}/api/mcp" --header "Authorization: Bearer ${placeholder}"`;
+  return `claude mcp add zeitflow --transport http "${url}/api/mcp" --header "Authorization: Bearer ${placeholder}"`;
 }
 
 interface GetStartedProps {
@@ -89,6 +85,11 @@ export default function GetStarted({ onCreateWorkflow }: GetStartedProps) {
   const [loadingToken, setLoadingToken] = useState(true);
   const [selectedClient, setSelectedClient] = useState<Client>("claude-desktop");
   const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
+  const [appUrl, setAppUrl] = useState(DEFAULT_APP_URL);
+
+  useEffect(() => {
+    setAppUrl(window.location.origin);
+  }, []);
 
   useEffect(() => {
     async function fetchToken() {
@@ -124,7 +125,7 @@ export default function GetStarted({ onCreateWorkflow }: GetStartedProps) {
     }
   }, []);
 
-  const config = generateConfig(selectedClient, apiToken || "");
+  const config = generateConfig(selectedClient, apiToken || "", appUrl);
 
   return (
     <div className="col-span-full space-y-8">
@@ -225,9 +226,9 @@ export default function GetStarted({ onCreateWorkflow }: GetStartedProps) {
               </label>
               <div className="flex items-start gap-2">
                 <pre className="flex-1 bg-background-extra-light p-3 rounded text-sm text-foreground font-mono overflow-x-auto whitespace-pre-wrap break-all">
-                  {getCliCommand(apiToken)}
+                  {getCliCommand(apiToken, appUrl)}
                 </pre>
-                <CopyButton text={getCliCommand(apiToken)} />
+                <CopyButton text={getCliCommand(apiToken, appUrl)} />
               </div>
             </div>
           )}

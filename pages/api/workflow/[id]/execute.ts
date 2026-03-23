@@ -6,6 +6,7 @@ import { workflowsTable, workflowNodesTable, workflowConnectionsTable, workflowE
 import { eq } from "drizzle-orm";
 
 import { chat } from "@/lib/openrouter";
+import { executeAgent } from "@/lib/agent-executor";
 import { extractVariables } from "@/lib/variables-client";
 // Legacy imports - kept for backward compatibility
 import { sendWorkflowEmail } from "@/lib/email";
@@ -671,6 +672,67 @@ async function executeWorkflow(
         }
         outputData[node.id] = { response: aiResponse.text };
         nodeLogger.info(`AI response received`, { responseLength: aiResponse.text?.length || 0 });
+        allLogs.push(...nodeLogger.getEntries());
+        break;
+      case 'agent':
+        const agentConfig = (config.agentConfig || {}) as Record<string, unknown>;
+        nodeLogger.info(`Processing agent node`, { label: node.label, model: agentConfig.model || 'default' });
+
+        // Collect available variables from connected nodes
+        const agentVariables = collectAvailableVariables(node.id, connections, nodes, inputData, outputData);
+        nodeLogger.debug(`Variables collected for agent`, { variableCount: Object.keys(agentVariables).length });
+
+        // Substitute variables in prompts
+        const agentSystemPrompt = agentConfig.systemPrompt
+          ? substituteVariables(agentConfig.systemPrompt as string, agentVariables)
+          : '';
+        const agentUserPrompt = agentConfig.userPrompt
+          ? substituteVariables(agentConfig.userPrompt as string, agentVariables)
+          : '';
+
+        const agentEndTimer = nodeLogger.startTimer('Agent execution');
+        const agentResult = await executeAgent(
+          {
+            model: (agentConfig.model as string) || 'google/gemini-2.0-flash-001',
+            systemPrompt: agentSystemPrompt,
+            userPrompt: agentUserPrompt,
+            temperature: (agentConfig.temperature as number) ?? 0.7,
+            maxSteps: (agentConfig.maxSteps as number) || 5,
+            maxTokens: agentConfig.maxTokens as number | undefined,
+            tools: (agentConfig.tools as Array<Record<string, unknown>>) || [],
+            outputType: (agentConfig.outputType as 'text' | 'structured') || 'text',
+            outputStructure: agentConfig.outputStructure as string | undefined,
+          },
+          {
+            userId,
+            executionId: executionId.toString(),
+            nodeId: node.id,
+            variables: agentVariables,
+            logger: nodeLogger,
+            db,
+          }
+        );
+        agentEndTimer();
+
+        if (agentResult.error) {
+          outputData[node.id] = { error: agentResult.error };
+          nodeLogger.error(`Agent execution failed`, { error: agentResult.error });
+          allLogs.push(...nodeLogger.getEntries());
+          break;
+        }
+
+        outputData[node.id] = {
+          output: agentResult.response,
+          tool_calls: JSON.stringify(agentResult.toolCalls),
+          last_tool_result: agentResult.toolCalls.length > 0
+            ? JSON.stringify(agentResult.toolCalls[agentResult.toolCalls.length - 1]?.result)
+            : '',
+        };
+        nodeLogger.info(`Agent completed`, {
+          responseLength: agentResult.response?.length || 0,
+          toolCallCount: agentResult.toolCalls.length,
+          totalSteps: agentResult.totalSteps,
+        });
         allLogs.push(...nodeLogger.getEntries());
         break;
       case 'scheduler':

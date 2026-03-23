@@ -10,12 +10,12 @@ interface ReviewNodeProps {
 }
 
 const ReviewNode = memo(({ data, selected }: ReviewNodeProps) => {
-  const color = selected ? 'var(--success)' : 'var(--foreground)';
+  const color = selected ? 'var(--accent)' : 'var(--foreground)';
   const invalidVariables = data.invalidVariables as string[] | undefined;
   const hasInvalidVars = invalidVariables && invalidVariables.length > 0;
 
   return (
-    <div className={`px-3 py-2 bg-background-light border rounded-lg ${selected ? 'border-success' : 'border-border'} min-w-[89px] ${hasInvalidVars ? 'border-yellow-500/50' : ''}`}>
+    <div className={`px-3 py-2 bg-background-light border rounded-lg ${selected ? 'border-accent' : 'border-border'} min-w-[89px] ${hasInvalidVars ? 'border-yellow-500/50' : ''}`}>
       <Handle type="target" position={Position.Left} />
 
       <div className="flex items-center justify-center">

@@ -103,10 +103,12 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     session: async ({ session }) => {
       if (session?.user?.email) {
-        // Add user ID to session
         const user = await db.select().from(usersTable).where(eq(usersTable.email, session.user.email)).limit(1);
         if (user.length > 0) {
           session.user.email = user[0].email;
+          if (user[0].name) {
+            session.user.name = user[0].name;
+          }
         }
       }
       return session;

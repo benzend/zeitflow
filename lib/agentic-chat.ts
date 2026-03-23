@@ -56,7 +56,7 @@ const smsConfigSchema = z.object({
 });
 
 const workflowNodeSchema = z.object({
-  type: z.enum(['entry', 'ai', 'scheduler', 'review', 'slack', 'email', 'sms']),
+  type: z.enum(['entry', 'ai', 'agent', 'scheduler', 'review', 'slack', 'email', 'sms']),
   label: z.string().optional(),
   // Type-specific configs
   fields: z.array(fieldSchema).optional().describe('For entry nodes: form fields to collect'),

@@ -16,6 +16,9 @@ export default function Settings() {
   const [confirmEmail, setConfirmEmail] = useState("");
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState("");
+  const [editingName, setEditingName] = useState(false);
+  const [nameValue, setNameValue] = useState("");
+  const [nameSaving, setNameSaving] = useState(false);
 
   // Redirect to sign-in if not authenticated
   useEffect(() => {
@@ -128,7 +131,78 @@ export default function Settings() {
                     <label className="block text-sm font-medium text-foreground mb-2">
                       Name
                     </label>
-                    <p className="text-gray-400">{session.user?.name || "Not provided"}</p>
+                    {editingName ? (
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={nameValue}
+                          onChange={(e) => setNameValue(e.target.value)}
+                          maxLength={100}
+                          className="bg-background border border-border rounded-md px-3 py-1.5 text-sm text-foreground outline-none focus:border-primary"
+                          autoFocus
+                          onKeyDown={(e) => {
+                            if (e.key === 'Escape') setEditingName(false);
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              if (nameValue.trim()) {
+                                setNameSaving(true);
+                                fetch('/api/user/name', {
+                                  method: 'PUT',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ name: nameValue.trim() }),
+                                }).then((res) => {
+                                  if (res.ok) {
+                                    setEditingName(false);
+                                    // Force session refresh
+                                    window.location.reload();
+                                  }
+                                }).finally(() => setNameSaving(false));
+                              }
+                            }
+                          }}
+                        />
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          disabled={nameSaving || !nameValue.trim()}
+                          onClick={() => {
+                            if (!nameValue.trim()) return;
+                            setNameSaving(true);
+                            fetch('/api/user/name', {
+                              method: 'PUT',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ name: nameValue.trim() }),
+                            }).then((res) => {
+                              if (res.ok) {
+                                setEditingName(false);
+                                window.location.reload();
+                              }
+                            }).finally(() => setNameSaving(false));
+                          }}
+                        >
+                          {nameSaving ? 'Saving...' : 'Save'}
+                        </Button>
+                        <button
+                          onClick={() => setEditingName(false)}
+                          className="text-sm text-gray-400 hover:text-foreground transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <p className="text-gray-400">{session.user?.name || "Not provided"}</p>
+                        <button
+                          onClick={() => {
+                            setNameValue(session.user?.name || "");
+                            setEditingName(true);
+                          }}
+                          className="text-sm text-primary hover:text-primary/80 transition-colors"
+                        >
+                          Edit
+                        </button>
+                      </div>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">

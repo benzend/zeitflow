@@ -32,8 +32,8 @@ const IntegrationNode = memo(({ data, selected }: IntegrationNodeProps) => {
   const metadata = getIntegrationUIMetadata(integrationId);
 
   // Determine colors
-  const borderColor = selected ? 'var(--success)' : 'var(--border)';
-  const iconColor = selected ? 'var(--success)' : 'var(--foreground)';
+  const borderColor = selected ? 'var(--accent)' : 'var(--border)';
+  const iconColor = selected ? 'var(--accent)' : 'var(--foreground)';
   
   const invalidVariables = data.invalidVariables as string[] | undefined;
   const hasInvalidVars = invalidVariables && invalidVariables.length > 0;

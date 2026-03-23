@@ -31,13 +31,13 @@ const getEntryTypeLabel = (entryType: string) => {
 
 const EntryNode = memo(({ data, selected }: EntryNodeProps) => {
   const [isHovered, setIsHovered] = useState(false);
-  const color = selected ? 'var(--success)' : 'var(--foreground)';
+  const color = selected ? 'var(--accent)' : 'var(--foreground)';
   const invalidVariables = data.invalidVariables as string[] | undefined;
   const hasInvalidVars = invalidVariables && invalidVariables.length > 0;
 
   return (
     <div
-      className={`px-3 py-2 bg-background-light border rounded-lg ${selected ? 'border-success' : 'border-border'} min-w-[98px] relative ${hasInvalidVars ? 'border-yellow-500/50' : ''}`}
+      className={`px-3 py-2 bg-background-light border rounded-lg ${selected ? 'border-accent' : 'border-border'} min-w-[98px] relative ${hasInvalidVars ? 'border-yellow-500/50' : ''}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
