@@ -15,6 +15,10 @@ import { join } from "path";
 import { homedir } from "os";
 import { createInterface } from "readline";
 
+const CLI_VERSION: string = JSON.parse(
+  readFileSync(join(__dirname, "..", "package.json"), "utf-8")
+).version;
+
 // ---------------------------------------------------------------------------
 // Config
 // ---------------------------------------------------------------------------
@@ -1533,6 +1537,24 @@ so if you've already authenticated with one, the other picks it up automatically
     # Trigger a specific entry node
     zeitflow workflow run 42 --entry-node entry_abc123
 
+### Statistics
+
+    # Get execution stats for a workflow
+    zeitflow workflow stats 42
+
+### Opening in Browser
+
+    # Open the workflow editor in your default browser
+    zeitflow workflow open 42
+
+### Visualizing — zeitflow workflow visualize (alias: viz)
+
+    # Print an ASCII graph of the workflow
+    zeitflow workflow visualize 42
+
+    # JSON output for programmatic use
+    zeitflow workflow visualize 42 --output json
+
 ## Executions — zeitflow execution (alias: exec)
 
     zeitflow execution list --workflow 42           List executions for a workflow
@@ -1544,6 +1566,33 @@ so if you've already authenticated with one, the other picks it up automatically
 ## Node Management — zeitflow workflow
 
 Build workflows entirely from the CLI by adding nodes, connecting them, and updating their config.
+
+### Supported Node Types
+
+  entry       Data entry / form inputs (API, Form, or Webhook)
+  ai          AI processing with model selection and prompts
+  condition   Conditional branching based on expressions
+  email       Email notifications via Resend
+  slack       Slack messaging
+  sms         SMS / text messaging via Twilio
+  telegram    Telegram messaging
+  discord     Discord messages via webhook
+  whatsapp    WhatsApp messages via Twilio
+  youtube     Fetch video data or post comments
+  scheduler   Calendar scheduling with Google Calendar
+  review      Manual validation / approval steps
+  http_request  Make HTTP requests to any API endpoint
+  webhook     Send data to any URL via outgoing webhook
+  google_sheets  Read and write data in Google Sheets
+  github      Create issues, comments, manage repositories
+  notion      Create pages, query databases in Notion
+  airtable    Read and write records in Airtable
+  jira        Create and manage Jira issues
+  hubspot     Manage contacts and deals in HubSpot CRM
+  linear      Create and manage Linear issues
+  google_drive  Manage files in Google Drive
+  stripe      Manage Stripe payments
+  shopify     Manage Shopify store data
 
 ### Adding Nodes
 
@@ -1558,6 +1607,20 @@ Build workflows entirely from the CLI by adding nodes, connecting them, and upda
     # Add a condition node
     zeitflow workflow add-node --workflow 42 --type condition --label "Is Urgent" \\
       --config '{"leftValue":"{{classify.output}}","operator":"contains","rightValue":"urgent"}'
+
+    # Add a Slack node
+    zeitflow workflow add-node --workflow 42 --type slack --label "Alert Team" \\
+      --config '{"channel":"#alerts","message":"Urgent: {{classify.output}}"}'
+
+    # Specify position (optional)
+    zeitflow workflow add-node --workflow 42 --type ai --label "Step" --x 300 --y 400 \\
+      --config '{"userPrompt":"..."}'
+
+    # Use --node-type as an alternative to --type
+    zeitflow workflow add-node --workflow 42 --node-type email --label "Notify"
+
+    # Set entry type (api, form, or webhook) for entry nodes
+    zeitflow workflow add-node --workflow 42 --type entry --label "API Input" --entry-type api
 
 ### Connecting Nodes
 
@@ -1580,6 +1643,12 @@ Build workflows entirely from the CLI by adding nodes, connecting them, and upda
     # Add entry fields (required for input data to flow through)
     zeitflow workflow update-node --workflow 42 --node entry_abc \\
       --fields '[{"key":"name","name":"Name","type":"text"},{"key":"email","name":"Email","type":"text"}]'
+
+    # Update position
+    zeitflow workflow update-node --workflow 42 --node ai_def --x 400 --y 300
+
+    # Change entry type
+    zeitflow workflow update-node --workflow 42 --node entry_abc --entry-type webhook
 
 ### Other Node Commands
 
@@ -1626,6 +1695,9 @@ API server is reachable, token has correct permissions.
 
     zeitflow template list                          List available templates
     zeitflow template list --visibility public      List public templates
+    zeitflow template list --category "Productivity" Filter by category
+    zeitflow template list --search "support"       Search templates
+    zeitflow template list --limit 10               Limit results (default: 50)
     zeitflow template get <ID>                      Get template details
     zeitflow template use <ID>                      Create a workflow from a template
     zeitflow template use <ID> --name "My Workflow" Create with a custom name
@@ -1649,6 +1721,9 @@ Describe a workflow in natural language and let AI build it.
 
     # Use with an existing workflow to modify it
     zeitflow workflow generate "Add an SMS notification node after the email" --workflow 42
+
+    # Specify AI model
+    zeitflow workflow generate "Summarize daily reports" --model google/gemini-2.0-flash-001
 
 ## Setup MCP — zeitflow setup mcp
 
@@ -1695,7 +1770,8 @@ Supported clients: claude-desktop, claude-code, cursor, vscode, windsurf.
   2. Set ZEITFLOW_URL in your environment to point at a custom API endpoint
   3. Check zeitflow auth status --output json before making API calls
   4. Run --help to discover all available commands and flags
-  5. Aliases save keystrokes: wf (workflow), exec (execution), ls (list), rm (delete)
+  5. Aliases save keystrokes: wf (workflow), exec (execution), tpl (template),
+     int (integration), ls (list), rm (delete), viz (visualize), nodes (list-nodes)
 
 ## Troubleshooting
 
