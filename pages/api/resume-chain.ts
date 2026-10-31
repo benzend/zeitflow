@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm';
 import { queuedChainsTable } from '@/schema';
 import { apiHandler, sendError } from '@/lib/api-handler';
 import { validationError, notFoundError } from '@/lib/errors';
+import { getInternalOrigin } from '@/lib/site';
 
 export default apiHandler({
   POST: async (req, res) => {
@@ -26,10 +27,17 @@ export default apiHandler({
       })
       .where(eq(queuedChainsTable.id, parseInt(id)));
 
-    fetch(
-      `${process.env.HOST}/api/process-queued-chain?id=${id}`,
-      { method: 'POST' }
-    );
+    const internalOrigin = getInternalOrigin();
+    if (internalOrigin) {
+      fetch(
+        `${internalOrigin}/api/process-queued-chain?id=${id}`,
+        { method: 'POST' }
+      );
+    } else {
+      console.warn(
+        'HOST and NEXTAUTH_URL are unset. Not calling process-queued-chain.'
+      );
+    }
 
     return res.status(200).json({ success: true });
   },

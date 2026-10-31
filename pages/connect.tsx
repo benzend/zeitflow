@@ -282,15 +282,30 @@ export default function ConnectPage() {
     }
   }, []);
 
+  const head = (
+    <Head>
+      <title>Connect - ZeitFlow</title>
+      <meta
+        name="description"
+        content="Connect your AI agent or IDE to ZeitFlow via MCP"
+      />
+      <meta name="robots" content="noindex, follow" />
+      <link rel="icon" href="/favicon.ico" />
+    </Head>
+  );
+
   if (status === "loading") {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-foreground">Loading...</div>
-      </div>
+      <>
+        {head}
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="text-foreground">Loading...</div>
+        </div>
+      </>
     );
   }
 
-  if (!session) return null;
+  if (!session) return head;
 
   const { config, filename, deepLink } = generateConfig(
     selectedClient,
@@ -299,15 +314,7 @@ export default function ConnectPage() {
 
   return (
     <div>
-      <Head>
-        <title>Connect - ZeitFlow</title>
-        <meta
-          name="description"
-          content="Connect your AI agent or IDE to ZeitFlow via MCP"
-        />
-        <meta name="robots" content="noindex, follow" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+      {head}
 
       <main className="container mx-auto px-4 py-10 max-w-4xl min-h-[90vh]">
         {/* Nav */}
