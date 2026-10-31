@@ -16,7 +16,7 @@ export default function Privacy() {
         <meta property="og:url" content={`${getCanonicalSiteOrigin()}/privacy`} />
         <meta property="og:image" content={`${getCanonicalSiteOrigin()}/logo-on-black.png`} />
         <meta property="og:site_name" content="ZeitFlow" />
-        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:card" content="summary" />
         <meta name="twitter:title" content="Privacy Policy - ZeitFlow" />
         <meta name="twitter:description" content="Learn how ZeitFlow protects your privacy and data when using our AI workflow automation services." />
         <meta name="twitter:image" content={`${getCanonicalSiteOrigin()}/logo-on-black.png`} />

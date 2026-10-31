@@ -133,7 +133,7 @@ export default function SignIn({ providers }: { providers: Provider[] }) {
         <meta property="og:url" content={`${getCanonicalSiteOrigin()}/auth/signin`} />
         <meta property="og:image" content={`${getCanonicalSiteOrigin()}/logo-on-black.png`} />
         <meta property="og:site_name" content="ZeitFlow" />
-        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:card" content="summary" />
         <meta name="twitter:title" content="Sign In - ZeitFlow" />
         <meta name="twitter:description" content="Access your AI prompt chains and workflow management dashboard." />
         <meta name="twitter:image" content={`${getCanonicalSiteOrigin()}/logo-on-black.png`} />

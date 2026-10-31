@@ -15,6 +15,10 @@ export const PRIVATE_SITEMAP_PATHS = [
   "/blog/preview",
   "/test-workflow",
   "/auth/verify",
+  "/auth/signin",
+  "/auth/register",
+  "/connect",
+  "/templates",
 ] as const;
 
 const PRIVATE_PREFIXES = [
@@ -22,8 +26,9 @@ const PRIVATE_PREFIXES = [
   "/chain/",
   "/results/",
   "/api/",
+  // Trailing slash so /blog/preview-of-x and /blog/edit-me stay indexable.
   "/blog/edit/",
-  "/blog/preview",
+  "/blog/preview/",
 ] as const;
 
 /** Stable public pages. Guide and blog post URLs are added separately. */
@@ -37,12 +42,20 @@ export const PUBLIC_STATIC_PATHS = [
   "/report",
   "/integrations",
   "/guides",
-  "/templates",
-  "/connect",
   "/blog",
-  "/auth/signin",
-  "/auth/register",
 ] as const;
+
+/**
+ * Lastmod for pages that do not have their own updated timestamp.
+ * SITEMAP_BUILD_DATE is set in next.config.ts when the build starts.
+ */
+export function sitemapStaticLastMod(): string {
+  const raw = process.env.SITEMAP_BUILD_DATE;
+  if (raw && !Number.isNaN(Date.parse(raw))) {
+    return new Date(raw).toISOString();
+  }
+  return "2026-10-31T00:00:00.000Z";
+}
 
 export function publicGuidePaths(): string[] {
   return getAllGuides().map((guide) => `/guides/${guide.slug}`);

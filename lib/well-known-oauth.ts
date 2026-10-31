@@ -1,4 +1,4 @@
-import { CANONICAL_MCP_URL } from "@/lib/site";
+import { CANONICAL_MCP_URL, CANONICAL_SITE_ORIGIN } from "@/lib/site";
 
 /**
  * Public explanation returned for OAuth discovery paths.
@@ -12,17 +12,16 @@ export const OAUTH_NOT_SUPPORTED_BODY = {
   error: "oauth_not_supported",
   error_description:
     "ZeitFlow does not implement an OAuth 2.1 authorization server. " +
-    `MCP clients authenticate to ${CANONICAL_MCP_URL} with a Bearer API token from /connect. ` +
+    `MCP clients authenticate to ${CANONICAL_MCP_URL} with a Bearer API token from ${CANONICAL_SITE_ORIGIN}/connect. ` +
     "This document is not OAuth Protected Resource Metadata (RFC 9728) or Authorization Server Metadata (RFC 8414).",
 } as const;
 
 export function isOAuthDiscoveryPath(pathname: string): boolean {
-  const path = pathname.split("?")[0] || pathname;
   return (
-    path === "/.well-known/oauth-protected-resource" ||
-    path.startsWith("/.well-known/oauth-protected-resource/") ||
-    path === "/.well-known/oauth-authorization-server" ||
-    path.startsWith("/.well-known/oauth-authorization-server/")
+    pathname === "/.well-known/oauth-protected-resource" ||
+    pathname.startsWith("/.well-known/oauth-protected-resource/") ||
+    pathname === "/.well-known/oauth-authorization-server" ||
+    pathname.startsWith("/.well-known/oauth-authorization-server/")
   );
 }
 

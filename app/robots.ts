@@ -24,13 +24,12 @@ export default function robots(): MetadataRoute.Robots {
         "/results/",
         "/blog/create",
         "/blog/manage",
-        "/blog/edit",
-        "/blog/preview",
+        "/blog/edit/",
+        "/blog/preview/",
         "/test-workflow",
         "/auth/verify",
       ],
     },
     sitemap: `${origin}/sitemap.xml`,
-    host: origin,
   };
 }

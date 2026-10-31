@@ -17,7 +17,7 @@ export default function Contact() {
         <meta property="og:url" content={`${getCanonicalSiteOrigin()}/contact`} />
         <meta property="og:image" content={`${getCanonicalSiteOrigin()}/logo-on-black.png`} />
         <meta property="og:site_name" content="ZeitFlow" />
-        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:card" content="summary" />
         <meta name="twitter:title" content="Contact Us - ZeitFlow" />
         <meta name="twitter:description" content="Get in touch with the ZeitFlow team for support, privacy inquiries, or general questions." />
         <meta name="twitter:image" content={`${getCanonicalSiteOrigin()}/logo-on-black.png`} />

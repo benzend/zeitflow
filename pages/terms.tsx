@@ -17,7 +17,7 @@ export default function Terms() {
         <meta property="og:url" content={`${getCanonicalSiteOrigin()}/terms`} />
         <meta property="og:image" content={`${getCanonicalSiteOrigin()}/logo-on-black.png`} />
         <meta property="og:site_name" content="ZeitFlow" />
-        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:card" content="summary" />
         <meta name="twitter:title" content="Terms of Service - ZeitFlow" />
         <meta name="twitter:description" content="Read the terms and conditions for using ZeitFlow's AI workflow automation platform." />
         <meta name="twitter:image" content={`${getCanonicalSiteOrigin()}/logo-on-black.png`} />

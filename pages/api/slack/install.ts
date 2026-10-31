@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../auth/[...nextauth]';
+import { getCanonicalSiteOrigin } from '@/lib/site';
 
 const SLACK_SCOPES = [
   'chat:write',
@@ -18,8 +19,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  const origin = process.env.NODE_ENV === 'production' 
-    ? process.env.NEXT_PUBLIC_APP_URL 
+  const origin = process.env.NODE_ENV === 'production'
+    ? getCanonicalSiteOrigin()
     : 'http://localhost:3000';
   
   const redirectUri = `${origin}/api/slack/callback`;

@@ -2,13 +2,14 @@ import { GetServerSideProps } from "next";
 import { db } from "@/lib/db";
 import { blogPostsTable } from "@/schema";
 import { eq } from "drizzle-orm";
+import { getAllGuides } from "@/lib/guides";
 import { getCanonicalSiteOrigin } from "@/lib/site";
 import {
   PUBLIC_STATIC_PATHS,
   isPublicSitemapPath,
-  publicGuidePaths,
   sitemapChangeFreq,
   sitemapPriority,
+  sitemapStaticLastMod,
 } from "@/lib/sitemap-entries";
 
 export default function Sitemap() {
@@ -26,8 +27,9 @@ function renderUrl(origin: string, path: string, lastmod: string): string {
 
 export const getServerSideProps: GetServerSideProps = async ({ res }) => {
   const origin = getCanonicalSiteOrigin();
-  const now = new Date().toISOString();
+  const staticLastMod = sitemapStaticLastMod();
   const pages = new Map<string, string>();
+  let blogPostsLoaded = true;
 
   const add = (path: string, lastmod: string) => {
     if (!isPublicSitemapPath(path) || pages.has(path)) return;
@@ -35,10 +37,13 @@ export const getServerSideProps: GetServerSideProps = async ({ res }) => {
   };
 
   for (const path of PUBLIC_STATIC_PATHS) {
-    add(path, now);
+    add(path, staticLastMod);
   }
-  for (const path of publicGuidePaths()) {
-    add(path, now);
+  for (const guide of getAllGuides()) {
+    add(
+      `/guides/${guide.slug}`,
+      new Date(`${guide.updatedAt}T00:00:00.000Z`).toISOString()
+    );
   }
 
   try {
@@ -52,11 +57,13 @@ export const getServerSideProps: GetServerSideProps = async ({ res }) => {
       .where(eq(blogPostsTable.published, true));
 
     for (const post of blogPosts) {
-      const lastmod = (post.publishedAt || post.updatedAt).toISOString();
-      add(`/blog/${post.slug}`, lastmod);
+      const stamp = post.updatedAt ?? post.publishedAt;
+      if (!stamp) continue;
+      add(`/blog/${post.slug}`, stamp.toISOString());
     }
-  } catch {
-    // Static pages and guides are still published when the database is unavailable.
+  } catch (error) {
+    blogPostsLoaded = false;
+    console.error("Failed to load published blog posts for the sitemap", error);
   }
 
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
@@ -67,7 +74,12 @@ ${[...pages.entries()]
 </urlset>`;
 
   res.setHeader("Content-Type", "text/xml");
-  res.setHeader("Cache-Control", "public, max-age=3600, s-maxage=3600");
+  res.setHeader(
+    "Cache-Control",
+    blogPostsLoaded
+      ? "public, max-age=3600, s-maxage=3600"
+      : "public, max-age=0, s-maxage=60"
+  );
   res.write(sitemap);
   res.end();
 

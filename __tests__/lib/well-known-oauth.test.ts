@@ -28,6 +28,9 @@ describe("OAuth discovery documents", () => {
     expect(result.body.error_description).toContain(
       "https://www.zeitflow.io/api/mcp"
     );
+    expect(result.body.error_description).toContain(
+      "https://www.zeitflow.io/connect"
+    );
   });
 
   it("returns the same explanation for the authorization-server path", () => {

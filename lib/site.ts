@@ -10,31 +10,46 @@ export const CANONICAL_SITE_ORIGIN = "https://www.zeitflow.io";
 export const CANONICAL_MCP_URL = `${CANONICAL_SITE_ORIGIN}/api/mcp`;
 
 /**
- * Rewrite the apex host to www. Other hosts (localhost, preview URLs) are unchanged.
+ * Rewrite the apex host to www and return only the origin (no path or query).
+ * Other hosts (localhost, preview URLs) are unchanged.
+ * Unparseable values log a warning and fall back to the canonical www origin.
  */
-export function canonicalizeSiteOrigin(origin: string): string {
-  const trimmed = origin.trim().replace(/\/$/, "");
+export function canonicalizeSiteOrigin(raw: string): string {
+  let url: URL;
   try {
-    const url = new URL(trimmed);
-    if (url.hostname === "zeitflow.io") {
-      url.hostname = "www.zeitflow.io";
-      return url.toString().replace(/\/$/, "");
-    }
-    return url.toString().replace(/\/$/, "");
-  } catch {
+    url = new URL(raw);
+  } catch (error) {
+    console.warn(
+      `Invalid site origin "${raw}". Falling back to ${CANONICAL_SITE_ORIGIN}.`,
+      error
+    );
     return CANONICAL_SITE_ORIGIN;
   }
+
+  if (url.hostname === "zeitflow.io") {
+    url.hostname = "www.zeitflow.io";
+  }
+  return url.origin;
 }
 
 /**
- * Origin for canonical tags, sitemap, and robots.
- * Env values that still point at the apex host are rewritten to www.
+ * Public site URL env vars, in priority order.
+ * Production should set NEXT_PUBLIC_APP_URL to https://www.zeitflow.io.
+ * NEXT_PUBLIC_BASE_URL and NEXT_PUBLIC_URL are legacy aliases used only here.
  */
-export function getCanonicalSiteOrigin(): string {
+export function readConfiguredPublicOrigin(): string | undefined {
   const raw =
     process.env.NEXT_PUBLIC_APP_URL ||
     process.env.NEXT_PUBLIC_BASE_URL ||
-    process.env.NEXT_PUBLIC_URL ||
-    CANONICAL_SITE_ORIGIN;
+    process.env.NEXT_PUBLIC_URL;
+  return raw || undefined;
+}
+
+/**
+ * Origin for canonical tags, sitemap, robots, and other absolute public links.
+ */
+export function getCanonicalSiteOrigin(): string {
+  const raw = readConfiguredPublicOrigin();
+  if (!raw) return CANONICAL_SITE_ORIGIN;
   return canonicalizeSiteOrigin(raw);
 }

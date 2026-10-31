@@ -15,6 +15,7 @@ const fs_1 = require("fs");
 const path_1 = require("path");
 const os_1 = require("os");
 const readline_1 = require("readline");
+const url_js_1 = require("./url.js");
 const CONFIG_DIR = (0, path_1.join)((0, os_1.homedir)(), ".zeitflow");
 const CONFIG_PATH = (0, path_1.join)(CONFIG_DIR, "config.json");
 const DEFAULT_URL = "https://www.zeitflow.io";
@@ -43,26 +44,8 @@ function requireToken() {
     }
     return token;
 }
-/**
- * Apex zeitflow.io 307-redirects to www. MCP and API clients that do not follow
- * redirects need the www host, so an apex base URL is rewritten here.
- */
-function canonicalizeBaseUrl(url) {
-    const trimmed = url.replace(/\/$/, "");
-    try {
-        const parsed = new URL(trimmed);
-        if (parsed.hostname === "zeitflow.io") {
-            parsed.hostname = "www.zeitflow.io";
-            return parsed.toString().replace(/\/$/, "");
-        }
-    }
-    catch {
-        return trimmed;
-    }
-    return trimmed;
-}
 function getBaseUrl() {
-    return canonicalizeBaseUrl(process.env.ZEITFLOW_URL || loadConfig().url || DEFAULT_URL);
+    return (0, url_js_1.canonicalizeBaseUrl)(process.env.ZEITFLOW_URL || loadConfig().url || DEFAULT_URL);
 }
 // ---------------------------------------------------------------------------
 // HTTP client

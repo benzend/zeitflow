@@ -92,6 +92,12 @@ export default function TemplatesPage() {
       <Head>
         <title>Template Marketplace | ZeitFlow</title>
         <meta name="description" content="Browse and use workflow templates" />
+        {/*
+          TODO: Server-render the public templates with their own /templates/[slug]
+          pages. Crawlers only see "Loading templates..." because the list comes
+          from /api/templates, which robots.txt disallows, and /templates/[id] 404s.
+        */}
+        <meta name="robots" content="noindex, follow" />
       </Head>
 
       <div className="min-h-screen bg-background">

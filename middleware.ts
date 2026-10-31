@@ -26,5 +26,10 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/.well-known/:path*"],
+  matcher: [
+    "/.well-known/oauth-protected-resource",
+    "/.well-known/oauth-protected-resource/:path*",
+    "/.well-known/oauth-authorization-server",
+    "/.well-known/oauth-authorization-server/:path*",
+  ],
 };

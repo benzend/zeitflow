@@ -5,6 +5,7 @@
  */
 
 import { randomBytes } from 'crypto';
+import { canonicalizeSiteOrigin } from '@/lib/site';
 
 /**
  * Generate a secure random webhook secret.
@@ -23,7 +24,9 @@ export function generateWebhookSecret(): string {
  * @returns The full webhook URL
  */
 export function buildWebhookUrl(workflowId: number, webhookSecret: string): string {
-  const host = process.env.HOST || process.env.NEXTAUTH_URL || 'http://localhost:3000';
+  const host = canonicalizeSiteOrigin(
+    process.env.HOST || process.env.NEXTAUTH_URL || 'http://localhost:3000'
+  );
   return `${host}/api/workflow/${workflowId}/execute?secret=${webhookSecret}`;
 }
 

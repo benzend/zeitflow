@@ -1,6 +1,6 @@
 {
   "name": "@zeitflow/mcp",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "ZeitFlow MCP server — connect AI agents to your ZeitFlow workflows",
   "license": "MIT",
   "bin": {

@@ -6,6 +6,9 @@ import { GoogleAnalytics } from '@next/third-parties/google'
 import { VemetricScript } from '@vemetric/react';
 import Script from 'next/script';
 import { ThemeProvider } from "@/lib/theme-context";
+import { getCanonicalSiteOrigin } from "@/lib/site";
+
+const siteOrigin = getCanonicalSiteOrigin();
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,6 +21,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteOrigin),
   title: "ZeitFlow - The Automation Platform Built for AI Agents",
   description: "Build lightning-fast, enterprise-grade workflows that AI agents discover and use through MCP. Agent-native automation infrastructure for the new era.",
   keywords: ["AI agents", "MCP", "Model Context Protocol", "agent-native automation", "enterprise workflows", "AI workflow platform"],
@@ -25,16 +29,22 @@ export const metadata: Metadata = {
   creator: "ZeitFlow",
   publisher: "ZeitFlow",
   robots: "index, follow",
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
     title: "ZeitFlow - The Automation Platform Built for AI Agents",
     description: "Lightning-fast, enterprise-grade automations that AI agents natively discover and use through MCP. The automation platform for the agent era.",
     type: "website",
     locale: "en_US",
+    url: "/",
+    images: ["/logo-on-black.png"],
   },
   twitter: {
-    card: "summary_large_image",
+    card: "summary",
     title: "ZeitFlow - The Automation Platform Built for AI Agents",
     description: "Lightning-fast, enterprise-grade automations that AI agents natively discover and use through MCP. The automation platform for the agent era.",
+    images: ["/logo-on-black.png"],
   },
 };
 

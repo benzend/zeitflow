@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  env: {
+    // Frozen when `next build` loads this file, so sitemap lastmod is not the request time.
+    SITEMAP_BUILD_DATE: new Date().toISOString(),
+  },
   experimental: {
     mdxRs: true, // Enable MDX Rust compiler for better performance
   },
@@ -13,19 +17,6 @@ const nextConfig: NextConfig = {
       },
     ],
     domains: ['localhost'], // Keep for local development
-  },
-  async headers() {
-    return [
-      {
-        source: '/sitemap.xml',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=3600, s-maxage=3600',
-          },
-        ],
-      },
-    ];
   },
 };
 

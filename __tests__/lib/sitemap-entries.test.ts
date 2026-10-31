@@ -28,7 +28,7 @@ describe("public sitemap paths", () => {
     }
   });
 
-  it("includes public marketing, docs, and auth entry pages", () => {
+  it("includes public marketing pages and omits noindex routes", () => {
     expect(PUBLIC_STATIC_PATHS).toEqual(
       expect.arrayContaining([
         "",
@@ -40,10 +40,17 @@ describe("public sitemap paths", () => {
         "/blog",
         "/guides",
         "/integrations",
-        "/auth/signin",
-        "/auth/register",
       ])
     );
+    for (const path of [
+      "/auth/signin",
+      "/auth/register",
+      "/connect",
+      "/templates",
+    ]) {
+      expect(PUBLIC_STATIC_PATHS).not.toContain(path);
+      expect(isPublicSitemapPath(path)).toBe(false);
+    }
   });
 
   it("lists guide pages and not admin blog routes", () => {
@@ -55,5 +62,10 @@ describe("public sitemap paths", () => {
     expect(guides.every((path) => isPublicSitemapPath(path))).toBe(true);
     expect(isPublicSitemapPath("/blog/create")).toBe(false);
     expect(isPublicSitemapPath("/blog/some-public-post")).toBe(true);
+    expect(isPublicSitemapPath("/blog/preview-of-x")).toBe(true);
+    expect(isPublicSitemapPath("/blog/edit-me")).toBe(true);
+    expect(isPublicSitemapPath("/blog/preview")).toBe(false);
+    expect(isPublicSitemapPath("/blog/preview/draft")).toBe(false);
+    expect(isPublicSitemapPath("/blog/edit/123")).toBe(false);
   });
 });

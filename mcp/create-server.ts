@@ -19,6 +19,7 @@ import {
 import { NODE_CONFIGS, NODE_TYPES } from "../lib/node-registry";
 import { AI_MODELS } from "../lib/constants";
 import { encryptConfigSecrets } from "../lib/encryption";
+import { canonicalizeSiteOrigin } from "../lib/site";
 import crypto from "crypto";
 
 // ---------------------------------------------------------------------------
@@ -91,11 +92,12 @@ export function createMcpServer(
     version: "1.0.0",
   });
 
-  const host =
+  const host = canonicalizeSiteOrigin(
     opts?.host ||
-    process.env.HOST ||
-    process.env.NEXTAUTH_URL ||
-    "http://localhost:3000";
+      process.env.HOST ||
+      process.env.NEXTAUTH_URL ||
+      "http://localhost:3000"
+  );
 
   const apiToken = opts?.apiToken || process.env.ZEITFLOW_API_TOKEN || "";
 

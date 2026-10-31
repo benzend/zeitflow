@@ -305,6 +305,7 @@ export default function ConnectPage() {
           name="description"
           content="Connect your AI agent or IDE to ZeitFlow via MCP"
         />
+        <meta name="robots" content="noindex, follow" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 

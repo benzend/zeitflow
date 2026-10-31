@@ -4,8 +4,7 @@ import AnimatedBackground from '@/app/components/AnimatedBackground';
 import Logo from '@/app/components/Logo';
 import Navigation from '@/components/Navigation';
 import Providers from './providers';
-import Head from 'next/head';
-import { CANONICAL_MCP_URL, getCanonicalSiteOrigin } from "@/lib/site";
+import { CANONICAL_MCP_URL } from "@/lib/site";
 import {
   Zap,
   Shield,
@@ -27,28 +26,8 @@ import {
 } from 'lucide-react';
 
 export default function Home() {
-  const siteOrigin = getCanonicalSiteOrigin();
-
   return (
-    <>
-      <Head>
-        <title>ZeitFlow - The Automation Platform Built for AI Agents</title>
-        <meta name="description" content="The first automation platform that's agent-native. Build lightning-fast, enterprise-grade workflows that AI agents discover and use through MCP. Not another Zapier clone." />
-        <meta name="keywords" content="AI agent automation, MCP automation, agent-native workflows, enterprise automation, Model Context Protocol, AI workflow platform" />
-        <meta property="og:title" content="ZeitFlow - The Automation Platform Built for AI Agents" />
-        <meta property="og:description" content="Lightning-fast, enterprise-grade automations that AI agents natively discover and use through MCP. The automation platform for the agent era." />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={siteOrigin} />
-        <meta property="og:image" content={`${siteOrigin}/logo-on-black.png`} />
-        <meta property="og:site_name" content="ZeitFlow" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="ZeitFlow - The Automation Platform Built for AI Agents" />
-        <meta name="twitter:description" content="Lightning-fast, enterprise-grade automations that AI agents natively discover and use through MCP. The automation platform for the agent era." />
-        <meta name="twitter:image" content={`${siteOrigin}/logo-on-black.png`} />
-        <meta name="robots" content="index, follow" />
-        <link rel="canonical" href={siteOrigin} />
-      </Head>
-      <Providers>
+    <Providers>
         <div className="min-h-screen bg-surface text-foreground flex flex-col relative">
           <AnimatedBackground />
           <Navigation />
@@ -395,7 +374,6 @@ export default function Home() {
             </div>
           </main>
         </div>
-      </Providers>
-    </>
+    </Providers>
   );
 }

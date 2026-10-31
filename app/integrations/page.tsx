@@ -34,11 +34,15 @@ export const metadata: Metadata = {
   title: "Integrations | ZeitFlow",
   description:
     "Connect ZeitFlow workflows to the tools your team already uses. 20+ integrations including Slack, GitHub, Google Sheets, Notion, Stripe, Shopify, Jira, HubSpot, Linear, and more.",
+  alternates: {
+    canonical: "/integrations",
+  },
   openGraph: {
     title: "Integrations | ZeitFlow",
     description:
       "Connect ZeitFlow workflows to the tools your team already uses. 20+ integrations including Slack, GitHub, Google Sheets, Notion, Stripe, Shopify, Jira, HubSpot, Linear, and more.",
     type: "website",
+    url: "/integrations",
   },
 };
 

@@ -103,7 +103,7 @@ export default function Register({ providers }: { providers: Provider[] }) {
         <meta property="og:url" content={`${getCanonicalSiteOrigin()}/auth/register`} />
         <meta property="og:image" content={`${getCanonicalSiteOrigin()}/logo-on-black.png`} />
         <meta property="og:site_name" content="ZeitFlow" />
-        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:card" content="summary" />
         <meta name="twitter:title" content="Register - ZeitFlow" />
         <meta name="twitter:description" content="Create your account and start building powerful AI prompt chains and automation workflows." />
         <meta name="twitter:image" content={`${getCanonicalSiteOrigin()}/logo-on-black.png`} />
