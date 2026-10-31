@@ -108,7 +108,6 @@ export default function Register({ providers }: { providers: Provider[] }) {
         <meta name="twitter:description" content="Create your account and start building powerful AI prompt chains and automation workflows." />
         <meta name="twitter:image" content={`${getCanonicalSiteOrigin()}/og-image.png`} />
         <meta name="robots" content="noindex, nofollow" />
-        <link rel="canonical" href={`${getCanonicalSiteOrigin()}/auth/register`} />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 

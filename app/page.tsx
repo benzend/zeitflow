@@ -5,6 +5,7 @@ import Logo from '@/app/components/Logo';
 import Navigation from '@/components/Navigation';
 import Providers from './providers';
 import { CANONICAL_MCP_URL } from "@/lib/site";
+import type { Metadata } from "next";
 import {
   Zap,
   Shield,
@@ -24,6 +25,25 @@ import {
   MessageSquare,
   Terminal,
 } from 'lucide-react';
+
+export const metadata: Metadata = {
+  alternates: {
+    canonical: "/",
+  },
+  // Setting openGraph here replaces the layout images, so the share card is repeated.
+  openGraph: {
+    url: "/",
+    type: "website",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "ZeitFlow: the automation platform AI agents actually use",
+      },
+    ],
+  },
+};
 
 export default function Home() {
   return (

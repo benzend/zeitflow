@@ -25,6 +25,7 @@ export async function generateMetadata({
     return {
       title: "Guide Not Found | ZeitFlow",
       description: "The guide you are looking for does not exist.",
+      robots: { index: false },
     };
   }
 

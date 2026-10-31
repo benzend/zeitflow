@@ -29,15 +29,11 @@ export const metadata: Metadata = {
   creator: "ZeitFlow",
   publisher: "ZeitFlow",
   robots: "index, follow",
-  alternates: {
-    canonical: "/",
-  },
   openGraph: {
     title: "ZeitFlow - The Automation Platform Built for AI Agents",
     description: "Lightning-fast, enterprise-grade automations that AI agents natively discover and use through MCP. The automation platform for the agent era.",
     type: "website",
     locale: "en_US",
-    url: "/",
     images: [
       {
         url: "/og-image.png",

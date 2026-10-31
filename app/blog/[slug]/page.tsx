@@ -93,6 +93,7 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
     return {
       title: 'Post Not Found | ZeitFlow',
       description: 'The blog post you are looking for does not exist.',
+      robots: { index: false },
     };
   }
 

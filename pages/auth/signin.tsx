@@ -138,7 +138,6 @@ export default function SignIn({ providers }: { providers: Provider[] }) {
         <meta name="twitter:description" content="Access your AI prompt chains and workflow management dashboard." />
         <meta name="twitter:image" content={`${getCanonicalSiteOrigin()}/og-image.png`} />
         <meta name="robots" content="noindex, nofollow" />
-        <link rel="canonical" href={`${getCanonicalSiteOrigin()}/auth/signin`} />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
