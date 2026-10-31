@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { getCanonicalSiteOrigin } from "@/lib/site";
 import Head from 'next/head';
 import Navigation from '@/components/Navigation';
 import { useSession } from 'next-auth/react';
@@ -103,15 +104,15 @@ export default function Pricing() {
         <meta property="og:title" content="Pricing - ZeitFlow" />
         <meta property="og:description" content="Simple, predictable pricing for agent-native automation. MCP support and all integrations included on every plan." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'}/pricing`} />
-        <meta property="og:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'}/logo-on-black.png`} />
+        <meta property="og:url" content={`${getCanonicalSiteOrigin()}/pricing`} />
+        <meta property="og:image" content={`${getCanonicalSiteOrigin()}/logo-on-black.png`} />
         <meta property="og:site_name" content="ZeitFlow" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Pricing - ZeitFlow" />
         <meta name="twitter:description" content="Simple, predictable pricing for agent-native automation. MCP support and all integrations included on every plan." />
-        <meta name="twitter:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'}/logo-on-black.png`} />
+        <meta name="twitter:image" content={`${getCanonicalSiteOrigin()}/logo-on-black.png`} />
         <meta name="robots" content="index, follow" />
-        <link rel="canonical" href={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'}/pricing`} />
+        <link rel="canonical" href={`${getCanonicalSiteOrigin()}/pricing`} />
       </Head>
       <Navigation />
 

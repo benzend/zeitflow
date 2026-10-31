@@ -5,6 +5,7 @@ import Logo from '@/app/components/Logo';
 import Navigation from '@/components/Navigation';
 import Providers from './providers';
 import Head from 'next/head';
+import { CANONICAL_MCP_URL, getCanonicalSiteOrigin } from "@/lib/site";
 import {
   Zap,
   Shield,
@@ -26,6 +27,8 @@ import {
 } from 'lucide-react';
 
 export default function Home() {
+  const siteOrigin = getCanonicalSiteOrigin();
+
   return (
     <>
       <Head>
@@ -35,15 +38,15 @@ export default function Home() {
         <meta property="og:title" content="ZeitFlow - The Automation Platform Built for AI Agents" />
         <meta property="og:description" content="Lightning-fast, enterprise-grade automations that AI agents natively discover and use through MCP. The automation platform for the agent era." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'} />
-        <meta property="og:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'}/logo-on-black.png`} />
+        <meta property="og:url" content={siteOrigin} />
+        <meta property="og:image" content={`${siteOrigin}/logo-on-black.png`} />
         <meta property="og:site_name" content="ZeitFlow" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="ZeitFlow - The Automation Platform Built for AI Agents" />
         <meta name="twitter:description" content="Lightning-fast, enterprise-grade automations that AI agents natively discover and use through MCP. The automation platform for the agent era." />
-        <meta name="twitter:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'}/logo-on-black.png`} />
+        <meta name="twitter:image" content={`${siteOrigin}/logo-on-black.png`} />
         <meta name="robots" content="index, follow" />
-        <link rel="canonical" href={process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'} />
+        <link rel="canonical" href={siteOrigin} />
       </Head>
       <Providers>
         <div className="min-h-screen bg-surface text-foreground flex flex-col relative">
@@ -217,7 +220,7 @@ export default function Home() {
                       <pre className="text-xs font-mono text-[#d4d4d4] leading-relaxed whitespace-pre">{`{
   "mcpServers": {
     "zeitflow": {
-      "serverUrl": "https://zeitflow.io/api/mcp",
+      "serverUrl": "${CANONICAL_MCP_URL}",
       "headers": {
         "Authorization": "Bearer <token>"
       }

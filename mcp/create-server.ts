@@ -7,6 +7,7 @@
  */
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { ZodRawShapeCompat } from "@modelcontextprotocol/sdk/server/zod-compat.js";
 import { z } from "zod";
 import { eq, desc, and } from "drizzle-orm";
 import {
@@ -39,6 +40,31 @@ export interface McpUser {
 
 function generateNodeId(): string {
   return crypto.randomUUID();
+}
+
+/** Reads do not modify anything. destructiveHint is false whenever readOnlyHint is true. */
+const READ_ONLY = { readOnlyHint: true, destructiveHint: false } as const;
+/** Creates or adds records without overwriting or deleting existing ones. */
+const ADDITIVE = { readOnlyHint: false, destructiveHint: false } as const;
+/** Deletes or overwrites stored data, or runs workflows that can act on external systems. */
+const DESTRUCTIVE = { readOnlyHint: false, destructiveHint: true } as const;
+
+function mcpTool<T extends ZodRawShapeCompat>(
+  title: string,
+  description: string,
+  inputSchema: T,
+  hints: { readonly readOnlyHint: boolean; readonly destructiveHint: boolean }
+) {
+  return {
+    title,
+    description,
+    inputSchema,
+    annotations: {
+      title,
+      readOnlyHint: hints.readOnlyHint,
+      destructiveHint: hints.destructiveHint,
+    },
+  };
 }
 
 // Derive the enum from the registry so new node types are picked up automatically.
@@ -75,10 +101,14 @@ export function createMcpServer(
 
   // ========================== DISCOVERY TOOLS ==========================
 
-  server.tool(
+  server.registerTool(
     "list_node_types",
-    "List all available workflow node types with their default configurations",
-    {},
+    mcpTool(
+      "List node types",
+      "List all available workflow node types with their default configurations",
+      {},
+      READ_ONLY
+    ),
     async () => {
       const nodeTypes = NODE_TYPES.map((type) => {
         const config = NODE_CONFIGS[type];
@@ -101,10 +131,14 @@ export function createMcpServer(
     }
   );
 
-  server.tool(
+  server.registerTool(
     "list_ai_models",
-    "List all available AI models for use in AI nodes",
-    {},
+    mcpTool(
+      "List AI models",
+      "List all available AI models for use in AI nodes",
+      {},
+      READ_ONLY
+    ),
     async () => {
       return {
         content: [
@@ -119,10 +153,12 @@ export function createMcpServer(
 
   // ========================== WORKFLOW CRUD ==========================
 
-  server.tool(
+  server.registerTool(
     "list_workflows",
-    "List all workflows for the authenticated user",
-    {
+    mcpTool(
+      "List workflows",
+      "List all workflows for the authenticated user",
+      {
       status: z
         .enum(["draft", "published", "archived"])
         .optional()
@@ -134,7 +170,9 @@ export function createMcpServer(
         .max(100)
         .optional()
         .describe("Max results to return (default 50)"),
-    },
+      },
+      READ_ONLY
+    ),
     async ({ status, limit }) => {
       const maxResults = limit ?? 50;
 
@@ -168,17 +206,21 @@ export function createMcpServer(
     }
   );
 
-  server.tool(
+  server.registerTool(
     "create_workflow",
-    "Create a new workflow. Returns the workflow ID. An entry node is automatically added.",
-    {
+    mcpTool(
+      "Create workflow",
+      "Create a new workflow. Returns the workflow ID. An entry node is automatically added.",
+      {
       name: z.string().min(1).describe("Workflow name"),
       description: z.string().optional().describe("Workflow description"),
       entryType: z
         .enum(["api", "form", "webhook"])
         .optional()
         .describe("Entry node type (default: api)"),
-    },
+      },
+      ADDITIVE
+    ),
     async ({ name, description, entryType }) => {
       const [workflow] = await db
         .insert(workflowsTable)
@@ -224,12 +266,16 @@ export function createMcpServer(
     }
   );
 
-  server.tool(
+  server.registerTool(
     "get_workflow",
-    "Get a workflow's full details including all nodes and connections",
-    {
-      workflowId: z.number().int().describe("Workflow ID"),
-    },
+    mcpTool(
+      "Get workflow",
+      "Get a workflow's full details including all nodes and connections",
+      {
+        workflowId: z.number().int().describe("Workflow ID"),
+      },
+      READ_ONLY
+    ),
     async ({ workflowId }) => {
       const [workflow] = await db
         .select()
@@ -281,10 +327,12 @@ export function createMcpServer(
     }
   );
 
-  server.tool(
+  server.registerTool(
     "update_workflow",
-    "Update a workflow's metadata (name, description, status)",
-    {
+    mcpTool(
+      "Update workflow",
+      "Update a workflow's metadata (name, description, status)",
+      {
       workflowId: z.number().int().describe("Workflow ID"),
       name: z.string().optional().describe("New name"),
       description: z.string().optional().describe("New description"),
@@ -292,7 +340,9 @@ export function createMcpServer(
         .enum(["draft", "published", "archived"])
         .optional()
         .describe("New status"),
-    },
+      },
+      DESTRUCTIVE
+    ),
     async ({ workflowId, name, description, status }) => {
       const [existing] = await db
         .select({ id: workflowsTable.id })
@@ -335,12 +385,16 @@ export function createMcpServer(
     }
   );
 
-  server.tool(
+  server.registerTool(
     "delete_workflow",
-    "Delete a workflow and all its nodes, connections, and executions",
-    {
-      workflowId: z.number().int().describe("Workflow ID"),
-    },
+    mcpTool(
+      "Delete workflow",
+      "Delete a workflow and all its nodes, connections, and executions",
+      {
+        workflowId: z.number().int().describe("Workflow ID"),
+      },
+      DESTRUCTIVE
+    ),
     async ({ workflowId }) => {
       const [existing] = await db
         .select({ id: workflowsTable.id })
@@ -379,10 +433,12 @@ export function createMcpServer(
 
   // ========================== NODE MANAGEMENT ==========================
 
-  server.tool(
+  server.registerTool(
     "add_node",
-    "Add a node to a workflow. Returns the new node ID.",
-    {
+    mcpTool(
+      "Add node",
+      "Add a node to a workflow. Returns the new node ID.",
+      {
       workflowId: z.number().int().describe("Workflow ID"),
       type: z.enum(NODE_TYPE_ENUM).describe("Node type"),
       label: z.string().min(1).describe("Display label for the node"),
@@ -418,7 +474,9 @@ export function createMcpServer(
         )
         .optional()
         .describe("Fields for entry nodes"),
-    },
+      },
+      ADDITIVE
+    ),
     async ({
       workflowId,
       type,
@@ -496,10 +554,12 @@ export function createMcpServer(
     }
   );
 
-  server.tool(
+  server.registerTool(
     "update_node",
-    "Update a node's label, position, or configuration",
-    {
+    mcpTool(
+      "Update node",
+      "Update a node's label, position, or configuration",
+      {
       nodeId: z.string().describe("Node ID"),
       label: z.string().optional().describe("New label"),
       positionX: z.number().int().optional().describe("New X position"),
@@ -514,7 +574,9 @@ export function createMcpServer(
         .enum(["api", "form", "webhook"])
         .optional()
         .describe("New entry type (only for entry nodes)"),
-    },
+      },
+      DESTRUCTIVE
+    ),
     async ({ nodeId, label, positionX, positionY, config, entryType }) => {
       const [node] = await db
         .select({
@@ -566,12 +628,16 @@ export function createMcpServer(
     }
   );
 
-  server.tool(
+  server.registerTool(
     "remove_node",
-    "Remove a node and all its connections from a workflow",
-    {
-      nodeId: z.string().describe("Node ID to remove"),
-    },
+    mcpTool(
+      "Remove node",
+      "Remove a node and all its connections from a workflow",
+      {
+        nodeId: z.string().describe("Node ID to remove"),
+      },
+      DESTRUCTIVE
+    ),
     async ({ nodeId }) => {
       const [node] = await db
         .select({
@@ -616,10 +682,12 @@ export function createMcpServer(
 
   // ========================== CONNECTION MANAGEMENT ==========================
 
-  server.tool(
+  server.registerTool(
     "connect_nodes",
-    "Create a connection between two nodes. For condition nodes, use sourceHandle ('true'/'false') to specify the branch.",
-    {
+    mcpTool(
+      "Connect nodes",
+      "Create a connection between two nodes. For condition nodes, use sourceHandle ('true'/'false') to specify the branch.",
+      {
       workflowId: z.number().int().describe("Workflow ID"),
       fromNodeId: z.string().describe("Source node ID"),
       toNodeId: z.string().describe("Target node ID"),
@@ -630,7 +698,9 @@ export function createMcpServer(
           "Source handle for condition nodes ('true' or 'false')"
         ),
       targetHandle: z.string().optional().describe("Target handle"),
-    },
+      },
+      ADDITIVE
+    ),
     async ({
       workflowId,
       fromNodeId,
@@ -718,12 +788,16 @@ export function createMcpServer(
     }
   );
 
-  server.tool(
+  server.registerTool(
     "remove_connection",
-    "Remove a connection between two nodes",
-    {
-      connectionId: z.number().int().describe("Connection ID"),
-    },
+    mcpTool(
+      "Remove connection",
+      "Remove a connection between two nodes",
+      {
+        connectionId: z.number().int().describe("Connection ID"),
+      },
+      DESTRUCTIVE
+    ),
     async ({ connectionId }) => {
       const [conn] = await db
         .select({ id: workflowConnectionsTable.id })
@@ -766,10 +840,12 @@ export function createMcpServer(
 
   // ========================== EXECUTION ==========================
 
-  server.tool(
+  server.registerTool(
     "execute_workflow",
-    "Execute a workflow. The workflow must have at least one node. Returns the execution ID and output data.",
-    {
+    mcpTool(
+      "Execute workflow",
+      "Execute a workflow. The workflow must have at least one node. Returns the execution ID and output data.",
+      {
       workflowId: z.number().int().describe("Workflow ID"),
       inputData: z
         .record(z.string(), z.unknown())
@@ -783,7 +859,9 @@ export function createMcpServer(
         .describe(
           "Specific entry node ID to start from (required if workflow has multiple entry points)"
         ),
-    },
+      },
+      DESTRUCTIVE
+    ),
     async ({ workflowId, inputData, entryNodeId }) => {
       const [workflow] = await db
         .select()
@@ -867,12 +945,16 @@ export function createMcpServer(
     }
   );
 
-  server.tool(
+  server.registerTool(
     "get_execution",
-    "Get the details and logs of a workflow execution",
-    {
-      executionId: z.number().int().describe("Execution ID"),
-    },
+    mcpTool(
+      "Get execution",
+      "Get the details and logs of a workflow execution",
+      {
+        executionId: z.number().int().describe("Execution ID"),
+      },
+      READ_ONLY
+    ),
     async ({ executionId }) => {
       const [execution] = await db
         .select()
@@ -916,10 +998,12 @@ export function createMcpServer(
     }
   );
 
-  server.tool(
+  server.registerTool(
     "list_executions",
-    "List recent executions for a workflow",
-    {
+    mcpTool(
+      "List executions",
+      "List recent executions for a workflow",
+      {
       workflowId: z.number().int().describe("Workflow ID"),
       limit: z
         .number()
@@ -932,7 +1016,9 @@ export function createMcpServer(
         .enum(["pending", "running", "completed", "failed"])
         .optional()
         .describe("Filter by execution status"),
-    },
+      },
+      READ_ONLY
+    ),
     async ({ workflowId, limit, status }) => {
       const maxResults = limit ?? 10;
 
@@ -973,13 +1059,15 @@ export function createMcpServer(
 
   // ========================== BULK WORKFLOW CREATION ==========================
 
-  server.tool(
+  server.registerTool(
     "create_workflow_from_template",
-    `Create a complete workflow from a structured template in one call.
+    mcpTool(
+      "Create workflow from template",
+      `Create a complete workflow from a structured template in one call.
 This is the most efficient way to build a workflow — specify all nodes and connections at once.
 Each node in the 'nodes' array gets a temporary ID (e.g. "node_1", "node_2") that you reference in the 'connections' array.
 The server maps these to real UUIDs.`,
-    {
+      {
       name: z.string().min(1).describe("Workflow name"),
       description: z.string().optional().describe("Workflow description"),
       nodes: z
@@ -1042,7 +1130,9 @@ The server maps these to real UUIDs.`,
         )
         .optional()
         .describe("Array of connections between nodes (using tempIds)"),
-    },
+      },
+      ADDITIVE
+    ),
     async ({ name, description, nodes, connections }) => {
       const [workflow] = await db
         .insert(workflowsTable)

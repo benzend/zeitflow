@@ -1,4 +1,5 @@
 import { Footer } from "@/components/Footer";
+import { getCanonicalSiteOrigin } from "@/lib/site";
 import Navigation from "@/components/Navigation"
 import Head from "next/head"
 
@@ -12,15 +13,15 @@ export default function Privacy() {
         <meta property="og:title" content="Privacy Policy - ZeitFlow" />
         <meta property="og:description" content="Learn how ZeitFlow protects your privacy and data when using our AI workflow automation services." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'}/privacy`} />
-        <meta property="og:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'}/logo-on-black.png`} />
+        <meta property="og:url" content={`${getCanonicalSiteOrigin()}/privacy`} />
+        <meta property="og:image" content={`${getCanonicalSiteOrigin()}/logo-on-black.png`} />
         <meta property="og:site_name" content="ZeitFlow" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Privacy Policy - ZeitFlow" />
         <meta name="twitter:description" content="Learn how ZeitFlow protects your privacy and data when using our AI workflow automation services." />
-        <meta name="twitter:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'}/logo-on-black.png`} />
+        <meta name="twitter:image" content={`${getCanonicalSiteOrigin()}/logo-on-black.png`} />
         <meta name="robots" content="index, follow" />
-        <link rel="canonical" href={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'}/privacy`} />
+        <link rel="canonical" href={`${getCanonicalSiteOrigin()}/privacy`} />
       </Head>
       <Navigation />
       <main className="max-w-4xl mx-auto px-4 py-16 mt-10">

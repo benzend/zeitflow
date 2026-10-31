@@ -7,6 +7,7 @@ import { blogPostsTable, usersTable } from '@/schema';
 import { eq, desc } from 'drizzle-orm';
 import { GODMODE_EMAILS } from '@/lib/constants';
 import type { Metadata } from "next";
+import { getCanonicalSiteOrigin } from "@/lib/site";
 
 interface BlogPageProps {
   searchParams: Promise<{ page?: string }>;
@@ -105,7 +106,7 @@ export default async function Blog({ searchParams }: BlogPageProps) {
   const page = parseInt(resolvedSearchParams.page || '1');
   const { posts, currentPage, totalPages, hasNext, hasPrevious } = await getBlogPosts(page);
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.zeitflow.io';
+  const baseUrl = getCanonicalSiteOrigin();
   const canonicalUrl = `${baseUrl}/blog`;
   const defaultImage = `${baseUrl}/logo.svg`;
 

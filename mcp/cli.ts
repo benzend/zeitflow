@@ -15,6 +15,9 @@
  *   2. ~/.zeitflow/config.json → url field
  *   3. https://www.zeitflow.io (default)
  *
+ * https://zeitflow.io is rewritten to www. The apex host 307-redirects, and
+ * some MCP clients do not follow that redirect.
+ *
  * Usage:
  *   npx @zeitflow/mcp                                    # uses shared config
  *   ZEITFLOW_API_TOKEN=xxx npx @zeitflow/mcp             # env var override
@@ -44,9 +47,24 @@ function loadConfigFile(): ZeitFlowConfig {
 const fileConfig = loadConfigFile();
 
 const API_TOKEN = process.env.ZEITFLOW_API_TOKEN || fileConfig.token;
-const BASE_URL = (
+
+function canonicalizeBaseUrl(url: string): string {
+  const trimmed = url.replace(/\/$/, "");
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.hostname === "zeitflow.io") {
+      parsed.hostname = "www.zeitflow.io";
+      return parsed.toString().replace(/\/$/, "");
+    }
+  } catch {
+    return trimmed;
+  }
+  return trimmed;
+}
+
+const BASE_URL = canonicalizeBaseUrl(
   process.env.ZEITFLOW_URL || fileConfig.url || "https://www.zeitflow.io"
-).replace(/\/$/, "");
+);
 
 if (!API_TOKEN) {
   process.stderr.write(
