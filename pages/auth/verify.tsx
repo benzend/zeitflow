@@ -46,12 +46,12 @@ export default function VerifyEmail() {
         <meta property="og:description" content="Verify your email to activate your ZeitFlow account." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={`${getCanonicalSiteOrigin()}/auth/verify`} />
-        <meta property="og:image" content={`${getCanonicalSiteOrigin()}/logo-on-black.png`} />
+        <meta property="og:image" content={`${getCanonicalSiteOrigin()}/og-image.png`} />
         <meta property="og:site_name" content="ZeitFlow" />
-        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Email Verification - ZeitFlow" />
         <meta name="twitter:description" content="Verify your email to activate your ZeitFlow account." />
-        <meta name="twitter:image" content={`${getCanonicalSiteOrigin()}/logo-on-black.png`} />
+        <meta name="twitter:image" content={`${getCanonicalSiteOrigin()}/og-image.png`} />
         <meta name="robots" content="noindex, nofollow" />
         <link rel="canonical" href={`${getCanonicalSiteOrigin()}/auth/verify`} />
         <link rel="icon" href="/favicon.ico" />

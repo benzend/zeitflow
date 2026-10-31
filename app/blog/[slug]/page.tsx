@@ -102,7 +102,7 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
   
   const baseUrl = getCanonicalSiteOrigin();
   const canonicalUrl = `${baseUrl}/blog/${post.slug}`;
-  const defaultImage = `${baseUrl}/logo-on-black.png`;
+  const defaultImage = `${baseUrl}/og-image.png`;
 
   return {
     title: `${post.title} | ZeitFlow Blog`,
@@ -122,7 +122,7 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
       siteName: 'ZeitFlow',
     },
     twitter: {
-      card: 'summary',
+      card: 'summary_large_image',
       title: post.title,
       description: metaDescription,
       images: post.featuredImage ? [post.featuredImage] : [defaultImage],
@@ -152,7 +152,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   
   const baseUrl = getCanonicalSiteOrigin();
   const canonicalUrl = `${baseUrl}/blog/${post.slug}`;
-  const defaultImage = `${baseUrl}/logo-on-black.png`;
+  const defaultImage = `${baseUrl}/og-image.png`;
 
   const structuredData = {
     "@context": "https://schema.org",

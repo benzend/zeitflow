@@ -25,11 +25,20 @@ export const metadata: Metadata = {
     description: "Insights, tutorials, and updates on AI workflow automation",
     type: "website",
     url: "/blog",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "ZeitFlow: the automation platform AI agents actually use",
+      },
+    ],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "Blog | ZeitFlow",
     description: "Insights, tutorials, and updates on AI workflow automation",
+    images: ["/og-image.png"],
   },
 };
 

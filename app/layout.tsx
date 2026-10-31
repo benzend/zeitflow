@@ -38,13 +38,20 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: "/",
-    images: ["/logo-on-black.png"],
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "ZeitFlow: the automation platform AI agents actually use",
+      },
+    ],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "ZeitFlow - The Automation Platform Built for AI Agents",
     description: "Lightning-fast, enterprise-grade automations that AI agents natively discover and use through MCP. The automation platform for the agent era.",
-    images: ["/logo-on-black.png"],
+    images: ["/og-image.png"],
   },
 };
 
