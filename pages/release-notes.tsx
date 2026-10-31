@@ -11,6 +11,15 @@ type ReleaseNote = {
 
 const releaseNotes: ReleaseNote[] = [
   {
+    version: "1.16.1",
+    date: "2026-10-31",
+    features: [],
+    improvements: [],
+    fixes: [
+      "The MCP URL is now https://www.zeitflow.io/api/mcp",
+    ],
+  },
+  {
     version: "1.16.0",
     date: "2026-02-22",
     features: [

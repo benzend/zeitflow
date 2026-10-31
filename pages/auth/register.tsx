@@ -1,4 +1,5 @@
 import { getProviders, signIn, getSession } from 'next-auth/react';
+import { getCanonicalSiteOrigin } from "@/lib/site";
 import { GetServerSideProps } from 'next';
 import Head from 'next/head';
 import Navigation from '@/components/Navigation';
@@ -99,15 +100,15 @@ export default function Register({ providers }: { providers: Provider[] }) {
         <meta property="og:title" content="Register - ZeitFlow" />
         <meta property="og:description" content="Create your account and start building powerful AI prompt chains and automation workflows." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'}/auth/register`} />
-        <meta property="og:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'}/logo-on-black.png`} />
+        <meta property="og:url" content={`${getCanonicalSiteOrigin()}/auth/register`} />
+        <meta property="og:image" content={`${getCanonicalSiteOrigin()}/logo-on-black.png`} />
         <meta property="og:site_name" content="ZeitFlow" />
-        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:card" content="summary" />
         <meta name="twitter:title" content="Register - ZeitFlow" />
         <meta name="twitter:description" content="Create your account and start building powerful AI prompt chains and automation workflows." />
-        <meta name="twitter:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'}/logo-on-black.png`} />
+        <meta name="twitter:image" content={`${getCanonicalSiteOrigin()}/logo-on-black.png`} />
         <meta name="robots" content="noindex, nofollow" />
-        <link rel="canonical" href={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'}/auth/register`} />
+        <link rel="canonical" href={`${getCanonicalSiteOrigin()}/auth/register`} />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 

@@ -23,6 +23,7 @@ import { usersTable } from "@/schema";
 import { eq } from "drizzle-orm";
 import { createMcpServer } from "@/mcp/create-server";
 import { hashValue } from "@/lib/encryption";
+import { canonicalizeSiteOrigin } from "@/lib/site";
 
 // Disable Next.js body parsing — the MCP transport reads the raw stream.
 export const config = {
@@ -79,10 +80,11 @@ export default async function handler(
   }
 
   // ---- Build MCP server + transport for this request -----------------
-  const host =
+  const host = canonicalizeSiteOrigin(
     process.env.HOST ||
-    process.env.NEXTAUTH_URL ||
-    `${req.headers["x-forwarded-proto"] || "https"}://${req.headers.host}`;
+      process.env.NEXTAUTH_URL ||
+      `${req.headers["x-forwarded-proto"] || "https"}://${req.headers.host}`
+  );
 
   const server = createMcpServer(db, user, { host, apiToken: token });
 

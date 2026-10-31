@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { CANONICAL_SITE_ORIGIN, canonicalizeSiteOrigin } from "@/lib/site";
 import { CopyButton } from "@/components/CopyButton";
 import { Button } from "@/components/Button";
 import {
@@ -32,8 +33,10 @@ const CLIENTS: ClientMeta[] = [
 ];
 
 function getAppUrl(): string {
-  if (typeof window !== "undefined") return window.location.origin;
-  return "https://www.zeitflow.io";
+  if (typeof window !== "undefined") {
+    return canonicalizeSiteOrigin(window.location.origin);
+  }
+  return CANONICAL_SITE_ORIGIN;
 }
 
 function generateConfig(client: Client, token: string): string {

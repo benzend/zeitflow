@@ -4,11 +4,11 @@
 
 // Mock external dependencies
 jest.mock("@modelcontextprotocol/sdk/server/mcp.js", () => {
-  const toolMock = jest.fn();
+  const registerToolMock = jest.fn();
   return {
     McpServer: jest.fn(() => ({
-      tool: toolMock,
-      _toolMock: toolMock,
+      registerTool: registerToolMock,
+      _registerToolMock: registerToolMock,
     })),
   };
 });
@@ -77,17 +77,17 @@ describe("createMcpServer", () => {
   it("registers all 16 MCP tools", () => {
     const server = createMcpServer(mockDb, mockUser);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const toolMock = (server as any)._toolMock;
+    const registerToolMock = (server as any)._registerToolMock;
 
-    expect(toolMock).toHaveBeenCalledTimes(16);
+    expect(registerToolMock).toHaveBeenCalledTimes(16);
   });
 
   it("registers the expected tool names", () => {
     const server = createMcpServer(mockDb, mockUser);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const toolMock = (server as any)._toolMock;
+    const registerToolMock = (server as any)._registerToolMock;
 
-    const registeredNames = toolMock.mock.calls.map(
+    const registeredNames = registerToolMock.mock.calls.map(
       (call: unknown[]) => call[0]
     );
 
@@ -107,6 +107,72 @@ describe("createMcpServer", () => {
     expect(registeredNames).toContain("get_execution");
     expect(registeredNames).toContain("list_executions");
     expect(registeredNames).toContain("create_workflow_from_template");
+  });
+
+  it("sets a title and read/destructive hints on every tool", () => {
+    const server = createMcpServer(mockDb, mockUser);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const registerToolMock = (server as any)._registerToolMock;
+
+    const expectedHints: Record<
+      string,
+      { readOnlyHint: boolean; destructiveHint: boolean }
+    > = {
+      list_node_types: { readOnlyHint: true, destructiveHint: false },
+      list_ai_models: { readOnlyHint: true, destructiveHint: false },
+      list_workflows: { readOnlyHint: true, destructiveHint: false },
+      get_workflow: { readOnlyHint: true, destructiveHint: false },
+      get_execution: { readOnlyHint: true, destructiveHint: false },
+      list_executions: { readOnlyHint: true, destructiveHint: false },
+      create_workflow: { readOnlyHint: false, destructiveHint: false },
+      add_node: { readOnlyHint: false, destructiveHint: false },
+      connect_nodes: { readOnlyHint: false, destructiveHint: false },
+      create_workflow_from_template: {
+        readOnlyHint: false,
+        destructiveHint: false,
+      },
+      update_workflow: { readOnlyHint: false, destructiveHint: true },
+      update_node: { readOnlyHint: false, destructiveHint: true },
+      delete_workflow: { readOnlyHint: false, destructiveHint: true },
+      remove_node: { readOnlyHint: false, destructiveHint: true },
+      remove_connection: { readOnlyHint: false, destructiveHint: true },
+      execute_workflow: { readOnlyHint: false, destructiveHint: true },
+    };
+
+    const registered = new Map<string, {
+      title?: string;
+      annotations?: {
+        title?: string;
+        readOnlyHint?: boolean;
+        destructiveHint?: boolean;
+      };
+    }>();
+
+    for (const call of registerToolMock.mock.calls as unknown[][]) {
+      registered.set(call[0] as string, call[1] as {
+        title?: string;
+        annotations?: {
+          title?: string;
+          readOnlyHint?: boolean;
+          destructiveHint?: boolean;
+        };
+      });
+    }
+
+    expect([...registered.keys()].sort()).toEqual(
+      Object.keys(expectedHints).sort()
+    );
+
+    for (const [name, hints] of Object.entries(expectedHints)) {
+      const config = registered.get(name);
+      expect(config?.title).toEqual(expect.any(String));
+      expect(config?.title?.length).toBeGreaterThan(0);
+      expect(config?.annotations).toEqual({
+        title: config?.title,
+        readOnlyHint: hints.readOnlyHint,
+        destructiveHint: hints.destructiveHint,
+      });
+    }
   });
 
   it("uses provided host option for execute_workflow", () => {

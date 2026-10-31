@@ -7,6 +7,7 @@ import { blogPostsTable, usersTable } from '@/schema';
 import { eq, desc } from 'drizzle-orm';
 import { GODMODE_EMAILS } from '@/lib/constants';
 import type { Metadata } from "next";
+import { getCanonicalSiteOrigin } from "@/lib/site";
 
 interface BlogPageProps {
   searchParams: Promise<{ page?: string }>;
@@ -16,10 +17,14 @@ export const metadata: Metadata = {
   title: "Blog | ZeitFlow",
   description: "Insights, tutorials, and updates on AI workflow automation",
   keywords: "AI workflow automation, prompt chains, AI automation, productivity, artificial intelligence",
+  alternates: {
+    canonical: "/blog",
+  },
   openGraph: {
     title: "Blog | ZeitFlow",
     description: "Insights, tutorials, and updates on AI workflow automation",
     type: "website",
+    url: "/blog",
   },
   twitter: {
     card: "summary",
@@ -105,9 +110,9 @@ export default async function Blog({ searchParams }: BlogPageProps) {
   const page = parseInt(resolvedSearchParams.page || '1');
   const { posts, currentPage, totalPages, hasNext, hasPrevious } = await getBlogPosts(page);
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.zeitflow.io';
+  const baseUrl = getCanonicalSiteOrigin();
   const canonicalUrl = `${baseUrl}/blog`;
-  const defaultImage = `${baseUrl}/logo.svg`;
+  const defaultImage = `${baseUrl}/logo-on-black.png`;
 
   const structuredData = {
     "@context": "https://schema.org",

@@ -14,6 +14,7 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync } from "fs";
 import { join } from "path";
 import { homedir } from "os";
 import { createInterface } from "readline";
+import { canonicalizeBaseUrl } from "./url.js";
 
 // ---------------------------------------------------------------------------
 // Config
@@ -59,9 +60,9 @@ function requireToken(): string {
 }
 
 function getBaseUrl(): string {
-  return (
+  return canonicalizeBaseUrl(
     process.env.ZEITFLOW_URL || loadConfig().url || DEFAULT_URL
-  ).replace(/\/$/, "");
+  );
 }
 
 // ---------------------------------------------------------------------------

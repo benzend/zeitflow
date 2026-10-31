@@ -10,11 +10,15 @@ export const metadata: Metadata = {
   title: "Guides | ZeitFlow",
   description:
     "Step-by-step guides for integrating and automating with ZeitFlow",
+  alternates: {
+    canonical: "/guides",
+  },
   openGraph: {
     title: "Guides | ZeitFlow",
     description:
       "Step-by-step guides for integrating and automating with ZeitFlow",
     type: "website",
+    url: "/guides",
   },
 };
 

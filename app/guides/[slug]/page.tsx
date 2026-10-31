@@ -5,6 +5,7 @@ import { calculateReadingTime } from "@/lib/reading-time";
 import { getGuide, getAllGuides } from "@/lib/guides";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { getCanonicalSiteOrigin } from "@/lib/site";
 
 interface GuidePageProps {
   params: Promise<{ slug: string }>;
@@ -27,8 +28,7 @@ export async function generateMetadata({
     };
   }
 
-  const baseUrl =
-    process.env.NEXT_PUBLIC_APP_URL || "https://www.zeitflow.io";
+  const baseUrl = getCanonicalSiteOrigin();
   const canonicalUrl = `${baseUrl}/guides/${guide.slug}`;
 
   return {
@@ -75,8 +75,7 @@ export default async function GuidePage({ params }: GuidePageProps) {
     return `${months[date.getUTCMonth()]} ${date.getUTCDate()}, ${date.getUTCFullYear()}`;
   };
 
-  const baseUrl =
-    process.env.NEXT_PUBLIC_APP_URL || "https://www.zeitflow.io";
+  const baseUrl = getCanonicalSiteOrigin();
   const canonicalUrl = `${baseUrl}/guides/${guide.slug}`;
 
   const structuredData = {

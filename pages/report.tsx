@@ -1,5 +1,6 @@
 "use client";
 import { Footer } from "@/components/Footer";
+import { getCanonicalSiteOrigin } from "@/lib/site";
 import Navigation from "@/components/Navigation"
 import Head from "next/head"
 import { useState } from "react";
@@ -86,11 +87,11 @@ export default function Report() {
         <meta property="og:title" content="Report Content - ZeitFlow" />
         <meta property="og:description" content="Report copyright infringement, illegal content, or Terms of Service violations." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'}/report`} />
-        <meta property="og:image" content={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'}/logo-on-black.png`} />
+        <meta property="og:url" content={`${getCanonicalSiteOrigin()}/report`} />
+        <meta property="og:image" content={`${getCanonicalSiteOrigin()}/logo-on-black.png`} />
         <meta property="og:site_name" content="ZeitFlow" />
         <meta name="robots" content="index, follow" />
-        <link rel="canonical" href={`${process.env.NEXT_PUBLIC_URL || 'https://zeitflow.io'}/report`} />
+        <link rel="canonical" href={`${getCanonicalSiteOrigin()}/report`} />
       </Head>
       <Navigation />
       <main className="max-w-4xl mx-auto px-4 py-16 mt-10">
@@ -261,7 +262,7 @@ export default function Report() {
                         id="infringingUrl"
                         name="infringingUrl"
                         required
-                        placeholder="https://zeitflow.io/templates/..."
+                        placeholder="https://www.zeitflow.io/templates/..."
                         value={formData.infringingUrl}
                         onChange={handleChange}
                         className="w-full px-3 py-2 border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"

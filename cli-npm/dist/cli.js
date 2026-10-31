@@ -15,6 +15,7 @@ const fs_1 = require("fs");
 const path_1 = require("path");
 const os_1 = require("os");
 const readline_1 = require("readline");
+const url_js_1 = require("./url.js");
 const CONFIG_DIR = (0, path_1.join)((0, os_1.homedir)(), ".zeitflow");
 const CONFIG_PATH = (0, path_1.join)(CONFIG_DIR, "config.json");
 const DEFAULT_URL = "https://www.zeitflow.io";
@@ -44,7 +45,7 @@ function requireToken() {
     return token;
 }
 function getBaseUrl() {
-    return (process.env.ZEITFLOW_URL || loadConfig().url || DEFAULT_URL).replace(/\/$/, "");
+    return (0, url_js_1.canonicalizeBaseUrl)(process.env.ZEITFLOW_URL || loadConfig().url || DEFAULT_URL);
 }
 // ---------------------------------------------------------------------------
 // HTTP client

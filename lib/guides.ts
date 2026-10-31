@@ -1,3 +1,5 @@
+import { CANONICAL_MCP_URL } from "@/lib/site";
+
 export interface Guide {
   slug: string;
   title: string;
@@ -57,7 +59,7 @@ Works with any MCP client that supports Streamable HTTP (Claude Desktop, Claude 
 {
   "mcpServers": {
     "zeitflow": {
-      "serverUrl": "https://www.zeitflow.io/api/mcp",
+      "serverUrl": "${CANONICAL_MCP_URL}",
       "headers": {
         "Authorization": "Bearer your-api-token-here"
       }
@@ -71,7 +73,7 @@ No local setup, no database URL, no dependencies. Just paste and go.
 ### Option B: Claude Code CLI one-liner
 
 \`\`\`bash
-claude mcp add zeitflow --transport http "https://www.zeitflow.io/api/mcp" --header "Authorization: Bearer your-api-token-here"
+claude mcp add zeitflow --transport http "${CANONICAL_MCP_URL}" --header "Authorization: Bearer your-api-token-here"
 \`\`\`
 
 ### Option C: npx (for stdio-only clients)

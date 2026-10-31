@@ -10,6 +10,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { getCanonicalSiteOrigin } from "@/lib/site";
 
 interface BlogPostData {
   id: number;
@@ -99,9 +100,9 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
   const metaDescription = post.excerpt || (post.content ? post.content.substring(0, 160).replace(/[#*`]/g, '').trim() + '...' : '');
   const authorName = post.author.isAdmin ? 'ZeitFlow' : post.author.name;
   
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.zeitflow.io';
+  const baseUrl = getCanonicalSiteOrigin();
   const canonicalUrl = `${baseUrl}/blog/${post.slug}`;
-  const defaultImage = `${baseUrl}/logo.svg`;
+  const defaultImage = `${baseUrl}/logo-on-black.png`;
 
   return {
     title: `${post.title} | ZeitFlow Blog`,
@@ -121,7 +122,7 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
       siteName: 'ZeitFlow',
     },
     twitter: {
-      card: 'summary_large_image',
+      card: 'summary',
       title: post.title,
       description: metaDescription,
       images: post.featuredImage ? [post.featuredImage] : [defaultImage],
@@ -149,9 +150,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const publishedDate = post.publishedAt ? new Date(post.publishedAt).toISOString() : '';
   const modifiedDate = post.updatedAt ? new Date(post.updatedAt).toISOString() : '';
   
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.zeitflow.io';
+  const baseUrl = getCanonicalSiteOrigin();
   const canonicalUrl = `${baseUrl}/blog/${post.slug}`;
-  const defaultImage = `${baseUrl}/logo.svg`;
+  const defaultImage = `${baseUrl}/logo-on-black.png`;
 
   const structuredData = {
     "@context": "https://schema.org",

@@ -1,21 +1,35 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { wellKnownDiscoveryBody } from "@/lib/well-known-oauth";
 
 /**
- * Return 401 for OAuth/.well-known discovery paths.
+ * Answer /.well-known probes with public JSON.
  *
- * MCP clients (Claude Code, Cursor, etc.) probe these paths before connecting.
- * If they receive 404 HTML they crash with "Invalid OAuth error response".
- * Returning 401 tells the client that OAuth is not available and it should
- * fall back to the Bearer-token auth it already has configured.
+ * MCP clients request OAuth discovery documents before connecting. An HTML 404
+ * makes some of them throw "Invalid OAuth error response". A 401 makes the
+ * documents look authentication-gated, which fails registry checks that require
+ * discovery URLs to be publicly readable.
+ *
+ * ZeitFlow does not implement an MCP OAuth authorization server, so these
+ * routes return 404 JSON explaining that. They do not advertise issuer,
+ * authorization, or token endpoints.
  */
 export function middleware(request: NextRequest) {
-  return NextResponse.json(
-    { error: "unauthorized" },
-    { status: 401, headers: { "WWW-Authenticate": "Bearer" } }
-  );
+  const { status, body } = wellKnownDiscoveryBody(request.nextUrl.pathname);
+
+  return NextResponse.json(body, {
+    status,
+    headers: {
+      "Cache-Control": "public, max-age=300",
+    },
+  });
 }
 
 export const config = {
-  matcher: ["/.well-known/:path*"],
+  matcher: [
+    "/.well-known/oauth-protected-resource",
+    "/.well-known/oauth-protected-resource/:path*",
+    "/.well-known/oauth-authorization-server",
+    "/.well-known/oauth-authorization-server/:path*",
+  ],
 };

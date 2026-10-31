@@ -1,34 +1,52 @@
-import { GetServerSideProps } from 'next';
-import { db } from '@/lib/db';
-import { blogPostsTable } from '@/schema';
-import { eq } from 'drizzle-orm';
+import { GetServerSideProps } from "next";
+import { db } from "@/lib/db";
+import { blogPostsTable } from "@/schema";
+import { eq } from "drizzle-orm";
+import { getAllGuides } from "@/lib/guides";
+import { getCanonicalSiteOrigin } from "@/lib/site";
+import {
+  PUBLIC_STATIC_PATHS,
+  isPublicSitemapPath,
+  sitemapChangeFreq,
+  sitemapPriority,
+  sitemapStaticLastMod,
+} from "@/lib/sitemap-entries";
 
 export default function Sitemap() {
-  // This component is never actually rendered
   return null;
 }
 
+function renderUrl(origin: string, path: string, lastmod: string): string {
+  return `  <url>
+    <loc>${origin}${path}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>${sitemapChangeFreq(path)}</changefreq>
+    <priority>${sitemapPriority(path)}</priority>
+  </url>`;
+}
+
 export const getServerSideProps: GetServerSideProps = async ({ res }) => {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://zeitflow.io';
-  
+  const origin = getCanonicalSiteOrigin();
+  const staticLastMod = sitemapStaticLastMod();
+  const pages = new Map<string, string>();
+  let blogPostsLoaded = true;
+
+  const add = (path: string, lastmod: string) => {
+    if (!isPublicSitemapPath(path) || pages.has(path)) return;
+    pages.set(path, lastmod);
+  };
+
+  for (const path of PUBLIC_STATIC_PATHS) {
+    add(path, staticLastMod);
+  }
+  for (const guide of getAllGuides()) {
+    add(
+      `/guides/${guide.slug}`,
+      new Date(`${guide.updatedAt}T00:00:00.000Z`).toISOString()
+    );
+  }
+
   try {
-    // Static pages that should be included in sitemap
-    const staticPages = [
-      '',
-      '/pricing',
-      '/terms',
-      '/privacy',
-      '/release-notes',
-    ];
-
-    // Authentication pages
-    const authPages = [
-      '/auth/signin',
-      '/auth/register',
-      '/auth/verify',
-    ];
-
-    // Get published blog posts from database
     const blogPosts = await db
       .select({
         slug: blogPostsTable.slug,
@@ -38,92 +56,32 @@ export const getServerSideProps: GetServerSideProps = async ({ res }) => {
       .from(blogPostsTable)
       .where(eq(blogPostsTable.published, true));
 
-    // Create blog page URLs
-    const blogPages = blogPosts.map(post => `/blog/${post.slug}`);
-    
-    // Protected/app pages (we'll include them but search engines may not index them)
-    const protectedPages = [
-      '/dashboard',
-      '/workflows',
-      '/settings',
-      '/assets',
-      '/blog',
-      '/blog/create',
-      '/blog/manage',
-      '/test-workflow',
-    ];
-
-    // Combine all pages
-    const allPages = [...staticPages, ...authPages, ...blogPages, ...protectedPages];
-
-    // Generate sitemap XML
-    const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${allPages.map((page) => {
-  const url = `${baseUrl}${page}`;
-  
-  // Find matching blog post for lastmod date
-  const blogPost = blogPosts.find(post => page === `/blog/${post.slug}`);
-  const lastmod = blogPost ? 
-    (blogPost.publishedAt || blogPost.updatedAt).toISOString() : 
-    new Date().toISOString();
-  
-  const priority = page === '' ? '1.0' : 
-                  page.startsWith('/blog/') && !page.startsWith('/blog/create') && !page.startsWith('/blog/manage') ? '0.9' :
-                  page.startsWith('/auth/') ? '0.6' :
-                  protectedPages.includes(page) ? '0.7' : '0.8';
-  
-  const changefreq = page === '' ? 'daily' : 
-                     page.startsWith('/blog/') && !page.startsWith('/blog/create') && !page.startsWith('/blog/manage') ? 'weekly' :
-                     page.startsWith('/auth/') ? 'monthly' :
-                     protectedPages.includes(page) ? 'weekly' : 'monthly';
-  
-  return `  <url>
-    <loc>${url}</loc>
-    <lastmod>${lastmod}</lastmod>
-    <changefreq>${changefreq}</changefreq>
-    <priority>${priority}</priority>
-  </url>`;
-}).join('\n')}
-</urlset>`;
-
-    res.setHeader('Content-Type', 'text/xml');
-    res.write(sitemap);
-    res.end();
-
+    for (const post of blogPosts) {
+      const stamp = post.updatedAt ?? post.publishedAt;
+      if (!stamp) continue;
+      add(`/blog/${post.slug}`, stamp.toISOString());
+    }
   } catch (error) {
-    // Fallback to basic sitemap if database query fails
-    const fallbackPages = [
-      '',
-      '/pricing',
-      '/terms',
-      '/privacy',
-      '/release-notes',
-      '/auth/signin',
-      '/auth/register',
-      '/auth/verify',
-    ];
+    blogPostsLoaded = false;
+    console.error("Failed to load published blog posts for the sitemap", error);
+  }
 
-    const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${fallbackPages.map((page) => {
-  const url = `${baseUrl}${page}`;
-  const priority = page === '' ? '1.0' : page.startsWith('/auth/') ? '0.6' : '0.8';
-  const changefreq = page === '' ? 'daily' : page.startsWith('/auth/') ? 'monthly' : 'monthly';
-  
-  return `  <url>
-    <loc>${url}</loc>
-    <lastmod>${new Date().toISOString()}</lastmod>
-    <changefreq>${changefreq}</changefreq>
-    <priority>${priority}</priority>
-  </url>`;
-}).join('\n')}
+${[...pages.entries()]
+  .map(([path, lastmod]) => renderUrl(origin, path, lastmod))
+  .join("\n")}
 </urlset>`;
 
-    res.setHeader('Content-Type', 'text/xml');
-    res.write(sitemap);
-    res.end();
-  }
+  res.setHeader("Content-Type", "text/xml");
+  res.setHeader(
+    "Cache-Control",
+    blogPostsLoaded
+      ? "public, max-age=3600, s-maxage=3600"
+      : "public, max-age=0, s-maxage=60"
+  );
+  res.write(sitemap);
+  res.end();
 
   return {
     props: {},

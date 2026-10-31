@@ -1,4 +1,5 @@
 import { db } from '../lib/db';
+import { getCanonicalSiteOrigin, readConfiguredPublicOrigin } from '../lib/site';
 import { assetsTable } from '../schema';
 import { eq, or, isNull } from 'drizzle-orm';
 import { readFile } from 'fs/promises';
@@ -44,11 +45,13 @@ async function processExistingAssets() {
 
     let processedCount = 0;
     let errorCount = 0;
+    const baseUrl = readConfiguredPublicOrigin()
+      ? getCanonicalSiteOrigin()
+      : process.env.HOST || 'http://localhost:3000';
 
     for (const asset of assetsWithoutDimensions) {
       try {
         // Extract local file path from URL
-        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.HOST || 'http://localhost:3000';
         const relativeUrl = asset.url.replace(baseUrl + '/uploads/', '');
         const filePath = path.join(process.cwd(), 'public', 'uploads', relativeUrl);
 
