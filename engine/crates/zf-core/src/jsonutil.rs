@@ -151,11 +151,34 @@ fn write_json(out: &mut String, value: &Value) {
             out.push(']');
         }
         Value::Object(map) => {
+            // JSON.stringify lists canonical array indexes first, ascending,
+            // then every other key in insertion order.
+            let mut indexes: Vec<(u32, &str, &Value)> = Vec::new();
+            let mut rest: Vec<(&str, &Value)> = Vec::new();
+            for (key, child) in map {
+                if let Some(index) = canonical_array_index(key) {
+                    indexes.push((index, key, child));
+                } else {
+                    rest.push((key, child));
+                }
+            }
+            indexes.sort_by_key(|(index, _, _)| *index);
             out.push('{');
-            for (index, (key, child)) in map.iter().enumerate() {
-                if index > 0 {
+            let mut wrote = false;
+            for (_, key, child) in indexes {
+                if wrote {
                     out.push(',');
                 }
+                wrote = true;
+                write_json_string(out, key);
+                out.push(':');
+                write_json(out, child);
+            }
+            for (key, child) in rest {
+                if wrote {
+                    out.push(',');
+                }
+                wrote = true;
                 write_json_string(out, key);
                 out.push(':');
                 write_json(out, child);
@@ -163,6 +186,22 @@ fn write_json(out: &mut String, value: &Value) {
             out.push('}');
         }
     }
+}
+
+/// A canonical array index is the decimal form of an integer in `0 .. 2^32 - 1`
+/// with no leading zeros. `JSON.stringify` emits those keys first.
+fn canonical_array_index(key: &str) -> Option<u32> {
+    if key.is_empty() || (key.len() > 1 && key.starts_with('0')) || key.len() > 10 {
+        return None;
+    }
+    if !key.bytes().all(|byte| byte.is_ascii_digit()) {
+        return None;
+    }
+    let value: u64 = key.parse().ok()?;
+    if value >= 0xFFFF_FFFF {
+        return None;
+    }
+    u32::try_from(value).ok()
 }
 
 fn write_json_string(out: &mut String, text: &str) {
@@ -212,8 +251,26 @@ mod tests {
     }
 
     #[test]
-    fn stringify_preserves_key_order_and_escapes() {
+    fn stringify_preserves_non_index_key_order_and_escapes() {
         let value = json!({"b": 1, "a": "x\"y"});
         assert_eq!(js_json_stringify(&value), r#"{"b":1,"a":"x\"y"}"#);
+    }
+
+    #[test]
+    fn stringify_emits_array_indexes_first() {
+        let value = json!({"b": 1, "10": "ten", "2": "two", "a": "ay", "01": "padded"});
+        assert_eq!(
+            js_json_stringify(&value),
+            r#"{"2":"two","10":"ten","b":1,"a":"ay","01":"padded"}"#
+        );
+        let mut edge = serde_json::Map::new();
+        edge.insert("b".to_string(), json!(1));
+        edge.insert("4294967295".to_string(), json!("nope"));
+        edge.insert("4294967294".to_string(), json!("max"));
+        edge.insert("02".to_string(), json!("pad"));
+        assert_eq!(
+            js_json_stringify(&Value::Object(edge)),
+            r#"{"4294967294":"max","b":1,"4294967295":"nope","02":"pad"}"#
+        );
     }
 }

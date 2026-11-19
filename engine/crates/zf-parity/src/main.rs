@@ -28,9 +28,18 @@ fn main() -> ExitCode {
 
 fn run() -> Result<(), String> {
     let mut args = std::env::args().skip(1);
-    let Some(dir) = args.next() else {
-        return Err("usage: zf-parity <fixtures-dir>".to_string());
+    let Some(first) = args.next() else {
+        return Err(
+            "usage: zf-parity <fixtures-dir> | zf-parity --substitute <cases.json>".to_string(),
+        );
     };
+    if first == "--substitute" {
+        let Some(path) = args.next() else {
+            return Err("usage: zf-parity --substitute <cases.json>".to_string());
+        };
+        return substitute_file(&path);
+    }
+    let dir = first;
 
     let mut paths = Vec::new();
     let entries = std::fs::read_dir(&dir).map_err(|err| format!("read {dir}: {err}"))?;
@@ -53,6 +62,24 @@ fn run() -> Result<(), String> {
         results.push(replay_file(&path)?);
     }
 
+    let payload = serde_json::json!({ "results": results });
+    serde_json::to_writer(std::io::stdout(), &payload).map_err(|err| err.to_string())?;
+    println!();
+    Ok(())
+}
+
+fn substitute_file(path: &str) -> Result<(), String> {
+    let text = std::fs::read_to_string(path).map_err(|err| format!("{path}: {err}"))?;
+    let cases: Vec<SubstituteCase> =
+        serde_json::from_str(&text).map_err(|err| format!("{path}: {err}"))?;
+    let mut results = Vec::with_capacity(cases.len());
+    for case in cases {
+        let output = zf_core::substitute_variables(&case.template, &case.variables);
+        results.push(SubstituteOutput {
+            id: case.id,
+            output,
+        });
+    }
     let payload = serde_json::json!({ "results": results });
     serde_json::to_writer(std::io::stdout(), &payload).map_err(|err| err.to_string())?;
     println!();
@@ -141,4 +168,17 @@ struct LooseNode {
 struct NamedResult {
     name: String,
     result: ReplayResult,
+}
+
+#[derive(Debug, Deserialize)]
+struct SubstituteCase {
+    id: String,
+    template: String,
+    variables: Value,
+}
+
+#[derive(Debug, serde::Serialize)]
+struct SubstituteOutput {
+    id: String,
+    output: String,
 }

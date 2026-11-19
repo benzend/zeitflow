@@ -5,13 +5,14 @@
  *   pnpm tsx engine/scripts/parity.ts
  *
  * Exits 0 when every fixture produces the same validation outcome, execution
- * order, collected variables, and substituted config. Also checks the known
- * places where execute.ts and lib/integrations/executor.ts disagree, and
- * checks that zf-core follows execute.ts on those strings.
+ * order, collected variables, and substituted config. The documented
+ * substitution samples, including `$'`, `$$`, `$1`, and a dotted own key,
+ * are also run through `zf-parity --substitute` and must match execute.ts.
  */
 
 import { spawnSync } from "node:child_process";
-import { readdirSync, readFileSync } from "node:fs";
+import { mkdtempSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -89,8 +90,8 @@ interface RustPayload {
   results: Array<{ name: string; result: ReplayResult }>;
 }
 
-function rustResults(): Map<string, ReplayResult> {
-  const cargo = spawnSync("cargo", ["run", "--quiet", "-p", "zf-parity", "--", fixturesDir], {
+function runParity(args: string[]): unknown {
+  const cargo = spawnSync("cargo", ["run", "--quiet", "-p", "zf-parity", "--", ...args], {
     cwd: engineDir,
     encoding: "utf8",
   });
@@ -98,21 +99,30 @@ function rustResults(): Map<string, ReplayResult> {
     throw cargo.error;
   }
   if (cargo.status !== 0) {
-    throw new Error(`zf-parity exited ${cargo.status}\n${cargo.stderr}`);
+    throw new Error(`zf-parity ${args.join(" ")} exited ${cargo.status}\n${cargo.stderr}`);
   }
-  const payload = JSON.parse(cargo.stdout) as RustPayload;
+  return JSON.parse(cargo.stdout) as unknown;
+}
+
+function rustResults(): Map<string, ReplayResult> {
+  const payload = runParity([fixturesDir]) as RustPayload;
   return new Map(payload.results.map((item) => [item.name, item.result]));
 }
 
-interface Discrepancy {
+interface Sample {
   id: string;
   template: string;
   variables: Record<string, unknown>;
+  /** Result of the execute.ts substituter, which zf-core must match. */
   execute: string;
-  executor: string;
+  /**
+   * Result of lib/integrations/executor.ts when the two implementations disagree.
+   * Omitted when they already agree (for example `$1`, which neither treats as a capture).
+   */
+  executor?: string;
 }
 
-const discrepancies: Discrepancy[] = [
+const samples: Sample[] = [
   {
     id: "missing-placeholder",
     template: "Hello {{name}}",
@@ -142,11 +152,31 @@ const discrepancies: Discrepancy[] = [
     executor: "{{b}} X",
   },
   {
-    id: "dollar-patterns",
+    id: "dollar-match",
     template: "x{{v}}y",
     variables: { v: "$&" },
     execute: "x{{v}}y",
     executor: "x$&y",
+  },
+  {
+    id: "dollar-suffix",
+    template: "x{{v}}y",
+    variables: { v: "$'" },
+    execute: "xyy",
+    executor: "x$'y",
+  },
+  {
+    id: "dollar-escape",
+    template: "x{{v}}y",
+    variables: { v: "$$" },
+    execute: "x$y",
+    executor: "x$$y",
+  },
+  {
+    id: "dollar-capture",
+    template: "x{{v}}y",
+    variables: { v: "$1" },
+    execute: "x$1y",
   },
   {
     id: "dotted-own-key",
@@ -162,19 +192,41 @@ async function assertDiscrepancies(): Promise<void> {
   const executorModule = await import("../../lib/integrations/executor");
   const substituteExecutor = executorModule.substituteVariables;
   const failures: string[] = [];
-  for (const sample of discrepancies) {
+  for (const sample of samples) {
     const execute = substituteExecute(sample.template, sample.variables);
-    const executor = substituteExecutor(sample.template, sample.variables);
     if (execute !== sample.execute) {
       failures.push(`${sample.id}: execute.ts produced ${JSON.stringify(execute)}, expected ${JSON.stringify(sample.execute)}`);
     }
-    if (executor !== sample.executor) {
-      failures.push(`${sample.id}: executor.ts produced ${JSON.stringify(executor)}, expected ${JSON.stringify(sample.executor)}`);
-    }
-    if (execute === executor) {
-      failures.push(`${sample.id}: the two TypeScript substituters unexpectedly agree`);
+    if (sample.executor !== undefined) {
+      const executor = substituteExecutor(sample.template, sample.variables);
+      if (executor !== sample.executor) {
+        failures.push(`${sample.id}: executor.ts produced ${JSON.stringify(executor)}, expected ${JSON.stringify(sample.executor)}`);
+      }
+      if (execute === executor) {
+        failures.push(`${sample.id}: the two TypeScript substituters unexpectedly agree`);
+      }
     }
   }
+
+  const dir = mkdtempSync(path.join(tmpdir(), "zf-substitute-"));
+  const casesPath = path.join(dir, "cases.json");
+  writeFileSync(
+    casesPath,
+    JSON.stringify(samples.map(({ id, template, variables }) => ({ id, template, variables }))),
+  );
+  const rust = runParity(["--substitute", casesPath]) as {
+    results: Array<{ id: string; output: string }>;
+  };
+  const byId = new Map(rust.results.map((item) => [item.id, item.output]));
+  for (const sample of samples) {
+    const output = byId.get(sample.id);
+    if (output !== sample.execute) {
+      failures.push(
+        `${sample.id}: zf-core produced ${JSON.stringify(output)}, execute.ts is ${JSON.stringify(sample.execute)}`,
+      );
+    }
+  }
+
   if (failures.length > 0) {
     throw new Error(`substitution discrepancies drifted:\n${failures.join("\n")}`);
   }

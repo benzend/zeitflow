@@ -59,7 +59,9 @@ The dump can still contain prompts and form payloads. It is gitignored. Secret-s
 | Value contains `$&`, `$'`, `` $` ``, `$$` | Expanded like `String.prototype.replace` | Left as written (function replacer) |
 | Variables contain both an own key `"a.b"` and a nested `a.b` | Walks the path (`nested`) | Own key wins (`direct`) |
 
-Shared behavior, which both sides and `zf-core` implement: `{{node.field}}` paths, `JSON.stringify` for objects and arrays, `String()` for numbers and booleans, no second scan of a value that does not itself contain a placeholder that was already in the original template.
+Shared behavior, which both sides and `zf-core` implement: `{{node.field}}` paths, `JSON.stringify` for objects and arrays (canonical array-index keys first, then the rest in insertion order), `String()` for numbers and booleans, no second scan of a value that does not itself contain a placeholder that was already in the original template.
+
+`next build` typechecks the root `tsconfig`, which excludes `engine/` and `scripts/export-workflow-fixtures.ts`. Those files are tooling, not part of the Next.js program. The export script imports `pg`, which has no declarations in this app.
 
 `collectAvailableVariables` is only in the execute.ts path. Integration executors receive that bag and then run their own substituter. Notable shaper quirks the harness locks in:
 
