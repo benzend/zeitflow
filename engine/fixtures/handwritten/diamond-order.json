@@ -1,0 +1,72 @@
+{
+  "name": "diamond-order",
+  "nodes": [
+    {
+      "id": "a",
+      "type": "entry",
+      "label": "Start",
+      "entryType": "form"
+    },
+    {
+      "id": "b",
+      "type": "ai",
+      "label": "Bee",
+      "config": {
+        "aiConfig": {
+          "userPrompt": "b"
+        }
+      }
+    },
+    {
+      "id": "c",
+      "type": "ai",
+      "label": "Cee",
+      "config": {
+        "aiConfig": {
+          "userPrompt": "c"
+        }
+      }
+    },
+    {
+      "id": "d",
+      "type": "ai",
+      "label": "Done",
+      "config": {
+        "aiConfig": {
+          "userPrompt": "{{bee.output}}+{{cee.output}}"
+        }
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "c1",
+      "fromNodeId": "a",
+      "toNodeId": "b"
+    },
+    {
+      "id": "c2",
+      "fromNodeId": "a",
+      "toNodeId": "c"
+    },
+    {
+      "id": "c3",
+      "fromNodeId": "b",
+      "toNodeId": "d"
+    },
+    {
+      "id": "c4",
+      "fromNodeId": "c",
+      "toNodeId": "d"
+    }
+  ],
+  "inputData": {},
+  "outputs": {
+    "b": {
+      "response": "from-b"
+    },
+    "c": {
+      "response": "from-c"
+    }
+  }
+}

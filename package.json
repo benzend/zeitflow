@@ -12,7 +12,9 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "backfill-assets": "tsx scripts/backfill-assets.ts",
-    "mcp": "tsx mcp/server.ts"
+    "mcp": "tsx mcp/server.ts",
+    "export-fixtures": "tsx scripts/export-workflow-fixtures.ts",
+    "parity": "tsx engine/scripts/parity.ts"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.1",

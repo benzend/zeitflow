@@ -1,0 +1,29 @@
+{
+  "name": "invalid-entry-node",
+  "nodes": [
+    {
+      "id": "entry-1",
+      "type": "entry",
+      "label": "Start",
+      "entryType": "form"
+    },
+    {
+      "id": "child",
+      "type": "ai",
+      "label": "Child",
+      "config": {
+        "tag": "child"
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "c1",
+      "fromNodeId": "entry-1",
+      "toNodeId": "child"
+    }
+  ],
+  "inputData": {},
+  "entryNodeId": "child",
+  "outputs": {}
+}

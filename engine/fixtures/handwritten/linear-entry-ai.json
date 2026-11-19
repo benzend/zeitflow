@@ -1,0 +1,40 @@
+{
+  "name": "linear-entry-ai",
+  "nodes": [
+    {
+      "id": "entry-1",
+      "type": "entry",
+      "label": "Support Ticket",
+      "entryType": "form",
+      "config": {
+        "fields": [
+          {
+            "key": "customer_name"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ai-1",
+      "type": "ai",
+      "label": "Summarize",
+      "config": {
+        "aiConfig": {
+          "userPrompt": "Hello {{support_ticket.customer_name}}",
+          "systemPrompt": "Be brief"
+        }
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "c1",
+      "fromNodeId": "entry-1",
+      "toNodeId": "ai-1"
+    }
+  ],
+  "inputData": {
+    "customer_name": "Ada"
+  },
+  "outputs": {}
+}

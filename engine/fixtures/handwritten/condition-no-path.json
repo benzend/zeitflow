@@ -1,0 +1,60 @@
+{
+  "name": "condition-no-path",
+  "nodes": [
+    {
+      "id": "entry-1",
+      "type": "entry",
+      "label": "Start",
+      "entryType": "api"
+    },
+    {
+      "id": "check",
+      "type": "condition",
+      "label": "Check",
+      "config": {
+        "tag": "check"
+      }
+    },
+    {
+      "id": "yes",
+      "type": "ai",
+      "label": "Yes Path",
+      "config": {
+        "tag": "yes"
+      }
+    },
+    {
+      "id": "no",
+      "type": "ai",
+      "label": "No Path",
+      "config": {
+        "tag": "no"
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "c1",
+      "fromNodeId": "entry-1",
+      "toNodeId": "check"
+    },
+    {
+      "id": "c2",
+      "fromNodeId": "check",
+      "toNodeId": "yes",
+      "sourceHandle": "true"
+    },
+    {
+      "id": "c3",
+      "fromNodeId": "check",
+      "toNodeId": "no",
+      "sourceHandle": "false"
+    }
+  ],
+  "inputData": {},
+  "outputs": {
+    "check": {
+      "result": false
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "name": "unknown-entry-type",
+  "nodes": [
+    {
+      "id": "entry-1",
+      "type": "entry",
+      "label": "Start",
+      "entryType": "schedule"
+    },
+    {
+      "id": "ai-1",
+      "type": "ai",
+      "label": "Next",
+      "config": {
+        "aiConfig": {
+          "userPrompt": "Hi {{start.name}}"
+        }
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "c1",
+      "fromNodeId": "entry-1",
+      "toNodeId": "ai-1"
+    }
+  ],
+  "inputData": {
+    "name": "Ada"
+  },
+  "outputs": {}
+}

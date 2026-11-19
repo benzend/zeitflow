@@ -1,0 +1,6 @@
+# Same channel as https://github.com/benzend/rust-solid-starter.
+# Lives next to the workspace so `cargo` here uses 1.99, and the Vercel
+# Next.js build (repo root) does not try to install this toolchain.
+[toolchain]
+channel = "1.99"
+components = ["rustfmt", "clippy"]

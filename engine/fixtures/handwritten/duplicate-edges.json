@@ -1,0 +1,33 @@
+{
+  "name": "duplicate-edges",
+  "nodes": [
+    {
+      "id": "entry-1",
+      "type": "entry",
+      "label": "Start",
+      "entryType": "form"
+    },
+    {
+      "id": "ai-1",
+      "type": "ai",
+      "label": "Next",
+      "config": {
+        "tag": "next"
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "c1",
+      "fromNodeId": "entry-1",
+      "toNodeId": "ai-1"
+    },
+    {
+      "id": "c2",
+      "fromNodeId": "entry-1",
+      "toNodeId": "ai-1"
+    }
+  ],
+  "inputData": {},
+  "outputs": {}
+}

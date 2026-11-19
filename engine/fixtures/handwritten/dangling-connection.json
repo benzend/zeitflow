@@ -1,0 +1,20 @@
+{
+  "name": "dangling-connection",
+  "nodes": [
+    {
+      "id": "entry-1",
+      "type": "entry",
+      "label": "Start",
+      "entryType": "form"
+    }
+  ],
+  "connections": [
+    {
+      "id": "c1",
+      "fromNodeId": "ghost",
+      "toNodeId": "entry-1"
+    }
+  ],
+  "inputData": {},
+  "outputs": {}
+}
