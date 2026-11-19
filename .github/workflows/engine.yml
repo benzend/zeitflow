@@ -62,6 +62,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # cargo-deny shells out to cargo from the repo root, which does not
+      # see engine/rust-toolchain.toml. Install 1.99 so edition 2024 parses.
       - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: "1.99"

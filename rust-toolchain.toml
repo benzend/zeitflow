@@ -1,5 +1,0 @@
-# Same channel as https://github.com/benzend/rust-solid-starter.
-# Rustup picks this up anywhere in the repo, including engine/ and cargo-deny.
-[toolchain]
-channel = "1.99"
-components = ["rustfmt", "clippy"]

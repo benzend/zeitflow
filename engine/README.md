@@ -14,7 +14,7 @@ The pure TypeScript the API uses lives in `lib/workflow-engine.ts`. `zf-core` is
 | `fixtures/exported` | Gitignored output of the read-only DB dump. Do not commit. |
 | `bindings/` | Generated TypeScript. `cargo test` rewrites it; CI fails if the diff is dirty. |
 
-Conventions follow [rust-solid-starter](https://github.com/benzend/rust-solid-starter): Rust 1.99 (pinned in the repo-root `rust-toolchain.toml`), edition 2024, `unsafe_code` forbidden, `thiserror`, `tracing`, and CI for fmt, clippy `-D warnings`, tests, and cargo-deny.
+Conventions follow [rust-solid-starter](https://github.com/benzend/rust-solid-starter): Rust 1.99 (pinned in `engine/rust-toolchain.toml`), edition 2024, `unsafe_code` forbidden, `thiserror`, `tracing`, and CI for fmt, clippy `-D warnings`, tests, and cargo-deny. The toolchain file stays in this directory so the Vercel Next.js build does not try to install Rust.
 
 ## Commands
 
