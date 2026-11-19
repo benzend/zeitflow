@@ -1,0 +1,35 @@
+{
+  "name": "object-json-value",
+  "nodes": [
+    {
+      "id": "entry-1",
+      "type": "entry",
+      "label": "Item",
+      "entryType": "webhook"
+    },
+    {
+      "id": "ai-1",
+      "type": "ai",
+      "label": "Show",
+      "config": {
+        "aiConfig": {
+          "userPrompt": "{{item.meta}}"
+        }
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "c1",
+      "fromNodeId": "entry-1",
+      "toNodeId": "ai-1"
+    }
+  ],
+  "inputData": {
+    "meta": {
+      "b": 1,
+      "a": "x"
+    }
+  },
+  "outputs": {}
+}

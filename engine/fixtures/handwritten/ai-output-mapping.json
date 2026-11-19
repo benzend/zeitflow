@@ -1,0 +1,49 @@
+{
+  "name": "ai-output-mapping",
+  "nodes": [
+    {
+      "id": "entry-1",
+      "type": "entry",
+      "label": "Start",
+      "entryType": "form"
+    },
+    {
+      "id": "ai-1",
+      "type": "ai",
+      "label": "Draft",
+      "config": {
+        "aiConfig": {
+          "userPrompt": "draft"
+        }
+      }
+    },
+    {
+      "id": "ai-2",
+      "type": "ai",
+      "label": "Polish",
+      "config": {
+        "aiConfig": {
+          "userPrompt": "{{draft.output}}"
+        }
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "c1",
+      "fromNodeId": "entry-1",
+      "toNodeId": "ai-1"
+    },
+    {
+      "id": "c2",
+      "fromNodeId": "ai-1",
+      "toNodeId": "ai-2"
+    }
+  ],
+  "inputData": {},
+  "outputs": {
+    "ai-1": {
+      "response": "hello"
+    }
+  }
+}

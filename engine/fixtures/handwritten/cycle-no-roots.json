@@ -1,0 +1,35 @@
+{
+  "name": "cycle-no-roots",
+  "nodes": [
+    {
+      "id": "a",
+      "type": "ai",
+      "label": "A",
+      "config": {
+        "tag": "a"
+      }
+    },
+    {
+      "id": "b",
+      "type": "ai",
+      "label": "B",
+      "config": {
+        "tag": "b"
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "c1",
+      "fromNodeId": "a",
+      "toNodeId": "b"
+    },
+    {
+      "id": "c2",
+      "fromNodeId": "b",
+      "toNodeId": "a"
+    }
+  ],
+  "inputData": {},
+  "outputs": {}
+}

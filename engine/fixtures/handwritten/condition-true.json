@@ -1,0 +1,81 @@
+{
+  "name": "condition-true",
+  "nodes": [
+    {
+      "id": "entry-1",
+      "type": "entry",
+      "label": "Start",
+      "entryType": "form",
+      "config": {
+        "fields": [
+          {
+            "key": "name"
+          }
+        ]
+      }
+    },
+    {
+      "id": "check",
+      "type": "condition",
+      "label": "Check",
+      "config": {
+        "conditionConfig": {
+          "operator": "equals",
+          "leftValue": "{{start.name}}",
+          "rightValue": "Ada"
+        }
+      }
+    },
+    {
+      "id": "yes",
+      "type": "ai",
+      "label": "Yes Path",
+      "config": {
+        "aiConfig": {
+          "userPrompt": "yes {{check.result}} {{start.name}}"
+        }
+      }
+    },
+    {
+      "id": "no",
+      "type": "ai",
+      "label": "No Path",
+      "config": {
+        "aiConfig": {
+          "userPrompt": "no"
+        }
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "c1",
+      "fromNodeId": "entry-1",
+      "toNodeId": "check"
+    },
+    {
+      "id": "c2",
+      "fromNodeId": "check",
+      "toNodeId": "yes",
+      "sourceHandle": "true"
+    },
+    {
+      "id": "c3",
+      "fromNodeId": "check",
+      "toNodeId": "no",
+      "sourceHandle": "false"
+    }
+  ],
+  "inputData": {
+    "name": "Ada"
+  },
+  "outputs": {
+    "check": {
+      "success": true,
+      "result": true,
+      "path": "true",
+      "leftValue": "Ada",
+      "rightValue": "Ada"
+    }
+  }
+}

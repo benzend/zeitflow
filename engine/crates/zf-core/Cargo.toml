@@ -1,0 +1,19 @@
+[package]
+name = "zf-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+description = "Pure Zeitflow workflow core: types, graph validation, variable substitution"
+
+[dependencies]
+ryu = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+thiserror = "2"
+tracing = "0.1"
+ts-rs = { version = "12", features = ["serde-json-impl"] }
+
+[lints]
+workspace = true

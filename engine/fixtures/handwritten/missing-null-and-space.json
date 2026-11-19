@@ -1,0 +1,42 @@
+{
+  "name": "missing-null-and-space",
+  "nodes": [
+    {
+      "id": "entry-1",
+      "type": "entry",
+      "label": "Support Ticket",
+      "entryType": "api",
+      "config": {
+        "fields": [
+          {
+            "key": "customer_name"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ai-1",
+      "type": "ai",
+      "label": "Summarize",
+      "config": {
+        "aiConfig": {
+          "userPrompt": "Hello {{support_ticket.missing}}",
+          "systemPrompt": "Name {{ support_ticket.customer_name }}",
+          "note": "X{{support_ticket.nickname}}Y"
+        }
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "c1",
+      "fromNodeId": "entry-1",
+      "toNodeId": "ai-1"
+    }
+  ],
+  "inputData": {
+    "customer_name": "Ada",
+    "nickname": null
+  },
+  "outputs": {}
+}

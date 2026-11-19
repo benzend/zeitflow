@@ -1,0 +1,73 @@
+{
+  "name": "email-and-http-shapes",
+  "nodes": [
+    {
+      "id": "entry-1",
+      "type": "entry",
+      "label": "Form",
+      "entryType": "api"
+    },
+    {
+      "id": "email-1",
+      "type": "email",
+      "label": "Notify",
+      "config": {
+        "emailConfig": {
+          "subject": "Hi {{form.name}}",
+          "message": "body"
+        }
+      }
+    },
+    {
+      "id": "http-1",
+      "type": "http_request",
+      "label": "Fetch Data",
+      "config": {
+        "httpRequestConfig": {
+          "url": "https://example.test/{{form.name}}"
+        }
+      }
+    },
+    {
+      "id": "ai-1",
+      "type": "ai",
+      "label": "Summarize",
+      "config": {
+        "aiConfig": {
+          "userPrompt": "{{notify.status}} {{notify.messageId}} {{fetch_data.status}} {{fetch_data.body}} {{form.name}}"
+        }
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "c1",
+      "fromNodeId": "entry-1",
+      "toNodeId": "email-1"
+    },
+    {
+      "id": "c2",
+      "fromNodeId": "email-1",
+      "toNodeId": "http-1"
+    },
+    {
+      "id": "c3",
+      "fromNodeId": "http-1",
+      "toNodeId": "ai-1"
+    }
+  ],
+  "inputData": {
+    "name": "Ada"
+  },
+  "outputs": {
+    "email-1": {
+      "success": true,
+      "messageId": "real-id"
+    },
+    "http-1": {
+      "success": true,
+      "status": 200,
+      "body": "ok"
+    }
+  }
+}
