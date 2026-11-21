@@ -1,6 +1,20 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [
+      {
+        source: "/docs",
+        destination: "/guides",
+        permanent: true,
+      },
+      {
+        source: "/changelog",
+        destination: "/release-notes",
+        permanent: true,
+      },
+    ];
+  },
   env: {
     // Frozen when `next build` loads this file, so sitemap lastmod is not the request time.
     SITEMAP_BUILD_DATE: new Date().toISOString(),

@@ -4,6 +4,12 @@ import { getAllGuides } from "@/lib/guides";
  * App pages that require a session or are admin-only.
  * They must not be listed in the public sitemap.
  */
+/**
+ * Paths that permanently redirect to another page.
+ * They must not be listed as their own sitemap URLs.
+ */
+export const REDIRECTED_SITEMAP_PATHS = ["/docs", "/changelog"] as const;
+
 export const PRIVATE_SITEMAP_PATHS = [
   "/dashboard",
   "/workflows",
@@ -39,6 +45,9 @@ export const PUBLIC_STATIC_PATHS = [
   "/privacy",
   "/release-notes",
   "/contact",
+  "/about",
+  "/security",
+  "/llms.txt",
   "/report",
   "/integrations",
   "/guides",
@@ -62,6 +71,11 @@ export function publicGuidePaths(): string[] {
 }
 
 export function isPublicSitemapPath(path: string): boolean {
+  for (const redirected of REDIRECTED_SITEMAP_PATHS) {
+    if (path === redirected || path.startsWith(`${redirected}/`)) {
+      return false;
+    }
+  }
   for (const excluded of PRIVATE_SITEMAP_PATHS) {
     if (path === excluded || path.startsWith(`${excluded}/`)) {
       return false;
