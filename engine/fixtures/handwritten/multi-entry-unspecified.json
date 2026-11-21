@@ -1,0 +1,20 @@
+{
+  "name": "multi-entry-unspecified",
+  "nodes": [
+    {
+      "id": "entry-a",
+      "type": "entry",
+      "label": "Entry A",
+      "entryType": "form"
+    },
+    {
+      "id": "entry-b",
+      "type": "entry",
+      "label": "Entry B",
+      "entryType": "api"
+    }
+  ],
+  "connections": [],
+  "inputData": {},
+  "outputs": {}
+}

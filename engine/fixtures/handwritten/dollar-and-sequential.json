@@ -1,0 +1,34 @@
+{
+  "name": "dollar-and-sequential",
+  "nodes": [
+    {
+      "id": "entry-1",
+      "type": "entry",
+      "label": "Ticket",
+      "entryType": "form"
+    },
+    {
+      "id": "ai-1",
+      "type": "ai",
+      "label": "Draft",
+      "config": {
+        "aiConfig": {
+          "userPrompt": "{{ticket.a}} {{ticket.b}} | {{ticket.cost}}"
+        }
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "c1",
+      "fromNodeId": "entry-1",
+      "toNodeId": "ai-1"
+    }
+  ],
+  "inputData": {
+    "a": "{{ticket.b}}",
+    "b": "X",
+    "cost": "a$&b"
+  },
+  "outputs": {}
+}

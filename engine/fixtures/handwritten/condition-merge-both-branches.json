@@ -1,0 +1,91 @@
+{
+  "name": "condition-merge-both-branches",
+  "nodes": [
+    {
+      "id": "entry-1",
+      "type": "entry",
+      "label": "Start",
+      "entryType": "form"
+    },
+    {
+      "id": "check",
+      "type": "condition",
+      "label": "Check",
+      "config": {
+        "tag": "check"
+      }
+    },
+    {
+      "id": "yes",
+      "type": "ai",
+      "label": "Yes Path",
+      "config": {
+        "aiConfig": {
+          "userPrompt": "yes"
+        }
+      }
+    },
+    {
+      "id": "no",
+      "type": "ai",
+      "label": "No Path",
+      "config": {
+        "aiConfig": {
+          "userPrompt": "no"
+        }
+      }
+    },
+    {
+      "id": "merge",
+      "type": "ai",
+      "label": "Merge",
+      "config": {
+        "aiConfig": {
+          "userPrompt": "{{yes_path.output}}+{{no_path.output}}"
+        }
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "c1",
+      "fromNodeId": "entry-1",
+      "toNodeId": "check"
+    },
+    {
+      "id": "c2",
+      "fromNodeId": "check",
+      "toNodeId": "yes",
+      "sourceHandle": "true"
+    },
+    {
+      "id": "c3",
+      "fromNodeId": "check",
+      "toNodeId": "no",
+      "sourceHandle": "false"
+    },
+    {
+      "id": "c4",
+      "fromNodeId": "yes",
+      "toNodeId": "merge"
+    },
+    {
+      "id": "c5",
+      "fromNodeId": "no",
+      "toNodeId": "merge"
+    }
+  ],
+  "inputData": {},
+  "outputs": {
+    "check": {
+      "result": true,
+      "path": "true"
+    },
+    "yes": {
+      "response": "yes-out"
+    },
+    "no": {
+      "response": "no-out"
+    }
+  }
+}

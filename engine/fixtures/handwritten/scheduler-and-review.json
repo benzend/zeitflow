@@ -1,0 +1,65 @@
+{
+  "name": "scheduler-and-review",
+  "nodes": [
+    {
+      "id": "entry-1",
+      "type": "entry",
+      "label": "Start",
+      "entryType": "form"
+    },
+    {
+      "id": "sched",
+      "type": "scheduler",
+      "label": "Hold",
+      "config": {
+        "tag": "sched"
+      }
+    },
+    {
+      "id": "rev",
+      "type": "review",
+      "label": "Check",
+      "config": {
+        "tag": "rev"
+      }
+    },
+    {
+      "id": "ai-1",
+      "type": "ai",
+      "label": "Next",
+      "config": {
+        "aiConfig": {
+          "userPrompt": "{{hold.eventId}}|{{hold.eventLink}}|{{check.approved}}|{{check.feedback}}"
+        }
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "c1",
+      "fromNodeId": "entry-1",
+      "toNodeId": "sched"
+    },
+    {
+      "id": "c2",
+      "fromNodeId": "sched",
+      "toNodeId": "rev"
+    },
+    {
+      "id": "c3",
+      "fromNodeId": "rev",
+      "toNodeId": "ai-1"
+    }
+  ],
+  "inputData": {},
+  "outputs": {
+    "sched": {
+      "scheduledTime": "2026-01-01T00:00:00Z",
+      "calendarLink": "https://cal.example/1"
+    },
+    "rev": {
+      "approved": false,
+      "feedback": ""
+    }
+  }
+}

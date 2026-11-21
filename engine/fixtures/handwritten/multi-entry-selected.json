@@ -1,0 +1,69 @@
+{
+  "name": "multi-entry-selected",
+  "nodes": [
+    {
+      "id": "entry-a",
+      "type": "entry",
+      "label": "Entry A",
+      "entryType": "form"
+    },
+    {
+      "id": "entry-b",
+      "type": "entry",
+      "label": "Entry B",
+      "entryType": "api"
+    },
+    {
+      "id": "only-a",
+      "type": "ai",
+      "label": "Only A",
+      "config": {
+        "tag": "only-a"
+      }
+    },
+    {
+      "id": "only-b",
+      "type": "ai",
+      "label": "Only B",
+      "config": {
+        "tag": "only-b"
+      }
+    },
+    {
+      "id": "merge",
+      "type": "ai",
+      "label": "Merge",
+      "config": {
+        "tag": "merge",
+        "prompt": "from {{entry_a.customer_name}}"
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "c1",
+      "fromNodeId": "entry-a",
+      "toNodeId": "only-a"
+    },
+    {
+      "id": "c2",
+      "fromNodeId": "entry-a",
+      "toNodeId": "merge"
+    },
+    {
+      "id": "c3",
+      "fromNodeId": "entry-b",
+      "toNodeId": "only-b"
+    },
+    {
+      "id": "c4",
+      "fromNodeId": "entry-b",
+      "toNodeId": "merge"
+    }
+  ],
+  "inputData": {
+    "customer_name": "Ada"
+  },
+  "entryNodeId": "entry-a",
+  "outputs": {}
+}

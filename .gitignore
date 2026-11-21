@@ -40,3 +40,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Rust engine (see engine/README.md)
+engine/target
+engine/fixtures/exported/**
+!engine/fixtures/exported/.gitkeep
