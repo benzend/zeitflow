@@ -2,6 +2,7 @@ import { getGuide } from "@/lib/guides";
 import {
   PRIVATE_SITEMAP_PATHS,
   PUBLIC_STATIC_PATHS,
+  REDIRECTED_SITEMAP_PATHS,
   isPublicSitemapPath,
   publicGuidePaths,
 } from "@/lib/sitemap-entries";
@@ -37,11 +38,18 @@ describe("public sitemap paths", () => {
         "/privacy",
         "/release-notes",
         "/contact",
+        "/about",
+        "/security",
+        "/llms.txt",
         "/blog",
         "/guides",
         "/integrations",
       ])
     );
+    for (const path of REDIRECTED_SITEMAP_PATHS) {
+      expect(PUBLIC_STATIC_PATHS).not.toContain(path);
+      expect(isPublicSitemapPath(path)).toBe(false);
+    }
     for (const path of [
       "/auth/signin",
       "/auth/register",

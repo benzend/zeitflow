@@ -3,6 +3,7 @@ import { Footer } from "@/components/Footer";
 import { getCanonicalSiteOrigin } from "@/lib/site";
 import Navigation from "@/components/Navigation"
 import Head from "next/head"
+import Link from "next/link"
 
 export default function Contact() {
   return (
@@ -200,8 +201,20 @@ export default function Contact() {
             </p>
             <ul className="space-y-3">
               <li>
-                <a href="/blog" className="text-primary hover:underline font-medium">Blog &amp; Guides</a>
+                <a href="/blog" className="text-primary hover:underline font-medium">Blog</a>
                 <span className="text-text-muted"> - Tutorials, tips, and platform updates</span>
+              </li>
+              <li>
+                <Link href="/guides" className="text-primary hover:underline font-medium">Guides</Link>
+                <span className="text-text-muted"> - MCP setup and the CLI</span>
+              </li>
+              <li>
+                <Link href="/about" className="text-primary hover:underline font-medium">About</Link>
+                <span className="text-text-muted"> - What ZeitFlow is and where the source lives</span>
+              </li>
+              <li>
+                <Link href="/security" className="text-primary hover:underline font-medium">Security</Link>
+                <span className="text-text-muted"> - Encryption, tokens, and account deletion</span>
               </li>
               <li>
                 <a href="/release-notes" className="text-primary hover:underline font-medium">Release Notes</a>
