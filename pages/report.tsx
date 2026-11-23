@@ -88,7 +88,9 @@ export default function Report() {
         <meta property="og:description" content="Report copyright infringement, illegal content, or Terms of Service violations." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={`${getCanonicalSiteOrigin()}/report`} />
-        <meta property="og:image" content={`${getCanonicalSiteOrigin()}/logo-on-black.png`} />
+        <meta property="og:image" content={`${getCanonicalSiteOrigin()}/og-image.png`} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:image" content={`${getCanonicalSiteOrigin()}/og-image.png`} />
         <meta property="og:site_name" content="ZeitFlow" />
         <meta name="robots" content="index, follow" />
         <link rel="canonical" href={`${getCanonicalSiteOrigin()}/report`} />

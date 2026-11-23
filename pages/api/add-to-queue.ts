@@ -17,6 +17,7 @@ import {
   validateVariables,
 } from "@/lib/variables";
 import { eq } from "drizzle-orm";
+import { getInternalOrigin } from "@/lib/site";
 
 type ResponseData = {
   success: boolean;
@@ -188,12 +189,19 @@ export default async function handler(
       console.debug(
         `found freed space while adding queuedChain(${queuedChain[0].id}) to queue. processing now`,
       );
-      fetch(
-        `${process.env.HOST}/api/process-queued-chain?id=${queuedChain[0].id}`,
-        {
-          method: "POST",
-        },
-      );
+      const internalOrigin = getInternalOrigin();
+      if (internalOrigin) {
+        fetch(
+          `${internalOrigin}/api/process-queued-chain?id=${queuedChain[0].id}`,
+          {
+            method: "POST",
+          },
+        );
+      } else {
+        console.warn(
+          "HOST and NEXTAUTH_URL are unset. Not calling process-queued-chain."
+        );
+      }
     }
 
     return res.status(200).json({

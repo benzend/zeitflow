@@ -25,6 +25,7 @@ export async function generateMetadata({
     return {
       title: "Guide Not Found | ZeitFlow",
       description: "The guide you are looking for does not exist.",
+      robots: { index: false },
     };
   }
 
@@ -44,11 +45,20 @@ export async function generateMetadata({
       modifiedTime: guide.updatedAt,
       tags: guide.tags,
       siteName: "ZeitFlow",
+      images: [
+        {
+          url: `${baseUrl}/og-image.png`,
+          width: 1200,
+          height: 630,
+          alt: "ZeitFlow: the automation platform AI agents actually use",
+        },
+      ],
     },
     twitter: {
-      card: "summary",
+      card: "summary_large_image",
       title: guide.title,
       description: guide.excerpt,
+      images: [`${baseUrl}/og-image.png`],
     },
     alternates: {
       canonical: canonicalUrl,

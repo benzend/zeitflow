@@ -28,6 +28,7 @@ import { createInterface } from "readline";
 import { readFileSync } from "fs";
 import { join } from "path";
 import { homedir } from "os";
+import { canonicalizeBaseUrl } from "./url.js";
 
 interface ZeitFlowConfig {
   token?: string;
@@ -47,20 +48,6 @@ function loadConfigFile(): ZeitFlowConfig {
 const fileConfig = loadConfigFile();
 
 const API_TOKEN = process.env.ZEITFLOW_API_TOKEN || fileConfig.token;
-
-function canonicalizeBaseUrl(url: string): string {
-  const trimmed = url.replace(/\/$/, "");
-  try {
-    const parsed = new URL(trimmed);
-    if (parsed.hostname === "zeitflow.io") {
-      parsed.hostname = "www.zeitflow.io";
-      return parsed.toString().replace(/\/$/, "");
-    }
-  } catch {
-    return trimmed;
-  }
-  return trimmed;
-}
 
 const BASE_URL = canonicalizeBaseUrl(
   process.env.ZEITFLOW_URL || fileConfig.url || "https://www.zeitflow.io"

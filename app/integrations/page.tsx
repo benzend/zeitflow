@@ -43,6 +43,21 @@ export const metadata: Metadata = {
       "Connect ZeitFlow workflows to the tools your team already uses. 20+ integrations including Slack, GitHub, Google Sheets, Notion, Stripe, Shopify, Jira, HubSpot, Linear, and more.",
     type: "website",
     url: "/integrations",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "ZeitFlow: the automation platform AI agents actually use",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Integrations | ZeitFlow",
+    description:
+      "Connect ZeitFlow workflows to the tools your team already uses. 20+ integrations including Slack, GitHub, Google Sheets, Notion, Stripe, Shopify, Jira, HubSpot, Linear, and more.",
+    images: ["/og-image.png"],
   },
 };
 

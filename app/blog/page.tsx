@@ -13,25 +13,42 @@ interface BlogPageProps {
   searchParams: Promise<{ page?: string }>;
 }
 
-export const metadata: Metadata = {
-  title: "Blog | ZeitFlow",
-  description: "Insights, tutorials, and updates on AI workflow automation",
-  keywords: "AI workflow automation, prompt chains, AI automation, productivity, artificial intelligence",
-  alternates: {
-    canonical: "/blog",
-  },
-  openGraph: {
+export async function generateMetadata({
+  searchParams,
+}: BlogPageProps): Promise<Metadata> {
+  const resolvedSearchParams = await searchParams;
+  const page = parseInt(resolvedSearchParams.page || "1", 10);
+
+  return {
     title: "Blog | ZeitFlow",
     description: "Insights, tutorials, and updates on AI workflow automation",
-    type: "website",
-    url: "/blog",
-  },
-  twitter: {
-    card: "summary",
-    title: "Blog | ZeitFlow",
-    description: "Insights, tutorials, and updates on AI workflow automation",
-  },
-};
+    keywords: "AI workflow automation, prompt chains, AI automation, productivity, artificial intelligence",
+    alternates: {
+      canonical: "/blog",
+    },
+    openGraph: {
+      title: "Blog | ZeitFlow",
+      description: "Insights, tutorials, and updates on AI workflow automation",
+      type: "website",
+      url: "/blog",
+      images: [
+        {
+          url: "/og-image.png",
+          width: 1200,
+          height: 630,
+          alt: "ZeitFlow: the automation platform AI agents actually use",
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Blog | ZeitFlow",
+      description: "Insights, tutorials, and updates on AI workflow automation",
+      images: ["/og-image.png"],
+    },
+    robots: page > 1 ? { index: false, follow: true } : undefined,
+  };
+}
 
 // Force dynamic rendering to ensure fresh blog posts
 export const dynamic = 'force-dynamic';
@@ -111,7 +128,6 @@ export default async function Blog({ searchParams }: BlogPageProps) {
   const { posts, currentPage, totalPages, hasNext, hasPrevious } = await getBlogPosts(page);
 
   const baseUrl = getCanonicalSiteOrigin();
-  const canonicalUrl = `${baseUrl}/blog`;
   const defaultImage = `${baseUrl}/logo-on-black.png`;
 
   const structuredData = {
@@ -147,10 +163,6 @@ export default async function Blog({ searchParams }: BlogPageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <link rel="canonical" href={canonicalUrl} />
-      {page > 1 && (
-        <meta name="robots" content="noindex, follow" />
-      )}
       {hasPrevious && page > 1 && (
         <link rel="prev" href={`${baseUrl}/blog?page=${page - 1}`} />
       )}

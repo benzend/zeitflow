@@ -6,6 +6,7 @@ import { substituteVariables } from "@/lib/variables";
 import { and, asc, eq } from "drizzle-orm";
 import { config } from "dotenv";
 import { chat } from "@/lib/openrouter";
+import { getInternalOrigin } from "@/lib/site";
 
 config({ path: ".env.local" });
 
@@ -133,12 +134,19 @@ export default async function handler(
 
       if (queuedChains.length > 0) {
         console.debug("found next queued chain", queuedChains[0].id);
-        fetch(
-          `${process.env.HOST}/api/process-queued-chain?id=${queuedChains[0].id}`,
-          {
-            method: "POST",
-          },
-        );
+        const internalOrigin = getInternalOrigin();
+        if (internalOrigin) {
+          fetch(
+            `${internalOrigin}/api/process-queued-chain?id=${queuedChains[0].id}`,
+            {
+              method: "POST",
+            },
+          );
+        } else {
+          console.warn(
+            "HOST and NEXTAUTH_URL are unset. Not calling process-queued-chain."
+          );
+        }
       } else {
         console.debug("no next queued chain found");
       }
@@ -190,12 +198,19 @@ export default async function handler(
 
       // Recursively run the next chain step
       console.debug("starting next process");
-      fetch(
-        `${process.env.HOST}/api/process-queued-chain?id=${queuedChain[0].id}`,
-        {
-          method: "POST",
-        },
-      );
+      const internalOrigin = getInternalOrigin();
+      if (internalOrigin) {
+        fetch(
+          `${internalOrigin}/api/process-queued-chain?id=${queuedChain[0].id}`,
+          {
+            method: "POST",
+          },
+        );
+      } else {
+        console.warn(
+          "HOST and NEXTAUTH_URL are unset. Not calling process-queued-chain."
+        );
+      }
     } catch (error) {
       console.error("Chain operation error:", error);
       const errorMessage =
@@ -208,12 +223,19 @@ export default async function handler(
 
       // Recursively keep the process running
       console.debug("starting next process");
-      await fetch(
-        `${process.env.HOST}/api/process-queued-chain?id=${queuedChain[0].id}`,
-        {
-          method: "POST",
-        },
-      );
+      const internalOrigin = getInternalOrigin();
+      if (internalOrigin) {
+        await fetch(
+          `${internalOrigin}/api/process-queued-chain?id=${queuedChain[0].id}`,
+          {
+            method: "POST",
+          },
+        );
+      } else {
+        console.warn(
+          "HOST and NEXTAUTH_URL are unset. Not calling process-queued-chain."
+        );
+      }
     }
 
     console.debug("finished running chain steps");

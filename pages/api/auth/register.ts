@@ -5,6 +5,7 @@ import { usersTable } from '@/schema'
 import { eq } from 'drizzle-orm'
 import { vemetric } from '@/lib/vemetric-client'
 import { encrypt, hashValue } from '@/lib/encryption'
+import { getInternalOrigin } from '@/lib/site'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -50,7 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Send verification email
     try {
-      const response = await fetch(`${process.env.HOST || 'http://localhost:3000'}/api/auth/send-verification`, {
+      const response = await fetch(`${getInternalOrigin() ?? 'http://localhost:3000'}/api/auth/send-verification`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

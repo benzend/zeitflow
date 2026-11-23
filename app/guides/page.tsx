@@ -19,6 +19,21 @@ export const metadata: Metadata = {
       "Step-by-step guides for integrating and automating with ZeitFlow",
     type: "website",
     url: "/guides",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "ZeitFlow: the automation platform AI agents actually use",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Guides | ZeitFlow",
+    description:
+      "Step-by-step guides for integrating and automating with ZeitFlow",
+    images: ["/og-image.png"],
   },
 };
 

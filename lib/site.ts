@@ -53,3 +53,49 @@ export function getCanonicalSiteOrigin(): string {
   if (!raw) return CANONICAL_SITE_ORIGIN;
   return canonicalizeSiteOrigin(raw);
 }
+
+/**
+ * Host for server-to-server calls that carry tokens or secrets.
+ *
+ * Rewrites only the apex zeitflow.io host to www. Every other host is kept.
+ * A bare localhost or 127.0.0.1 value gets an http scheme. Unparseable or
+ * empty values are returned unchanged and never replaced with the public site.
+ */
+export function canonicalizeInternalHost(raw: string): string {
+  const trimmed = raw.trim();
+  if (!trimmed) {
+    console.warn(
+      "Internal host is empty. Not falling back to the public site."
+    );
+    return trimmed;
+  }
+
+  const withScheme = /^(localhost|127\.0\.0\.1)(:\d+)?$/i.test(trimmed)
+    ? `http://${trimmed}`
+    : trimmed;
+
+  let url: URL;
+  try {
+    url = new URL(withScheme);
+  } catch (error) {
+    console.warn(
+      `Invalid internal host "${raw}". Leaving it unchanged so it is not rewritten to production.`,
+      error
+    );
+    return trimmed;
+  }
+
+  if (url.hostname === "zeitflow.io") {
+    url.hostname = "www.zeitflow.io";
+  }
+  return url.origin;
+}
+
+/**
+ * HOST, then NEXTAUTH_URL. Undefined when neither is set.
+ */
+export function getInternalOrigin(): string | undefined {
+  const raw = process.env.HOST || process.env.NEXTAUTH_URL;
+  if (!raw) return undefined;
+  return canonicalizeInternalHost(raw);
+}

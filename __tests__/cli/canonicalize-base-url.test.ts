@@ -1,4 +1,5 @@
 import { canonicalizeBaseUrl } from "../../cli-npm/url";
+import { canonicalizeBaseUrl as mcpCanonicalizeBaseUrl } from "../../mcp/url";
 
 describe("canonicalizeBaseUrl", () => {
   it("rewrites the apex host to www", () => {
@@ -28,5 +29,21 @@ describe("canonicalizeBaseUrl", () => {
   it("returns an unparseable value trimmed instead of substituting www", () => {
     expect(canonicalizeBaseUrl("not a url")).toBe("not a url");
     expect(canonicalizeBaseUrl("not a url/")).toBe("not a url");
+  });
+
+  it("matches the MCP package copy", () => {
+    const samples = [
+      "https://zeitflow.io",
+      "https://zeitflow.io/",
+      "https://zeitflow.io/api/mcp",
+      "https://www.zeitflow.io",
+      "http://localhost:3000/",
+      "https://preview.example.com",
+      "not a url",
+      "not a url/",
+    ];
+    for (const sample of samples) {
+      expect(mcpCanonicalizeBaseUrl(sample)).toBe(canonicalizeBaseUrl(sample));
+    }
   });
 });
